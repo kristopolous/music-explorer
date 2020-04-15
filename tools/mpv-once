@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# we're going to restore it to this.
+start_name=$( tmux display-message -p '#W' )
+
+tmux rename-window "mpv-once"
+
+function finish {
+  tmux rename-window "$start_name"
+}
+trap finish EXIT
+
+# This allows remote control
+if [[ -n "$1" ]]; then
+  mpv $1/*mp3
+  exit
+fi
+
+echo */* | tr ' ' '\n' > .listen_all
+touch .listen_done
+for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | sort | uniq -u | shuf); do
+  n=__nothing
+  ls $i/*.mp3 > /dev/null 2>&1
+  if [[ $? == "0" ]]; then
+    while [[ 0 ]]; do
+      label=$( dirname $i )
+      [[ -e $label/domain ]] && domain=$(< $label/domain ) || domain=${label}.bandcamp.com
+      release=$( basename $i )
+      echo
+      echo https://$domain/album/$release
+      echo
+
+      mpv --start=0:45 --no-audio-display "$i"/*.mp3
+      while [[ 0 ]]; do
+        echo -n "$i >> "
+        read n
+        [[ "$n" =~ ^(q|r|s|[3-5]|pu|purge)$ ]] && break
+      done
+
+      [[ $n == 'q' ]] && exit
+      [[ $n == 'r' ]] || break
+    done
+
+    if [[ $n == 'pu' ]] || [[ $n == "purge" ]]; then 
+      album-purge $i
+      n="__purge"
+    elif [[ $n == 's' ]]; then
+      echo "Skipping ... "
+      n="__skipping"
+    else
+      n="__rating_$n"
+    fi
+  fi
+  echo $i $n $(date +%Y%m%d) >> .listen_done
+done
