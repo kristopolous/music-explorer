@@ -18,7 +18,7 @@ Let's go over what's currently included:
 
 ## Getting music
 
-This tool is label/artist based - you'll need an unknown number of gigabytes of disk space free (depending on your apetite).
+This tool is label/artist based - you'll need an *unknown number* of gigabytes of disk space free (depending on your apetite) - set aside 250 or so, disks are cheap, stop whining, it's the 2020s.
 
 The first thing to do is run `./install.sh` using a resolvable path as the arg. (`$HOME/bin` is the default)
 
