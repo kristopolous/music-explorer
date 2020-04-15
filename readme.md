@@ -78,7 +78,7 @@ Now you can see a file `cpurecords/domain` which has the real domain. This is im
 
 #### Mass updating
 
-So you go along and have say 20 labels your browsing and a week passes. You want to see what's new.  We use our clever command, in the directory, but this time with no arguments.  It will try to pull new stuff from everyone.
+So you go along and have say 20 labels you're browsing through, making it rain on a bunch of amateur musicians, and a week passes. You want to see what's new.  We use our clever command, in the directory, but this time with no arguments.  It will try to pull new stuff from everyone.
 
     $ album-get
     ♫ chrismckenzie ♫
