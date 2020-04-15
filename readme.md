@@ -14,7 +14,7 @@ It works by ... downloading entire labels from bandcamp. I know what you're sayi
 
 The abstractions are like any powerful sets of tools: your personal moral compass is the guide to how you use it.
 
-I have a number of other tools that are not being included in this system yet.  Let's go over it.
+Let's go over what's currently included:
 
 ## Getting music
 
