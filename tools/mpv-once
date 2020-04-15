@@ -35,14 +35,14 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | sort | uniq -u 
       while [[ 0 ]]; do
         echo -n "$i >> "
         read n
-        [[ "$n" =~ ^(q|r|s|[1-5]|pu|purge)$ ]] && break
+        [[ "$n" =~ ^(q|r|s|[1-5]|pu)$ ]] && break
       done
 
       [[ $n == 'q' ]] && exit
       [[ $n == 'r' ]] || break
     done
 
-    if [[ $n == 'pu' ]] || [[ $n == "purge" ]]; then 
+    if [[ $n == 'pu' ]]; then 
       album-purge "$i" $start_dir
       n="__purge"
     elif [[ $n == 's' ]]; then
