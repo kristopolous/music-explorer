@@ -35,7 +35,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | sort | uniq -u 
       while [[ 0 ]]; do
         echo -n "$i >> "
         read n
-        [[ "$n" =~ ^(q|r|s|[3-5]|pu|purge)$ ]] && break
+        [[ "$n" =~ ^(q|r|s|[1-5]|pu|purge)$ ]] && break
       done
 
       [[ $n == 'q' ]] && exit
