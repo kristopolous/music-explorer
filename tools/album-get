@@ -82,11 +82,6 @@ while [[ $# -gt 0 ]]; do
       youtube-dl -f mp3-128 -- "$url"
       echo $? > "$place"/exit-code
       echo "$(date +%Y%m%d) $place" >> "$base_path/.dl_history"
-
-    else
-      true
-      #count="✓ $count"
-      #echo "  $count $i"
     fi
   done
 done
