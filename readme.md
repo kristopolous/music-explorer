@@ -4,6 +4,8 @@ A set of tools for exploring/archiving music surrounding youtube-dl and mpv.
 
 There's also a way to navigate and control the music that uses tmux, notion, and a usb foot pedal, really. You should have id3v2 and amixer if you want to do that one.
 
+Additionally there's music-discovery navigation tools that involve discogs, search engine apis, youtube, and bandcamp. That one is done in python and has a web-interface (the code isn't here yet). Hopefully I'll get it cleaned up an presentable.
+
 Eventually this intends to be rewritten using a SQLite backend (instead of the file system as a DB which is the current approach) and url references instead of downloading the assets (as currently happen). 
 
 The system is currently based around bandcamp ... downloading entire labels from bandcamp. I know what you're saying "that sounds shady." --- I've actually spent 300% more buying music on bandcamp month over month than I did before because this tool exposes artists to me for me to buy.
