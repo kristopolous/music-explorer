@@ -24,7 +24,7 @@ The first thing to do is run `./install.sh` using a resolvable path as the arg. 
 
     $ ./install.sh
 
-Ok, that was easy. Now figure out where you want the music to go. Currently I recommend some large partition, like say a 512G SD card if you're on a laptop or a RAID array. For me I'm going to use `/sd/mp3/label`
+Ok, that was easy. Now figure out where you want the music to go. I'm going to use `/sd/mp3/label`
 
     $ mkdir -p /sd/mp3/label
     $ cd /sd/mp3/label
