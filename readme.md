@@ -71,9 +71,11 @@ It's oh so clever and sees there's nothing new.
 
 Alright, now let's say you do this for a bunch of other labels and artists. Let's add a second one, oh I dunno, say cpurecords.
 
-CPU records uses its own custom domain, https://shop.cpurecords.net/ but it is in fact, just a bandcamp site. But we use the same tool, it's once again, pretty smart.
+CPU records uses its own custom domain, https://shop.cpurecords.net/ but it is in fact, just a bandcamp site. 
 
-The syntax is a little different, we specify the url, followed by the name
+To get it we will use the same tool. It's once again, pretty smart.
+
+The syntax however is a little different: we specify the url, followed by the name:
 
     $ album-get shop.cpurecords.net cpurecords
     ♫ cpurecords ♫
