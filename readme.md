@@ -1,11 +1,10 @@
-A set of tools for exploring archiving music surrounding the following:
+# Music-Explorer
 
- * youtube-dl
- * mpv
+A set of tools for exploring/archiving music surrounding youtube-dl and mpv.
 
-There's also a way to navigate and control that uses tmux, notion, and a usb foot pedal, really. You should have id3v2 and amixer if you want to do that one.
+There's also a way to navigate and control the music that uses tmux, notion, and a usb foot pedal, really. You should have id3v2 and amixer if you want to do that one.
 
-Eventually this intends to be rewritten using SQLite and url references instead of downloading the assets (as currently happen).
+Eventually this intends to be rewritten using a SQLite backend (instead of the file system as a DB which is the current approach) and url references instead of downloading the assets (as currently happen). 
 
 The system is currently based around bandcamp ... downloading entire labels from bandcamp. I know what you're saying "that sounds shady." --- I've actually spent 300% more buying music on bandcamp month over month than I did before because this tool exposes artists to me for me to buy.
 
@@ -15,7 +14,7 @@ I have a number of other tools that are not being included in this system yet.  
 
 ## Getting music
 
-As I said this is label based. The first thing to do is run install in some resolvable path. (`$HOME/bin` is the default)
+This tool is label based. The first thing to do is run `./install.sh` using a resolvable path as the arg. (`$HOME/bin` is the default)
 
     $ ./install.sh
 
@@ -24,7 +23,7 @@ Ok, that was easy. Now figure out where you want the music to go. Currently I re
     $ mkdir -p /sd/mp3/label
     $ cd /sd/mp3/label
 
-Now let's say you want to get a label or artist, heck let's use me, pay me nothing, it's cool. (install youtube-dl, it's in apt, beofre you do this)
+Now let's say you want to get a label or artist, heck let's use me, pay me nothing, it's cool. (install youtube-dl, it's in apt, before you do this)
 
     $ album-get chrismckenzie
     ♫ chrismckenzie ♫
@@ -33,7 +32,7 @@ Now let's say you want to get a label or artist, heck let's use me, pay me nothi
     ...
     $
 
-woah shit, what just happened? Y
+Woah shit, what just happened? 
 
     $ tree chrismckenzie
     chrismckenzie
@@ -52,19 +51,23 @@ woah shit, what just happened? Y
         ├── chris mckenzie - Space Royalty-3306453676.mp3
         └── exit-code
 
-That's all my stuff along with youtube-dl's exit codes that get checked for errors.
+That's all my stuff along with `youtube-dl`'s exit codes that get checked for errors.
 
 #### But wait, there's more!
 
-So let's say you want to see if I added anything
+So let's say you want to see if I added anything, just run it again.
 
     $ album-get chrismckenzie
     ♫ chrismckenzie ♫
     $
 
-Nope, it's smart. Sees there's nothing new.  Alright, now let's say you do this for a bunch of other labels and artists. Let's add a second one, oh I dunno, say cpurecords.
+See, it's smart. Sees there's nothing new.  
 
-CPU records uses its own custom domain, https://shop.cpurecords.net/ but it is in fact, just a bandcamp site. So the syntax is a little different, we specify the url, followed by the name
+Alright, now let's say you do this for a bunch of other labels and artists. Let's add a second one, oh I dunno, say cpurecords.
+
+CPU records uses its own custom domain, https://shop.cpurecords.net/ but it is in fact, just a bandcamp site. But we use the same tool, it's once again, pretty smart.
+
+The syntax is a little different, we specify the url, followed by the name
 
     $ album-get shop.cpurecords.net cpurecords
     ♫ cpurecords ♫
@@ -75,7 +78,7 @@ Now you can see a file `cpurecords/domain` which has the real domain. This is im
 
 #### Mass updating
 
-So you go along and you have say 20 labels you follow and a week passes and you want to see what's new.  We use our trusty command again:
+So you go along and have say 20 labels your browsing and a week passes. You want to see what's new.  We use our clever command, in the directory, but this time with no arguments.  It will try to pull new stuff from everyone.
 
     $ album-get
     ♫ chrismckenzie ♫
@@ -83,7 +86,7 @@ So you go along and you have say 20 labels you follow and a week passes and you 
     ... chug chug chug ...
     $
 
-It will check all the entries for new things. This is like "following" and having a "feed" albiet a rather cobbled together inefficient version.
+This is effectively equivalent to the social media concept of "following" and "feed" albiet a rather cobbled together inefficient orchestration.
 
 ## Playing music
 
@@ -91,7 +94,7 @@ Now you have all of this stuff to go through you *could just do it in a disorgan
 
 **No! We are better than that**
 
-Instead what we are going to do is play each release ONCE, then we decide what to do with it. The ones you like, feel free to do what is right and go and buy things, I do.
+Instead what we are going to do is play each release ONCE, then decide what to do with it. The ones you like, feel free to do what is right and go and buy things, I do.
 
 Here's how we do it
 
@@ -106,12 +109,13 @@ Here's how we do it
     chrismckenzie/astrophilosophy >> 
 
 
- Alright now we can decide what to do with it. We can
+Alright now we can decide what to do with it. We can
 
   * r - replay it
   * pu - purge (move it /tmp and mark it as undesired)
   * s - skip the decision making
   * 1-5 - rate it from 1-5
+  * q - exit
 
 I'm going to decide to dump my own music, that slouch is awful.
 
@@ -122,6 +126,33 @@ I'm going to decide to dump my own music, that slouch is awful.
     + touch /sd/mp3/label/chrismckenzie/astrophilosophy/no
 
 And there we go. A placeholder file is put there so that when album-get comes through again, it won't try to grab it again.
+
+After you exit this tool, the diligent students will notice a few dot files have been created:
+
+    $ ls -1 .*
+    .dl_history
+    .listen_all
+    .listen_done
+
+Here's the one you want to look at (The other two are just for management/overhead)
+
+### .listen_done - the list of releases you've gone through.
+
+The format is 
+
+    path __rating__ date
+
+This is so you can do something like:
+
+    $ awk ' { print $NF } ' .listen_done | sort | uniq -c
+
+And see how many you go through every day. Kinda interesting. 
+
+You can also do this:
+
+    $ grep rating_5 .listen_done
+
+And see all the stuff you gave a high rating to.
 
 
 ... there's a lot more ... I'll write later
