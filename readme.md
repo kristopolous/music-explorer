@@ -29,7 +29,7 @@ Ok, that was easy. Now figure out where you want the music to go. I'm going to u
     $ mkdir -p /sd/mp3/label
     $ cd /sd/mp3/label
 
-Now let's say you want to get a label or artist, heck let's use me, pay me nothing, it's cool. (install youtube-dl, it's in apt, before you do this)
+Let's say you want to get a label or artist, heck let's use me, pay me nothing, it's cool. (install youtube-dl, it's in apt, before you do this)
 
     $ album-get chrismckenzie
     ♫ chrismckenzie ♫
