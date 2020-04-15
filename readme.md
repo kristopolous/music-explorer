@@ -67,7 +67,7 @@ So let's say you want to see if I added anything, just run it again.
     ♫ chrismckenzie ♫
     $
 
-See, it's smart. Sees there's nothing new.  
+It's oh so clever and sees there's nothing new.  
 
 Alright, now let's say you do this for a bunch of other labels and artists. Let's add a second one, oh I dunno, say cpurecords.
 
