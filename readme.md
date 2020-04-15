@@ -18,7 +18,9 @@ Let's go over what's currently included:
 
 ## Getting music
 
-This tool is label based. The first thing to do is run `./install.sh` using a resolvable path as the arg. (`$HOME/bin` is the default)
+This tool is label/artist based - you'll need an unknown number of gigabytes of disk space free (depending on your apetite).
+
+The first thing to do is run `./install.sh` using a resolvable path as the arg. (`$HOME/bin` is the default)
 
     $ ./install.sh
 
