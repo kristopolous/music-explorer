@@ -117,10 +117,11 @@ Here's how we do it
     chrismckenzie/astrophilosophy >> 
 
 
-"Oh great, a REPL". 
+"Oh great, a REPL". you say
+
 Don't worry, it'll be easy.
 
-Here we decide what to do with it. We can
+Here we decide what to do with what we just heard. We can
 
   * r - replay it
   * pu - purge (move it /tmp and mark it as undesired)
