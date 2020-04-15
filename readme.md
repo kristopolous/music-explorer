@@ -117,13 +117,18 @@ Here's how we do it
     chrismckenzie/astrophilosophy >> 
 
 
-Alright now we can decide what to do with it. We can
+"Oh great, a REPL". 
+Don't worry, it'll be easy.
+
+Here we decide what to do with it. We can
 
   * r - replay it
   * pu - purge (move it /tmp and mark it as undesired)
   * s - skip the decision making
   * 1-5 - rate it from 1-5
   * q - exit
+
+That wasn't painful, hopefully.
 
 I'm going to decide to dump my own music, that slouch is awful.
 
