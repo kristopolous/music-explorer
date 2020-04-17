@@ -2,8 +2,9 @@
 
 # we're going to restore it to this.
 start_name=$( tmux display-message -p '#W' )
+start_dir=$(pwd)
 
-tmux rename-window "mpv-once"
+tmux rename-window "mpv-once" 2> /dev/null
 
 function finish {
   tmux rename-window "$start_name"
@@ -34,15 +35,15 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | sort | uniq -u 
       while [[ 0 ]]; do
         echo -n "$i >> "
         read n
-        [[ "$n" =~ ^(q|r|s|[3-5]|pu|purge)$ ]] && break
+        [[ "$n" =~ ^(q|r|s|[1-5]|pu)$ ]] && break
       done
 
       [[ $n == 'q' ]] && exit
       [[ $n == 'r' ]] || break
     done
 
-    if [[ $n == 'pu' ]] || [[ $n == "purge" ]]; then 
-      album-purge $i
+    if [[ $n == 'pu' ]]; then 
+      album-purge "$i" $start_dir
       n="__purge"
     elif [[ $n == 's' ]]; then
       echo "Skipping ... "

@@ -20,7 +20,7 @@ elif [[ $1 == '0' ]]; then
   exit
 fi
 
-declare -A mapping=( [p]='pu ENTER' [return]='ENTER' [space]='" "' [comma]='<' [period]='>' )
+declare -A mapping=( [p]='pu ENTER' [return]='ENTER' [space]='" "' [comma]='<' [period]='>' [s]='s ENTER' [r]='r ENTER' )
 [[ ${mapping[$1]+_} ]] && control=${mapping[$1]} || control=$1
 
 # debugging
