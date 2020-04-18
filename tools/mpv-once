@@ -33,9 +33,8 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | sort | uniq -u 
 
       mpv --start=0:45 --no-audio-display "$i"/*.mp3
       while [[ 0 ]]; do
-        echo -n "$i >> "
-        read n
-        [[ "$n" =~ ^(q|r|s|[1-5]|pu)$ ]] && break
+        read -p "$i >> " -e n
+        [[ "$n" =~ ^(x|r|s|[1-5]|pu)$ ]] && break
       done
 
       [[ $n == 'q' ]] && exit
