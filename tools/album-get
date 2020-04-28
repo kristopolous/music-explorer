@@ -40,7 +40,7 @@ while [[ $# -gt 0 ]]; do
   cd $base
   starting_point=$PWD
 
-  for full in $(curl -s https://$base_url/$extra |  grep -Po '(?<=")[\w:\/\.]+(?<=album\/)[^?'"'"'"]*' | sort | uniq ); do
+  for full in $(curl -s https://$base_url/$extra |  grep -Po '(?<=")[\w:\/\.]+(?<=(album|track)\/)[^?'"'"'"]*' | sort | uniq ); do
     # sometimes we get x-dom references, sometimes it's relevant. We resolve that below.
     i=$(basename "$full")
     place="$starting_point/$i"
@@ -62,7 +62,7 @@ while [[ $# -gt 0 ]]; do
         url=$full
         echo $full > "$place"/domain
       else
-        url=https://$base_url/album/$i
+        url=https://$base_url$full
       fi
       echo "  ⇩ $url"
 
