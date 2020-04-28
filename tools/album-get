@@ -35,12 +35,14 @@ while [[ $# -gt 0 ]]; do
   elif [[ -n "$domain" ]]; then
     echo $base_url > $base/domain
   fi
-  echo "♫ $base_name ♫"
+  ttl=$(ls $base | grep -v domain | wc -l)
+  echo "♫ $base_name ♫ ($ttl)"
 
   cd $base
   starting_point=$PWD
 
-  for full in $(curl -s https://$base_url/$extra |  grep -Po '(?<=")[\w:\/\.]+(?<=(album|track)\/)[^?'"'"'"]*' | sort | uniq ); do
+  url=https://$base_url/$extra
+  for full in $(curl -s $url |  grep -Po '(?<=")[\w:\/\.]+(?<=(album|track)\/)[^?'"'"'"]*' | sort | uniq ); do
     # sometimes we get x-dom references, sometimes it's relevant. We resolve that below.
     i=$(basename "$full")
     place="$starting_point/$i"
