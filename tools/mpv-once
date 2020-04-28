@@ -37,7 +37,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | sort | uniq -u 
         [[ "$n" =~ ^(x|r|s|[1-5]|pu)$ ]] && break
       done
 
-      [[ $n == 'q' ]] && exit
+      [[ $n == 'x' ]] && exit
       [[ $n == 'r' ]] || break
     done
 
