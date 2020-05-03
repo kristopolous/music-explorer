@@ -34,6 +34,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | sort | uniq -u 
       mpv --start=0:45 --no-audio-display "$i"/*.mp3
       while [[ 0 ]]; do
         read -p "$i >> " -e n
+        [[ $n == 'i' ]] && echo https://$domain/album/$release
         [[ "$n" =~ ^(x|r|s|[1-5]|pu)$ ]] && break
       done
 
