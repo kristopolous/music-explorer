@@ -37,13 +37,19 @@ for label in labelMap:
   total = reduce(lambda x,y: x + y, labelMap[label].values(), 0)
   if total > thresh:
     longestLabel = max(longestLabel, len(label))
-    row = {'label': label, 'total': total}
+    row = {'weight': 0, 'label': label, 'total': total}
     for k,v in labelMap[label].items():
       row[k] = v / total
+    
+    num = 4
+    for i in ['__rating_5', '__rating_4', '__rating_3', '__purge']:
+      row['weight'] = num * (row.get(i) or 0)
+      num -= 1
+
     fracList.append(row)
 
 width = 70
-fracSort = sorted(fracList, key = lambda i: i.get('__rating_5') or 0)
+fracSort = sorted(fracList, key = lambda i: i.get('weight') or 0, reverse=True)
 
 labelStr = "{:%d}" % (longestLabel)
 for row in fracSort:
