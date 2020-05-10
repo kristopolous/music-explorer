@@ -168,5 +168,8 @@ You can also do this:
 
 And see all the stuff you gave a high rating to.
 
+There's a tool included called rating-distrib.py that puts things into a histogram, like so:
+
+![rating distribution](http://i.9ol.es/rating-distrib.png)
 
 ... there's a lot more ... I'll write later
