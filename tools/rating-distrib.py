@@ -7,8 +7,7 @@ thresh = int(sys.argv[1]) if len(sys.argv) > 1 else 5
 labelMap = {}
 fracList = []
 with open('.listen_done', 'r') as f:
-  stuff = f.readlines()
-  for line in stuff:
+  for line in f.readlines()
     parts = line.split(' ')
     label = parts[0].split('/')[0]
     rating = parts[1].strip()
