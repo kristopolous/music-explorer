@@ -9,7 +9,7 @@ longestLabel = 0
 labelMap = {}
 fracList = []
 with open('.listen_done', 'r') as f:
-  for line in f.readlines()
+  for line in f.readlines():
     parts = line.split(' ')
     label = parts[0].split('/')[0]
     rating = parts[1].strip()
