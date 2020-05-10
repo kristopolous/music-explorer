@@ -34,7 +34,7 @@ for label in labelMap:
     for k,v in labelMap[label].items():
       row[k] = v / total
     
-    num = 4
+    num = len(rateList)
     for i in rateList:
       row['weight'] += num * (row.get(i) or 0)
       num -= 1
@@ -42,7 +42,7 @@ for label in labelMap:
     fracList.append(row)
 
 labelStr = "{:%d}" % (longestLabel)
-fracSort = sorted(fracList, key = lambda i: i.get('weight') or 0, reverse=True)
+fracSort = sorted(fracList, key = lambda i: i.get('weight') or 0)
 for row in fracSort:
   graph = ''
   accum = 0
