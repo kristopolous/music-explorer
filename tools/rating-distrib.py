@@ -67,5 +67,4 @@ for row in fracSort:
     graph += draw * inst
     start += 3
 
-
   print(labelStr.format(row['label']), graph, row['total'])
