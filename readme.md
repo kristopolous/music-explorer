@@ -171,6 +171,7 @@ And see all the stuff you gave a high rating to.
 There's a tool included called rating-distrib.py that puts things into a histogram, like so:
 
 ![rating distribution](http://i.9ol.es/rating-distrib.png)
+
 From here I can tell that some labels I like more than others and some I actually haven't liked at all. This can help focus my exploration into more fruitful avenues
 
 ... there's a lot more ... I'll write later
