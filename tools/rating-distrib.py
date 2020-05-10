@@ -2,9 +2,7 @@
 import sys
 from functools import reduce 
 
-thresh = 5
-if len(sys.argv) > 1:
-  thresh = int(sys.argv[1])
+thresh = int(sys.argv[1]) if len(sys.argv) > 1 else 5
 
 labelMap = {}
 fracList = []
