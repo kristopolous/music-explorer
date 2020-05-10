@@ -45,9 +45,8 @@ for label in labelMap:
 
     fracList.append(row)
 
-fracSort = sorted(fracList, key = lambda i: i.get('weight') or 0, reverse=True)
-
 labelStr = "{:%d}" % (longestLabel)
+fracSort = sorted(fracList, key = lambda i: i.get('weight') or 0, reverse=True)
 for row in fracSort:
   graph = ''
   accum = 0
