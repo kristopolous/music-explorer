@@ -16,7 +16,7 @@ with open('.listen_done', 'r') as f:
     if rating in ['__rating_2', '__purge']: 
       rating = '__purge'
 
-    if rating == '__skipping':
+    elif rating == '__skipping':
       rating = '__rating_3'
 
     if rating not in ['__rating_5', '__rating_4', '__rating_3', '__purge']:
@@ -25,10 +25,7 @@ with open('.listen_done', 'r') as f:
     if not label in labelMap:
       labelMap[label] = {}
 
-    if not rating in labelMap[label]:
-      labelMap[label][rating] = 0
-
-    labelMap[label][rating] += 1
+    labelMap[label][rating] = (labelMap[label].get(rating) or 0) + 1
 
 for label in labelMap:
   total = reduce(lambda x,y: x + y, labelMap[label].values(), 0)
