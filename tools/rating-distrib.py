@@ -3,6 +3,8 @@ import sys
 from functools import reduce 
 
 thresh = int(sys.argv[1]) if len(sys.argv) > 1 else 5
+width = 70
+longestLabel = 0
 
 labelMap = {}
 fracList = []
@@ -28,8 +30,6 @@ with open('.listen_done', 'r') as f:
 
     labelMap[label][rating] += 1
 
-# reduce to percentage and keep track of total
-longestLabel = 0
 for label in labelMap:
   total = reduce(lambda x,y: x + y, labelMap[label].values(), 0)
   if total > thresh:
@@ -45,7 +45,6 @@ for label in labelMap:
 
     fracList.append(row)
 
-width = 70
 fracSort = sorted(fracList, key = lambda i: i.get('weight') or 0, reverse=True)
 
 labelStr = "{:%d}" % (longestLabel)
@@ -56,10 +55,7 @@ for row in fracSort:
   for i in ['__rating_5', '__rating_4', '__rating_3', '__purge']:
     accum += row.get(i) or 0
     inst = round(accum * width) - len(graph)
-    if i == '__purge':
-      draw = '.'
-    else:
-      draw = chr(start)
+    draw = '.' if i == '__purge' else chr(start)
 
     graph += draw * inst
     start += 3
