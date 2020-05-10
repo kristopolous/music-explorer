@@ -36,7 +36,7 @@ for label in labelMap:
     
     num = 4
     for i in rateList:
-      row['weight'] = num * (row.get(i) or 0)
+      row['weight'] += num * (row.get(i) or 0)
       num -= 1
 
     fracList.append(row)
