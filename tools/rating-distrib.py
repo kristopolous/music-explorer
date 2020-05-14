@@ -6,8 +6,16 @@ thresh = int(sys.argv[1]) if len(sys.argv) > 1 else 5
 width = 70
 longestLabel = 0
 labelMap = {}
+labelTotal = {}
 fracList = []
 rateList = ['__rating_5', '__rating_4', '__rating_3', '__purge']
+
+with open('.listen_all', 'r') as f:
+  for line in f.readlines():
+    parts = line.split(' ')
+    label = parts[0].split('/')[0]
+
+    labelTotal[label] = (labelTotal.get(label) or 0) + 1
 
 with open('.listen_done', 'r') as f:
   for line in f.readlines():
@@ -54,4 +62,9 @@ for row in fracSort:
     graph += draw * inst
     start += 3
 
-  print(labelStr.format(row['label']), graph, row['total'])
+  perc = percFloat = 0
+  if labelTotal.get(row['label']):
+    percFloat = row['total'] / labelTotal.get(row['label'])
+    perc = int(10 * percFloat)
+
+  print(labelStr.format(row['label']), graph, "{:3} {}{} {:>4.0f}%".format(row['total'], chr(9642) * perc, chr(183) * (10-perc), 100*percFloat))
