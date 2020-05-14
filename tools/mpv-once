@@ -21,12 +21,9 @@ filter=${1:-.}
 
 echo */* | tr ' ' '\n' > .listen_all
 touch .listen_done
-echo $filter
-cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filter" | sort | uniq -u | shuf
 for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filter" | sort | uniq -u | shuf); do
   n=__nothing
   ls $i/*.mp3 > /dev/null 2>&1
-  ls -l $i/url-list.txt 
   if [[ $? == "0" || -e $i/url-list.txt ]]; then
     while [[ 0 ]]; do
       label=$( dirname $i )
