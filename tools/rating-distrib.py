@@ -58,7 +58,7 @@ for row in fracSort:
   for i in rateList:
     accum += row.get(i) or 0
     inst = round(accum * width) - len(graph)
-    draw = '.' if i == '__purge' else chr(start)
+    draw = chr(183) if i == '__purge' else chr(start)
     graph += draw * inst
     start += 3
 
@@ -67,4 +67,4 @@ for row in fracSort:
     percFloat = row['total'] / labelTotal.get(row['label'])
     perc = int(10 * percFloat)
 
-  print(labelStr.format(row['label']), graph, "{:3} {}{} {:>4.0f}%".format(row['total'], chr(9642) * perc, chr(183) * (10-perc), 100*percFloat))
+  print(labelStr.format(row['label']), graph, "{:3} {}{} {:>4.0f}%".format(row['total'], chr(9642) * perc, chr(903) * (10-perc), 100*percFloat))

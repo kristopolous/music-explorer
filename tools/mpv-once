@@ -21,10 +21,13 @@ filter=${1:-.}
 
 echo */* | tr ' ' '\n' > .listen_all
 touch .listen_done
+echo $filter
+cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filter" | sort | uniq -u | shuf
 for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filter" | sort | uniq -u | shuf); do
   n=__nothing
   ls $i/*.mp3 > /dev/null 2>&1
-  if [[ $? == "0" ]]; then
+  ls -l $i/url-list.txt 
+  if [[ $? == "0" || -e $i/url-list.txt ]]; then
     while [[ 0 ]]; do
       label=$( dirname $i )
       [[ -e $label/domain ]] && domain=$(< $label/domain ) || domain=${label}.bandcamp.com
@@ -33,7 +36,12 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
       echo https://$domain/album/$release
       echo
 
-      mpv --start=0:45 --no-audio-display "$i"/*.mp3
+      if [[ -e $i/url-list.txt ]]; then
+        mpv --start=0:45 --no-audio-display --playlist="$i/url-list.txt"
+      else
+        mpv --start=0:45 --no-audio-display "$i"/*.mp3
+      fi
+
       while [[ 0 ]]; do
         read -p "$i >> " -e n
         [[ $n == 'i' ]] && echo https://$domain/album/$release

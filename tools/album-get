@@ -54,8 +54,13 @@ while [[ $# -gt 0 ]]; do
     fi
 
     # if we haven't any files then we just try to download from it again... 
+    exitcode=0
+    if [[ -e $place/exit-code ]];  then
+      exitcode=$(< $place/exit-code )
+    fi
+
     count=$( ls "$place"/* 2> /dev/null | grep -Ev '\/(exit-code|domain)$' | wc -l )
-    if [[ "$count" = "0" ]]; then
+    if [[ "$count" = "0" || $exitcode != "0" ]]; then
       cd "$place"
       echo "--- $place"
 
@@ -67,6 +72,10 @@ while [[ $# -gt 0 ]]; do
         url=https://$base_url$full
       fi
       echo "  ⇩ $url"
+
+      if [[ -e $place/no-files ]]; then
+        continue
+      fi
 
       # this means we've been here before. We can use the -g 
       # option to see if nothing ought to be downloaded in which
@@ -81,7 +90,8 @@ while [[ $# -gt 0 ]]; do
       fi
 
       # sometimes people are posting wav files ... really, that's crazy
-      youtube-dl -f mp3-128 -- "$url"
+      #youtube-dl -f mp3-128 -- "$url"
+      youtube-dl -gf mp3-128 -- "$url" > url-list.txt
       echo $? > "$place"/exit-code
       echo "$(date +%Y%m%d) $place" >> "$base_path/.dl_history"
     fi
