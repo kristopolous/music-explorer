@@ -45,6 +45,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
           if [[ $? == "2" ]]; then
             echo "woops, need to get a new set of urls"
             youtube-dl -gf mp3-128 -- "$url" > "$i/url-list.txt"
+            continue
           fi
           break
         done
