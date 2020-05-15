@@ -40,7 +40,15 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
       echo
 
       if [[ -e $i/url-list.txt ]]; then
-        mpv --start=0:45 --no-audio-display --playlist="$i/url-list.txt"
+        while [[ 0 ]]; do
+          mpv --start=0:45 --no-audio-display --playlist="$i/url-list.txt"
+          if [[ $? == "2" ]]; then
+            echo "woops, need to get a new set of urls"
+            youtube-dl -gf mp3-128 -- "$url" > "$i/url-list.txt"
+          fi
+          break
+        done
+
       else
         mpv --start=0:45 --no-audio-display "$i"/*.mp3
       fi
