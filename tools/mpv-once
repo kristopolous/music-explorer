@@ -26,11 +26,17 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
   ls $i/*.mp3 > /dev/null 2>&1
   if [[ $? == "0" || -e $i/url-list.txt ]]; then
     while [[ 0 ]]; do
-      label=$( dirname $i )
-      [[ -e $label/domain ]] && domain=$(< $label/domain ) || domain=${label}.bandcamp.com
-      release=$( basename $i )
+      if [[ -e $i/domain ]]; then
+        url=$(< $i/domain )
+      else
+        label=$( dirname $i )
+        [[ -e $label/domain ]] && domain=$(< $label/domain ) || domain=${label}.bandcamp.com
+        release=$( basename $i )
+        url="https://$domain/album/$release"
+      fi
+
       echo
-      echo https://$domain/album/$release
+      echo $url
       echo
 
       if [[ -e $i/url-list.txt ]]; then
