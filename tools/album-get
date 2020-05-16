@@ -65,7 +65,7 @@ while [[ $# -gt 0 ]]; do
       echo "--- $place"
 
       # here's where we look for the full url
-      if [[ $full =~ : ]]; then
+      if [[ $full =~ : || $full =~ track ]]; then
         url=$full
         echo $full > "$place"/domain
       else
