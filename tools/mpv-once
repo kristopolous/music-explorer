@@ -44,7 +44,9 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
           mpv --start=0:45 --no-audio-display --playlist="$i/url-list.txt"
           if [[ $? == "2" ]]; then
             echo "woops, need to get a new set of urls"
+            set -x
             youtube-dl -gf mp3-128 -- "$url" > "$i/url-list.txt"
+            set +x
             continue
           fi
           break
@@ -56,7 +58,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
 
       while [[ 0 ]]; do
         read -p "$i >> " -e n
-        [[ $n == 'i' ]] && echo https://$domain/album/$release
+        [[ $n == 'i' ]] && echo $url
         [[ "$n" =~ ^(x|r|s|[1-5]|pu)$ ]] && break
       done
 
