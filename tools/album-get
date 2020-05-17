@@ -1,4 +1,7 @@
 #!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+. $DIR/lib.sh
 
 if [[ $# = 0 ]] ; then
   ls | sort | xargs -n 1 -P 2 ${BASH_SOURCE[0]} 
@@ -93,8 +96,7 @@ while [[ $# -gt 0 ]]; do
 
       # sometimes people are posting wav files ... really, that's crazy
       #youtube-dl -f mp3-128 -- "$url"
-      youtube-dl -gf mp3-128 -- "$url" > url-list.txt
-      echo $? > "$place"/exit-code
+      get_urls "$url" $place
       echo "$(date +%Y%m%d) $place" >> "$base_path/.dl_history"
     fi
   done
