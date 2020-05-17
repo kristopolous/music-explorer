@@ -44,7 +44,13 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
 
       if [[ -e $i/url-list.m3u ]]; then
         while [[ 0 ]]; do
-          mpv --start=0:45 --no-audio-display --term-playing-msg='\n${media-title}' "$i/url-list.m3u"
+
+          mpv \
+            --script=$DIR/quit-on-error.lua \
+            --start=0:45 --no-audio-display \
+            --term-playing-msg='\n${media-title}' \
+            "$i/url-list.m3u"
+
           if [[ $? == "2" ]]; then
             echo "woops, need to get a new set of urls"
             set -x
