@@ -1,4 +1,7 @@
 #!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+. $DIR/lib.sh
 
 # we're going to restore it to this.
 start_name=$( tmux display-message -p '#W' )
