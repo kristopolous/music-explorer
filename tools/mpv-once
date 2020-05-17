@@ -38,9 +38,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
         url="https://$domain/album/$release"
       fi
 
-      echo
-      echo $url
-      echo
+      /bin/echo -e "\n$i\n$url\n"
 
       if [[ -e $i/url-list.m3u ]]; then
         while [[ 0 ]]; do
@@ -86,5 +84,5 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
       n="__rating_$n"
     fi
   fi
-  echo $i $n $(date +%Y%m%d) >> .listen_done
+  [[ "$n" != "__nothing" ]] && echo $i $n $(date +%Y%m%d) >> .listen_done
 done
