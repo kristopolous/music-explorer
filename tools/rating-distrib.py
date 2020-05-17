@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import os
 from functools import reduce 
 
 thresh = int(sys.argv[1]) if len(sys.argv) > 1 else 5
@@ -51,6 +52,7 @@ for label in labelMap:
 
 labelStr = "{:%d}" % (longestLabel)
 fracSort = sorted(fracList, key = lambda i: i.get('weight') or 0)
+cnt = 0
 for row in fracSort:
   graph = ''
   accum = 0
@@ -67,4 +69,14 @@ for row in fracSort:
     percFloat = row['total'] / labelTotal.get(row['label'])
     perc = int(10 * percFloat)
 
-  print(labelStr.format(row['label']), graph, "{:3} {}{} {:>4.0f}%".format(row['total'], chr(9642) * perc, chr(903) * (10-perc), 100*percFloat))
+  cnt += 1
+  rev = chr(27) + '[7m' if cnt % 2 else ''
+  reset = chr(27) + '[0m'
+  print(rev + labelStr.format(row['label']), reset + " " + graph, rev, 
+      "{:3} {}{} {:>4.0f}% {:>5}".format(
+      row['total'], 
+      chr(9642) * perc, 
+      chr(903) * (10-perc), 
+      100*percFloat, 
+      os.popen("du -sm {}".format(row['label'])).read().split('\t')[0]
+    ), reset)
