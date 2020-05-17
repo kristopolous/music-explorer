@@ -4,7 +4,9 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . $DIR/lib.sh
 
 if [[ $# = 0 ]] ; then
-  ls | sort | xargs -n 1 -P 2 ${BASH_SOURCE[0]} 
+  for i in $(ls); do
+    ${BASH_SOURCE[0]} $i
+  done
 fi
 
 base_path=$PWD
