@@ -6,6 +6,7 @@ fi
 
 for i in $PWD/tools/*; do
   tool=$(basename $i)
-  [[ -e $install/$tool ]] && unlink $install/$(basename $i)
-  ln -s $i $install
+  [[ -e $install/$tool ]] && unlink $install/$tool
+  echo $i '$*' > $install/$tool
+  chmod +x $install/$tool
 done
