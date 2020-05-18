@@ -70,14 +70,14 @@ for row in fracSort:
     perc = int(10 * percFloat)
 
   cnt += 1
-  rev = chr(27) + '[7m' if cnt % 2 else ''
+  rev = '' if cnt % 3 else chr(27) + '[4m'
   reset = chr(27) + '[0m'
   if os.path.exists(row['label']):
     sz = os.popen("du -sm {}".format(row['label'])).read().split('\t')[0]
   else:
     sz = 0
 
-  print(rev + labelStr.format(row['label']), reset + " " + graph, rev, 
+  print(rev + " " + labelStr.format(row['label']), reset + " " + graph, rev, 
       "{:3} {}{} {:>4.0f}% {:>5}".format(
       row['total'], 
       chr(9642) * perc, 
