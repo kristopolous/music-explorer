@@ -20,7 +20,16 @@ trap finish EXIT
 #  exit
 #fi
 
-filter=${1:-.}
+filter=.
+if [[ $# -gt 0 ]]; then
+  filter="($1"
+  shift
+  while [[ $# -gt 0 ]]; do
+    filter="${filter}|${1}"
+    shift
+  done
+  filter="$filter)"
+fi
 
 echo */* | tr ' ' '\n' > .listen_all
 touch .listen_done
@@ -38,7 +47,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
         url="https://$domain/album/$release"
       fi
 
-      /bin/echo -e "\n$i\n$url\n"
+      /bin/echo -e "\n$start_dir/$i\n$url\n"
 
       if [[ -e $i/url-list.m3u ]]; then
         while [[ 0 ]]; do
