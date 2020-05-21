@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-import sys
-import os
+import sys, os
 from functools import reduce 
 
 thresh = int(sys.argv[1]) if len(sys.argv) > 1 else 5
@@ -77,8 +76,10 @@ for row in fracSort:
   else:
     sz = 0
 
-  print(rev + " " + labelStr.format(row['label']), reset + " " + graph, rev, 
-      "{:3} {}{} {:>4.0f}% {:>5}".format(
+  print(rev + " " + labelStr.format(row['label']), 
+    reset + " " + graph, 
+    rev, 
+    "{:3} {}{} {:>4.0f}% {:>5}".format(
       row['total'], 
       chr(9642) * perc, 
       chr(903) * (10-perc), 
