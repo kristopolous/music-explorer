@@ -1,19 +1,26 @@
 #!/usr/bin/python3
-import sys,os,subprocess
+import sys,os,subprocess,select
 
 device = False
 lastval = False
 cmd = "amidi -p hw:2,0,0 -r /dev/stdout"
-ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
 ix = 0
+cmdMap = {
+  59: 'q',
+  62: '>',
+  61: '<'
+}
+
 while True:
   output = ps.stdout.read(1)
+
   if output == '' and process.poll() is not None:
     break
   if output:
     num = int.from_bytes(output, byteorder='little')
     sys.stdout.write(" {:>3}".format(num))
-    if ix % 3 == 0:
+    if ix % 3 == 2:
       sys.stdout.write("\n")
 
     sys.stdout.flush()
@@ -35,20 +42,13 @@ while True:
 
         lastval = num
 
-      elif device == 59:
+      elif device in cmdMap:
         if num == 0:
-          cmd = "tmux send-keys -t mpv-once 'q'"
-
-      elif device == 62:
-        if num == 0:
-          cmd = "tmux send-keys -t mpv-once '>'"
-
-      elif device == 61:
-        if num == 0:
-          cmd = "tmux send-keys -t mpv-once '<'"
+          cmd = "tmux send-keys -t mpv-once '{}'".format(cmdMap[device])
 
       else:
-        print("Unrecognized: {} {}".format(device, num))
+        pass
+        #print("Unrecognized")
 
       if cmd:
         os.popen(cmd)
