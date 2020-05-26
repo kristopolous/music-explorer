@@ -1,13 +1,22 @@
 #!/usr/bin/python3
-import sys,os
+import sys,os,subprocess
 
 device = False
 lastval = False
-with open('midi', 'rb') as f:
-  ix = 0
-  while True:
-    b = f.read(1)
-    num = int.from_bytes(b, byteorder='little')
+cmd = "amidi -p hw:2,0,0 -r /dev/stdout"
+ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+ix = 0
+while True:
+  output = ps.stdout.read(1)
+  if output == '' and process.poll() is not None:
+    break
+  if output:
+    num = int.from_bytes(output, byteorder='little')
+    sys.stdout.write(" {:>3}".format(num))
+    if ix % 3 == 0:
+      sys.stdout.write("\n")
+
+    sys.stdout.flush()
 
     if ix % 3 == 1:
       device = num
@@ -44,4 +53,4 @@ with open('midi', 'rb') as f:
       if cmd:
         os.popen(cmd)
 
-    ix += 1
+  ix += 1
