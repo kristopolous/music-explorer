@@ -3,7 +3,8 @@ import sys,os,subprocess,select
 
 device = False
 lastval = False
-cmd = "amidi -p hw:2,0,0 -r /dev/stdout"
+deviceNumber = os.popen("amidi -l | tail -1 | awk ' { print $2 }'").read().strip()
+cmd = "amidi -p {} -r /dev/stdout".format(deviceNumber)
 ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
 ix = 0
 cmdMap = {
@@ -26,14 +27,14 @@ while True:
     sys.stdout.flush()
 
     if ix % 3 == 1:
-      device = num
+      control = num
 
     if ix % 3 == 2:
       cmd = False
-      if device == 16:
+      if control == 16:
         cmd = 'amixer -D pulse sset Master {}%'.format( int(100 * num / 127))
 
-      elif device == 17:
+      elif control == 17:
         if lastval: 
           if lastval > num:
             cmd = "tmux send-keys -t mpv-once 'Left'"
@@ -42,9 +43,9 @@ while True:
 
         lastval = num
 
-      elif device in cmdMap:
+      elif control in cmdMap:
         if num == 0:
-          cmd = "tmux send-keys -t mpv-once '{}'".format(cmdMap[device])
+          cmd = "tmux send-keys -t mpv-once '{}'".format(cmdMap[control])
 
       else:
         pass
