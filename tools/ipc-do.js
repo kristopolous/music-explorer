@@ -5,7 +5,7 @@ const client = net.createConnection('/tmp/mpvsocket')
 const quitList = ['pause', 'playback-restart', 'unpause'];
 var cb = false;
 var command = process.argv[process.argv.length - 1];
-var direction = ['back','prev'].includes(command) ? -1 : 1;
+var direction = ['back', 'prev'].includes(command) ? -1 : 1;
 
 const commandMap = {
   pause: ['set_property', 'pause', true],
@@ -48,7 +48,7 @@ if (command == 'pauseplay') {
 }
 
 if (!commandMap[command]) {
-  console.log(Object.keys(commandMap).concat(['back','forward','pauseplay','prev','next']).sort());
+  console.log(Object.keys(commandMap).concat(['back', 'forward','pauseplay', 'prev', 'next']).sort());
   process.exit();
 }
 
