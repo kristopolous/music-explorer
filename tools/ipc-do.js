@@ -1,3 +1,5 @@
+#!/usr/bin/env nodejs
+
 const net = require('net');
 const client = net.createConnection('/tmp/mpvsocket')
 var command = process.argv[process.argv.length - 1];
@@ -5,14 +7,14 @@ var command = process.argv[process.argv.length - 1];
 const commandMap = {
   pause: ['set_property', 'pause', true],
   play: ['set_property', 'pause', false],
-  time: ['get_property', 'time-pos'],
   startover: ['set_property', 'time-pos', 0],
+  time: ['get_property', 'time-pos'],
   playlist: ['get_property', 'playlist-pos'],
   getpause: ['get_property', 'pause']
 }
 
 const quitList = [ 'pause', 'playback-restart', 'unpause' ];
-var dataCb = false;
+var cb = false;
 var direction = ['back','prev'].includes(command) ? -1 : 1;
 
 function send(list) {
@@ -21,12 +23,13 @@ function send(list) {
 }
 
 if (command == 'pauseplay') {
-  dataCb = function(state) {
-    send([ 'set_property', 'pause', !state ]);
+  cb = function(state) {
+    send(['set_property', 'pause', !state ]);
   }
   command = 'getpause';
+
 } else if (['prev','next'].includes(command)) {
-  dataCb = function(pos) {
+  cb = function(pos) {
     let newpos = pos + direction;
     if(newpos < 0) {
       process.exit();
@@ -35,35 +38,33 @@ if (command == 'pauseplay') {
     send([ 'set_property', 'playlist-pos', newpos ]);
   }
   command = 'playlist';
+
 } else if (['back','forward'].includes(command)) {
 
-  dataCb = function(pos) {
-    send([ 'set_property', 'time-pos', pos + (10 * direction) ]);
+  cb = function(pos) {
+    send(['set_property', 'time-pos', pos + (10 * direction) ]);
   }
   command = 'time';
 }
 
-client.on('connect', () => {
-  if(commandMap[command]) {
-    send(commandMap[command]);
-  }
-});
+if(!commandMap[command]) {
+  console.log(Object.keys(commandMap).concat(['back','forward','pauseplay','prev','next']).sort());
+  process.exit();
+}
+
+client.on('connect', () => send(commandMap[command]));
 
 client.on('data', (data) => {
   data.toString('utf8').trim().split('\n').forEach(rowRaw => {
     let row = JSON.parse(rowRaw);
     console.log(row);
 
-    if(quitList.includes(row.event)) {
+    if(quitList.includes(row.event) || !cb) {
       process.exit();
     } 
 
     if('data' in row) {
-      if (dataCb) {
-        dataCb(row.data);
-      } else {
-        process.exit();
-      }
+      cb(row.data);
     }
   });
 });
