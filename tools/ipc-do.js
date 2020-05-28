@@ -32,21 +32,22 @@ if (command == 'pauseplay') {
     if(newpos < 0) {
       process.exit();
     }
-
-    send(['set_property', 'playlist-pos', newpos ]);
+    send(['set_property', 'playlist-pos', newpos]);
   }
   command = 'playlist-pos';
 
 } else if (['back', 'forward'].includes(command)) {
-
   cb = function(pos) {
-    send(['set_property', 'time-pos', pos + (10 * direction) ]);
+    // if the user passed a number it to go backward or forward some
+    // specific amount
+    let amount = parseInt(process.argv[3], 10) || 10;
+    send(['set_property', 'time-pos', pos + amount * direction]);
   }
   command = 'time-pos';
 }
 
 if (!command) {
-  console.log(Object.keys(commandMap).concat(['back', 'forward','pauseplay', 'prev', 'next']).sort());
+  console.log(Object.keys(commandMap).concat(['back', 'forward', 'pauseplay', 'prev', 'next']).sort());
   process.exit();
 }
 
