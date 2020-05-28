@@ -1,57 +1,82 @@
 #!/usr/bin/python3
 import sys,os,subprocess,select
 
-device = False
 lastval = False
 deviceNumber = os.popen("amidi -l | tail -1 | awk ' { print $2 }'").read().strip()
 cmd = "amidi -p {} -r /dev/stdout".format(deviceNumber)
 ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
-ix = 0
+
+msgList = [ 0xC0, 0xB0 ]
+
+class msg:
+  control = 0xB0
+  program = 0xC0
+
 cmdMap = {
   59: 'q',
   62: '>',
   61: '<'
 }
 
+def get(count) :
+  res = [ int.from_bytes(ps.stdout.read(1), byteorder='little') for x in range(count) ]
+  return res if count > 1 else res[0]
+
+
+dbg = lambda bList: [ sys.stdout.write(" {:>02x}".format(num)) for num in bList ]
+
 while True:
   output = ps.stdout.read(1)
 
   if output == '' and process.poll() is not None:
     break
-  if output:
-    num = int.from_bytes(output, byteorder='little')
-    sys.stdout.write(" {:>3}".format(num))
-    if ix % 3 == 2:
-      sys.stdout.write("\n")
 
+  if not output:
+    continue
+
+  num = int.from_bytes(output, byteorder='little')
+  nibHigh = num & 0xf0
+
+  sys.stdout.write(" {:>02x}".format(num))
+
+  if nibHigh not in msgList:
+    print(" Unknown channel message: {}".format(num))
     sys.stdout.flush()
+    continue
 
-    if ix % 3 == 1:
-      control = num
+  if nibHigh == msg.program:
+    value = get(1)
+    dbg([value])
 
-    if ix % 3 == 2:
-      cmd = False
-      if control == 16:
-        cmd = 'amixer -D pulse sset Master {}%'.format( int(100 * num / 127))
+  elif nibHigh == msg.control:
+    control, value = get(2)
+    dbg([control,value])
 
-      elif control == 17:
-        if lastval: 
-          if lastval > num:
-            cmd = "tmux send-keys -t mpv-once 'Left'"
-          else:
-            cmd = "tmux send-keys -t mpv-once 'Right'"
+    cmd = False
+    if control == 16:
+      cmd = 'amixer -D pulse sset Master {}%'.format( int(100 * value / 127))
 
-        lastval = num
+    elif control == 17:
+      if lastval: 
+        if lastval > value:
+          cmd = "tmux send-keys -t mpv-once 'Left'"
+        else:
+          cmd = "tmux send-keys -t mpv-once 'Right'"
 
-      elif control in cmdMap:
-        if num == 0:
-          cmd = "tmux send-keys -t mpv-once '{}'".format(cmdMap[control])
+      lastval = value
 
-      else:
-        pass
-        #print("Unrecognized")
+    elif control in cmdMap:
+      if value == 0:
+        cmd = "tmux send-keys -t mpv-once '{}'".format(cmdMap[control])
 
-      if cmd:
-        os.popen(cmd)
+    else:
+      pass
+      #print("Unrecognized")
 
-  ix += 1
+    if cmd:
+      os.popen(cmd)
+
+  sys.stdout.write("\n")
+  sys.stdout.flush()
+
+
