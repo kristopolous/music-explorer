@@ -6,11 +6,13 @@ deviceNumber = os.popen("amidi -l | tail -1 | awk ' { print $2 }'").read().strip
 cmd = "amidi -p {} -r /dev/stdout".format(deviceNumber)
 ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
 
-msgList = [ 0xC0, 0xB0 ]
+msgList = [ 0xC0, 0xB0, 0xF0 ]
 
 class msg:
   control = 0xB0
   program = 0xC0
+  system = 0xF0
+  eox = 0xF7
 
 cmdMap = {
   59: 'q',
@@ -21,7 +23,6 @@ cmdMap = {
 def get(count) :
   res = [ int.from_bytes(ps.stdout.read(1), byteorder='little') for x in range(count) ]
   return res if count > 1 else res[0]
-
 
 dbg = lambda bList: [ sys.stdout.write(" {:>02x}".format(num)) for num in bList ]
 
@@ -44,7 +45,16 @@ while True:
     sys.stdout.flush()
     continue
 
-  if nibHigh == msg.program:
+  if nibHigh == msg.system:
+    vendor = [get(1)]
+    while True:
+      nextByte = get(1)
+      if nextByte == msg.eox:
+        break
+      vendor.append(nextByte)
+    dbg(vendor)
+
+  elif nibHigh == msg.program:
     value = get(1)
     dbg([value])
 
