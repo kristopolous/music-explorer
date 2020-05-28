@@ -6,6 +6,7 @@ const commandMap = {
   pause: ['set_property', 'pause', true],
   play: ['set_property', 'pause', false],
   time: ['get_property', 'time-pos'],
+  startover: ['set_property', 'time-pos', 0],
   playlist: ['get_property', 'playlist-pos'],
   getpause: ['get_property', 'pause']
 }
@@ -51,15 +52,19 @@ client.on('connect', () => {
 client.on('data', (data) => {
   data.toString('utf8').trim().split('\n').forEach(rowRaw => {
     let row = JSON.parse(rowRaw);
+    console.log(row);
 
     if(quitList.includes(row.event)) {
       process.exit();
     } 
 
-    if('data' in row && dataCb) {
-      dataCb(row.data);
+    if('data' in row) {
+      if (dataCb) {
+        dataCb(row.data);
+      } else {
+        process.exit();
+      }
     }
-    console.log(row);
   });
 });
 
