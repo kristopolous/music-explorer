@@ -4,7 +4,7 @@ const net = require('net');
 const client = net.createConnection('/tmp/mpvsocket')
 const quitList = ['pause', 'playback-restart', 'unpause'];
 var cb = false;
-var command = process.argv[process.argv.length - 1];
+var command = process.argv[2];
 var direction = ['back', 'prev'].includes(command) ? -1 : 1;
 
 const commandMap = {
@@ -12,8 +12,6 @@ const commandMap = {
   play: ['set_property', 'pause', false],
   startover: ['set_property', 'time-pos', 0],
 
-  time: ['get_property', 'time-pos'],
-  playlist: ['get_property', 'playlist-pos'],
   getpause: ['get_property', 'pause']
 }
 
@@ -37,22 +35,28 @@ if (command == 'pauseplay') {
 
     send(['set_property', 'playlist-pos', newpos ]);
   }
-  command = 'playlist';
+  command = 'playlist-pos';
 
 } else if (['back', 'forward'].includes(command)) {
 
   cb = function(pos) {
     send(['set_property', 'time-pos', pos + (10 * direction) ]);
   }
-  command = 'time';
+  command = 'time-pos';
 }
 
-if (!commandMap[command]) {
+if (!command) {
   console.log(Object.keys(commandMap).concat(['back', 'forward','pauseplay', 'prev', 'next']).sort());
   process.exit();
 }
 
-client.on('connect', () => send(commandMap[command]));
+client.on('connect', () => {
+  if(commandMap[command]) {
+    send(commandMap[command]);
+  } else {
+    send(['get_property', command]);
+  }
+});
 
 client.on('data', (data) => {
   data.toString('utf8').trim().split('\n').forEach(rowRaw => {
