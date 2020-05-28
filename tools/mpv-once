@@ -54,8 +54,9 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
 
           mpv \
             --script=$DIR/quit-on-error.lua \
-            --start=0:45 --no-audio-display \
             --term-playing-msg='\n${media-title}' \
+            --input-ipc-server=/tmp/mpvsocket \
+            --start=0:45 --no-audio-display \
             "$i/url-list.m3u"
 
           if [[ $? == "2" ]]; then
@@ -69,7 +70,11 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
         done
 
       else
-        mpv --start=0:45 --no-audio-display "$i"/*.mp3
+
+        mpv \
+          --input-ipc-server=/tmp/mpvsocket \
+          --start=0:45 --no-audio-display \
+          "$i"/*.mp3
       fi
 
       while [[ 0 ]]; do
