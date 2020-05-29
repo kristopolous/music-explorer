@@ -49,6 +49,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
 
       /bin/echo -e "\n$start_dir/$i\n$url\n"
 
+      attempts=0
       if [[ -e $i/url-list.m3u ]]; then
         while [[ 0 ]]; do
 
@@ -61,9 +62,14 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
 
           if [[ $? == "2" ]]; then
             echo "woops, need to get a new set of urls"
+            if [[ $attempts -gt 2 ]]; then
+              echo "This isn't goin that well."
+              break
+            fi
             set -x
             get_urls "$url" "$i"
             set +x
+            (( attempts ++ ))
             continue
           fi
           break
