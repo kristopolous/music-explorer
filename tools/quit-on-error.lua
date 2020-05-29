@@ -1,9 +1,10 @@
+local os = require 'os'
 mp.enable_messages('error')
 
 function lg(e) 
   if e.level == "error" then
     print("Exiting...")
-    exit(2)
+    os.exit(2)
   end
 end
 
