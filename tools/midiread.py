@@ -2,7 +2,14 @@
 import sys,os,subprocess,select
 
 lastval = False
-deviceNumber = os.popen("amidi -l | tail -1 | awk ' { print $2 }'").read().strip()
+cmd = "amidi -l | tail -1 | awk ' { print $2 }'"
+deviceNumber = os.popen(cmd).read().strip()
+if not deviceNumber or deviceNumber == 'Device':
+  print("{} failed to find devices!".format(cmd))
+  sys.exit(-1)
+
+print("Using Device #{}".format(deviceNumber))
+
 cmd = "amidi -p {} -r /dev/stdout".format(deviceNumber)
 ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
 
