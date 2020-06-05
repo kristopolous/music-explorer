@@ -72,6 +72,7 @@ while True:
     cmd = False
     if control == 16:
       cmd = 'amixer -D pulse sset Master {}%'.format( int(100 * value / 127))
+      print(cmd)
 
     elif control == 17:
       if lastval: 
