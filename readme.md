@@ -146,7 +146,7 @@ Here we decide what to do with what we just heard. We can
   * pu - purge (move it /tmp and mark it as undesired)
   * s - skip the decision making
   * dl - download it
-  * 3-5 - rate it from 1-5
+  * 3-5 - rate it from 3-5
   * q - exit
 
 That wasn't painful, hopefully.
