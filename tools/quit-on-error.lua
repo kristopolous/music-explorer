@@ -4,7 +4,7 @@ mp.enable_messages('error')
 function lg(e) 
   if e.level == "error" then
     print("Exiting...")
-    os.exit(2)
+    mp.command('quit')
   end
 end
 
