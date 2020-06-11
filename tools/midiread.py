@@ -2,7 +2,14 @@
 import sys,os,subprocess,select
 
 lastval = False
-deviceNumber = os.popen("amidi -l | tail -1 | awk ' { print $2 }'").read().strip()
+cmd = "amidi -l | tail -1 | awk ' { print $2 }'"
+deviceNumber = os.popen(cmd).read().strip()
+if not deviceNumber or deviceNumber == 'Device':
+  print("{} failed to find devices!".format(cmd))
+  sys.exit(-1)
+
+print("Using Device #{}".format(deviceNumber))
+
 cmd = "amidi -p {} -r /dev/stdout".format(deviceNumber)
 ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
 
@@ -16,15 +23,17 @@ class msg:
 
 cmdMap = {
   59: 'q',
-  62: '>',
-  61: '<'
+  17: '>',
+  18: '<'
 }
 
 def get(count) :
   res = [ int.from_bytes(ps.stdout.read(1), byteorder='little') for x in range(count) ]
   return res if count > 1 else res[0]
 
-dbg = lambda bList: [ sys.stdout.write(" {:>02x}".format(num)) for num in bList ]
+def dbg(what, bList):
+  sys.stdout.write(what)
+  [ sys.stdout.write(" [{:>02x}]".format(num)) for num in bList ]
 
 while True:
   output = ps.stdout.read(1)
@@ -38,7 +47,7 @@ while True:
   num = int.from_bytes(output, byteorder='little')
   nibHigh = num & 0xf0
 
-  sys.stdout.write(" {:>02x}".format(num))
+  sys.stdout.write(" {:>02x} ".format(num))
 
   if nibHigh not in msgList:
     print(" Unknown channel message: {}".format(num))
@@ -52,26 +61,27 @@ while True:
       if nextByte == msg.eox:
         break
       vendor.append(nextByte)
-    dbg(vendor)
+    dbg('vendor', vendor)
 
   elif nibHigh == msg.program:
     value = get(1)
-    dbg([value])
+    dbg('program', [value])
 
   elif nibHigh == msg.control:
     control, value = get(2)
-    dbg([control,value])
+    dbg('control', [control,value])
 
     cmd = False
-    if control == 16:
+    if control == 0x16:
       cmd = 'amixer -D pulse sset Master {}%'.format( int(100 * value / 127))
+      print(cmd)
 
-    elif control == 17:
+    elif control == 0x0e:
       if lastval: 
         if lastval > value:
-          cmd = "tmux send-keys -t mpv-once 'Left'"
+          cmd = "./ipc-do.js back"
         else:
-          cmd = "tmux send-keys -t mpv-once 'Right'"
+          cmd = "./ipc-do.js forward"
 
       lastval = value
 
@@ -84,6 +94,7 @@ while True:
       #print("Unrecognized")
 
     if cmd:
+      print(cmd)
       os.popen(cmd)
 
   sys.stdout.write("\n")
