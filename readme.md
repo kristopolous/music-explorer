@@ -40,6 +40,8 @@ Let's say you want to get a label or artist, heck let's use me, pay me nothing, 
 
 Woah shit, what just happened? 
 
+(this is the download version) 
+
     $ tree chrismckenzie
     chrismckenzie
     ├── astrophilosophy
@@ -58,6 +60,23 @@ Woah shit, what just happened?
         └── exit-code
 
 That's all my stuff along with `youtube-dl`'s exit codes that get checked for errors.
+
+(and here's the more modern version)
+
+    $ tree chrismckenzie
+    chrismckenzie
+    ├── astrophilosophy
+    │   ├── domain
+    │   ├── url-list.m3u
+    │   └── exit-code
+    └── textures-i
+        ├── domain
+        ├── url-list.m3u
+        └── exit-code
+
+The url-list.m3u is an m3u that gets created through bash and awk (see ytdl2m3u.awk) that will eventually get fed back into mpv.
+
+The domain is because some albums are hosted on different sites.
 
 #### But wait, there's more!
 
@@ -126,7 +145,8 @@ Here we decide what to do with what we just heard. We can
   * r - replay it
   * pu - purge (move it /tmp and mark it as undesired)
   * s - skip the decision making
-  * 1-5 - rate it from 1-5
+  * dl - download it
+  * 3-5 - rate it from 1-5
   * q - exit
 
 That wasn't painful, hopefully.
