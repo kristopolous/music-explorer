@@ -6,6 +6,11 @@ host=192.168.0.50
 #   http://man.openbsd.org/OpenBSD-current/man1/tmux.1#KEY_BINDINGS
 #
 
+#volume_prefix='amixer -D pulse sset Master'
+#volume_step=4%
+volume_prefix='pactl set-sink-volume $(pactl list sinks | grep -C 4 MPOW | grep -E "^S" | cut -d "#" -f 2)'
+volume_step=2000
+
 if [[ $1 == 'd' ]]; then
   tmp=$(mktemp)
   ssh $host "~/bin/mpv-details" > $tmp
@@ -13,10 +18,10 @@ if [[ $1 == 'd' ]]; then
   rm $tmp
   exit
 elif [[ $1 == '9' ]]; then
-  ssh $host "amixer -D pulse sset Master 4%-"
+  ssh $host "$volume_prefix -$volume_step"
   exit
 elif [[ $1 == '0' ]]; then
-  ssh $host "amixer -D pulse sset Master 4%+"
+  ssh $host "$volume_prefix +$volume_step"
   exit
 fi
 
