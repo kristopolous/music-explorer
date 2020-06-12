@@ -1,0 +1,2 @@
+pactl set-sink-volume $(pactl list sinks | grep -C 4 MPOW | grep -E '^S' | cut -d '#' -f 2) 40000
+
