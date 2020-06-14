@@ -1,5 +1,18 @@
 #!/usr/bin/python3
-import sys,os,subprocess,select
+import sys,os,subprocess,select,configparser
+from pprint import pprint
+config = configparser.ConfigParser()
+
+if os.path.exists('midiconfig.ini'):
+  config.read('midiconfig.ini')
+  
+controlMapping = {
+    }
+    
+pprint(config.sections())
+
+sys.exit()
+
 
 lastval = False
 cmd = "amidi -l | tail -1 | awk ' { print $2 }'"
