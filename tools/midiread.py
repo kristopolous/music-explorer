@@ -6,13 +6,17 @@ config = configparser.ConfigParser()
 if os.path.exists('midiconfig.ini'):
   config.read('midiconfig.ini')
   
-controlMapping = {
-    }
-    
-pprint(config.sections())
+controlMapping = { }
+
+for key in config['mappings']:
+  code = int(config['mappings'][key])
+  controlMapping[code] = key
+
+"""    
+pprint(controlMapping)
 
 sys.exit()
-
+"""
 
 lastval = False
 cmd = "amidi -l | tail -1 | awk ' { print $2 }'"
@@ -35,9 +39,9 @@ class msg:
   eox = 0xF7
 
 cmdMap = {
-  59: 'q',
-  17: '>',
-  18: '<'
+  'quit': 'q',
+  'next': '>',
+  'prev': '<'
 }
 
 def get(count) :
@@ -46,7 +50,7 @@ def get(count) :
 
 def dbg(what, bList):
   sys.stdout.write(what)
-  [ sys.stdout.write(" [{:>02x}]".format(num)) for num in bList ]
+  [ sys.stdout.write(" [{:>02x} {}]".format(num, num)) for num in bList ]
 
 while True:
   output = ps.stdout.read(1)
@@ -85,11 +89,15 @@ while True:
     dbg('control', [control,value])
 
     cmd = False
-    if control == 0x16:
+    todo = None
+    if control in controlMapping:
+      todo = controlMapping[control]
+
+    if todo == 'volume':
       cmd = 'amixer -D pulse sset Master {}%'.format( int(100 * value / 127))
       print(cmd)
 
-    elif control == 0x0e:
+    elif todo == 'seek':
       if lastval: 
         if lastval > value:
           cmd = "./ipc-do.js back"
@@ -98,7 +106,7 @@ while True:
 
       lastval = value
 
-    elif control in cmdMap:
+    elif todo in cmdMap:
       if value == 0:
         cmd = "tmux send-keys -t mpv-once '{}'".format(cmdMap[control])
 
