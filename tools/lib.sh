@@ -6,5 +6,5 @@ get_urls() {
 get_mp3s() {
   cd "$2"
   youtube-dl -f mp3-128 -- "$1"
-  echo $? > "$2"/exit-code
+  echo $? > exit-code
 }
