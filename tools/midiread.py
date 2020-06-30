@@ -18,6 +18,8 @@ pprint(controlMapping)
 sys.exit()
 """
 
+usbDevice = os.popen('pactl list sinks | grep -C 4 MPOW | grep -E "^S" | cut -d "#" -f 2').read().strip()
+
 lastval = False
 cmd = "amidi -l | tail -1 | awk ' { print $2 }'"
 deviceNumber = os.popen(cmd).read().strip()
@@ -95,7 +97,8 @@ while True:
 
     if todo == 'volume':
       cmd = 'amixer -D pulse sset Master {}%'.format( int(100 * value / 127))
-      print(cmd)
+      if usbDevice:
+        cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
 
     elif todo == 'seek':
       if lastval: 
