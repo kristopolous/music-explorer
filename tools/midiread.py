@@ -41,9 +41,7 @@ class msg:
   eox = 0xF7
 
 cmdMap = {
-  'quit': 'q',
-  'next': '>',
-  'prev': '<'
+  'quit': 'q'
 }
 
 def get(count) :
@@ -94,6 +92,7 @@ while True:
     todo = None
     if control in controlMapping:
       todo = controlMapping[control]
+      # print(todo, control, controlMapping)
 
     if todo == 'volume':
       cmd = 'amixer -D pulse sset Master {}%'.format( int(100 * value / 127))
@@ -109,9 +108,13 @@ while True:
 
       lastval = value
 
+    elif todo in ['prev','next','pauseplay'] and value == 0:
+      cmd = "./ipc-do.js {}".format(todo)
+
     elif todo in cmdMap:
       if value == 0:
-        cmd = "tmux send-keys -t mpv-once '{}'".format(cmdMap[control])
+        cmd = "tmux send-keys -t mpv-once '{}'".format(cmdMap[todo])
+        print(cmd)
 
     else:
       pass
