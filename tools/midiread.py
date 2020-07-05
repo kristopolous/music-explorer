@@ -1,12 +1,16 @@
 #!/usr/bin/python3
 import sys,os,subprocess,select,configparser
+import pdb
+import select 
 from pprint import pprint
+
 config = configparser.ConfigParser()
 
 if os.path.exists('midiconfig.ini'):
   config.read('midiconfig.ini')
   
 controlMapping = { }
+valueMap = {}
 
 for key in config['mappings']:
   code = int(config['mappings'][key])
@@ -51,8 +55,51 @@ def get(count) :
 def dbg(what, bList):
   sys.stdout.write(what)
   [ sys.stdout.write(" [{:>02x} {}]".format(num, num)) for num in bList ]
+  sys.stdout.write(' ')
+
+sign = lambda x: '-' if x < 0 else '+'
+
+def process(valueMap):
+  for control,value in valueMap.items():
+    todo = controlMapping.get(control)
+    cmd = None
+
+    direction = int((value - 64) / 4)
+
+    if direction > 0:
+      direction -= 1
+
+    elif direction < 0:
+      direction += 1
+
+    print(todo, value, direction)
+
+    if todo == 'volume' and direction != 0:
+
+      mult = 1
+      amixerDirection = direction * mult
+      pactlDirection = direction * mult * 655
+
+      cmd = 'amixer -D pulse sset Master {}%{}'.format( abs(amixerDirection), sign(direction) )
+      if usbDevice:
+        cmd += ";pactl set-sink-volume {} {}{}".format(usbDevice, sign(direction), abs(pactlDirection))
+
+    elif todo == 'seek' and direction != 0:
+      seekDirection = direction * 10
+      cmd = "./ipc-do.js forward {}".format(seekDirection)
+
+    if cmd:
+      print(cmd)
+      os.popen(cmd)
 
 while True:
+  readable, blah0, blah1 = select.select([ps.stdout.fileno()], [], [], 1)
+  print(valueMap)
+
+  if len(readable) == 0:
+    process(valueMap)
+    continue
+
   output = ps.stdout.read(1)
 
   if output == '' and process.poll() is not None:
@@ -87,6 +134,7 @@ while True:
   elif nibHigh == msg.control:
     control, value = get(2)
     dbg('control', [control,value])
+    valueMap[control] = value
 
     cmd = False
     todo = None
@@ -94,6 +142,7 @@ while True:
       todo = controlMapping[control]
       # print(todo, control, controlMapping)
 
+    """
     if todo == 'volume':
       cmd = 'amixer -D pulse sset Master {}%'.format( int(100 * value / 127))
       if usbDevice:
@@ -107,14 +156,14 @@ while True:
           cmd = "./ipc-do.js forward"
 
       lastval = value
+    """
 
-    elif todo in ['prev','next','pauseplay'] and value == 0:
+    if todo in ['prev','next','pauseplay'] and value == 0:
       cmd = "./ipc-do.js {}".format(todo)
 
     elif todo in cmdMap:
       if value == 0:
         cmd = "tmux send-keys -t mpv-once '{}'".format(cmdMap[todo])
-        print(cmd)
 
     else:
       pass
@@ -123,8 +172,9 @@ while True:
     if cmd:
       print(cmd)
       os.popen(cmd)
+    else:
+      sys.stdout.write("\n")
 
-  sys.stdout.write("\n")
   sys.stdout.flush()
 
 
