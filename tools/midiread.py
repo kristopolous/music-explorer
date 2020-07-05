@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import sys,os,subprocess,select,configparser
-import pdb
+import pdb, time
 import select 
 from pprint import pprint
 
@@ -92,12 +92,16 @@ def process(valueMap):
       print(cmd)
       os.popen(cmd)
 
+last_ts = time.time()
 while True:
   readable, blah0, blah1 = select.select([ps.stdout.fileno()], [], [], 1)
   print(valueMap)
 
-  if len(readable) == 0:
+  if len(readable) == 0 or time.time() > last_ts + .25:
+    last_ts = time.time()
     process(valueMap)
+
+  if len(readable) == 0:
     continue
 
   output = ps.stdout.read(1)
