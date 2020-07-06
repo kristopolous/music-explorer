@@ -11,6 +11,7 @@ if os.path.exists('midiconfig.ini'):
   
 controlMapping = { }
 valueMap = {}
+cmdMap = {}
 
 for key in config['mappings']:
   code = int(config['mappings'][key])
@@ -26,6 +27,7 @@ usbDevice = os.popen('pactl list sinks | grep -C 4 MPOW | grep -E "^S" | cut -d 
 
 lastval = False
 cmd = "amidi -l | tail -1 | awk ' { print $2 }'"
+
 deviceNumber = os.popen(cmd).read().strip()
 if not deviceNumber or deviceNumber == 'Device':
   print("{} failed to find devices!".format(cmd))
@@ -64,7 +66,7 @@ def process(valueMap):
     todo = controlMapping.get(control)
     cmd = None
 
-    direction = int((value - 64) / 4)
+    direction = int((value - 64) / 8)
 
     if direction > 0:
       direction -= 1
@@ -100,6 +102,12 @@ while True:
   if len(readable) == 0 or time.time() > last_ts + .25:
     last_ts = time.time()
     process(valueMap)
+
+    for v in cmdMap.values():
+      print(v)
+      os.system(v)
+
+    cmdMap = {}
 
   if len(readable) == 0:
     continue
@@ -144,6 +152,7 @@ while True:
     todo = None
     if control in controlMapping:
       todo = controlMapping[control]
+      valueMap[todo] = value
       # print(todo, control, controlMapping)
 
     """
@@ -162,7 +171,16 @@ while True:
       lastval = value
     """
 
-    if todo in ['prev','next','pauseplay'] and value == 0:
+    if todo in ['gamma','brightness']:
+      gamma = valueMap.get('gamma') if 'gamma' in valueMap else (.7 * 127)
+      bright = valueMap.get('brightness') if 'brightness' in valueMap else (.7 * 127)
+
+      cmdMap['screen'] = "/home/chris/bin/night {} {}".format(
+        bright / 127.0,
+        int(18000 * gamma / 127.0 + 1000)
+      )
+
+    elif todo in ['prev','next','pauseplay'] and value == 0:
       cmd = "./ipc-do.js {}".format(todo)
 
     elif todo in cmdMap:
