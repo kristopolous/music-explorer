@@ -74,7 +74,8 @@ def process(valueMap):
     elif direction < 0:
       direction += 1
 
-    print(todo, value, direction)
+    if todo:
+      print(todo, value, direction)
 
     if todo == 'volume' and direction != 0:
 
@@ -171,14 +172,18 @@ while True:
       lastval = value
     """
 
-    if todo in ['gamma','brightness']:
+    if todo in ['redshift', 'brightness']:
+      params = []
       gamma = valueMap.get('gamma') if 'gamma' in valueMap else (.7 * 127)
-      bright = valueMap.get('brightness') if 'brightness' in valueMap else (.7 * 127)
+      if 'redshift' in valueMap:
+        redshift = int(12000 * valueMap['redshift'] / 127.0 + 1000)
+        params.append("-r {}".format(redshift))
 
-      todoMap['screen'] = "/home/chris/bin/night {} {}".format(
-        bright / 127.0,
-        int(18000 * gamma / 127.0 + 1000)
-      )
+      if 'brightness' in valueMap:
+        bright = valueMap['brightness'] / 127.0
+        params.append("-b {}".format(bright))
+
+      todoMap['screen'] = "/home/chris/bin/night {}".format(' '.join(params))
 
     elif todo in ['prev','next','pauseplay'] and value == 0:
       cmd = "./ipc-do.js {}".format(todo)
