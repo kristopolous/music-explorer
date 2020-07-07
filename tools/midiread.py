@@ -11,7 +11,7 @@ if os.path.exists('midiconfig.ini'):
   
 controlMapping = { }
 valueMap = {}
-cmdMap = {}
+todoMap = {}
 
 for key in config['mappings']:
   code = int(config['mappings'][key])
@@ -99,15 +99,15 @@ while True:
   readable, blah0, blah1 = select.select([ps.stdout.fileno()], [], [], 1)
   print(valueMap)
 
-  if len(readable) == 0 or time.time() > last_ts + .25:
+  if len(readable) == 0 or time.time() > last_ts + .14:
     last_ts = time.time()
     process(valueMap)
 
-    for v in cmdMap.values():
+    for v in todoMap.values():
       print(v)
       os.system(v)
 
-    cmdMap = {}
+    todoMap = {}
 
   if len(readable) == 0:
     continue
@@ -155,12 +155,12 @@ while True:
       valueMap[todo] = value
       # print(todo, control, controlMapping)
 
-    """
-    if todo == 'volume':
+    if todo == 'volume_abs':
       cmd = 'amixer -D pulse sset Master {}%'.format( int(100 * value / 127))
       if usbDevice:
         cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
 
+    """
     elif todo == 'seek':
       if lastval: 
         if lastval > value:
@@ -175,7 +175,7 @@ while True:
       gamma = valueMap.get('gamma') if 'gamma' in valueMap else (.7 * 127)
       bright = valueMap.get('brightness') if 'brightness' in valueMap else (.7 * 127)
 
-      cmdMap['screen'] = "/home/chris/bin/night {} {}".format(
+      todoMap['screen'] = "/home/chris/bin/night {} {}".format(
         bright / 127.0,
         int(18000 * gamma / 127.0 + 1000)
       )
