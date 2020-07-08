@@ -11,6 +11,7 @@ if os.path.exists('midiconfig.ini'):
   
 controlMapping = { }
 valueMap = {}
+lastValueMap = {}
 todoMap = {}
 
 for key in config['mappings']:
@@ -95,10 +96,12 @@ def process(valueMap):
       print(cmd)
       os.popen(cmd)
 
+###
+# Main loop
+###
 last_ts = time.time()
 while True:
   readable, blah0, blah1 = select.select([ps.stdout.fileno()], [], [], 1)
-  print(valueMap)
 
   if len(readable) == 0 or time.time() > last_ts + .14:
     last_ts = time.time()
@@ -115,9 +118,11 @@ while True:
 
   output = ps.stdout.read(1)
 
-  if output == '' and process.poll() is not None:
+  if len(output) == 0:
+    print("Cannot read the stdin")
     break
 
+  print(valueMap)
   if not output:
     continue
 
@@ -147,12 +152,14 @@ while True:
   elif nibHigh == msg.control:
     control, value = get(2)
     dbg('control', [control,value])
+    lastValueMap[control] = valueMap.get(control)
     valueMap[control] = value
 
     cmd = False
     todo = None
     if control in controlMapping:
       todo = controlMapping[control]
+      lastValueMap[todo] = valueMap.get(todo)
       valueMap[todo] = value
       # print(todo, control, controlMapping)
 
@@ -172,7 +179,15 @@ while True:
       lastval = value
     """
 
-    if todo in ['redshift', 'brightness']:
+    if todo == 'tabs':
+      if lastValueMap.get('tabs'):
+        if lastValueMap['tabs'] / 3 > valueMap['tabs'] / 3:
+          todoMap['tab'] = "chrome-tab next"
+        else:
+          todoMap['tab'] = "chrome-tab prev"
+
+
+    elif todo in ['redshift', 'brightness']:
       params = []
       gamma = valueMap.get('gamma') if 'gamma' in valueMap else (.7 * 127)
       if 'redshift' in valueMap:
