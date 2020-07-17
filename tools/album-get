@@ -1,12 +1,18 @@
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
 . $DIR/lib.sh
 
-if [[ $# = 0 ]] ; then
+declare -i TTL=0
+if [[ $# = 0 ]]; then
+  COUNTFILE=$(mktemp)
+
   for i in $(ls); do
     ${BASH_SOURCE[0]} $i
+    TTL+=$(< $COUNTFILE )
   done
+
+  echo "(Total) Added $TTL releases"
+  exit
 fi
 
 base_path=$PWD
@@ -60,7 +66,7 @@ while [[ $# -gt 0 ]]; do
 
     # if we haven't any files then we just try to download from it again... 
     exitcode=0
-    if [[ -e $place/exit-code ]];  then
+    if [[ -e $place/exit-code ]]; then
       exitcode=$(< $place/exit-code )
     fi
 
@@ -99,6 +105,10 @@ while [[ $# -gt 0 ]]; do
       # sometimes people are posting wav files ... really, that's crazy
       [[ -z "$FULLALBUM" ]] && get_urls "$url" $place || youtube-dl -f mp3-128 -- "$url"
       echo "$(date +%Y%m%d) $place" >> "$base_path/.dl_history"
+      (( TTL ++ ))
     fi
   done
 done
+
+[[ -n "$COUNTFILE" ]] && echo $TTL > $COUNTFILE
+[[ $TTL -gt 0 ]] && echo "Added $TTL"
