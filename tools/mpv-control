@@ -5,8 +5,7 @@
 #   /usr/include/X11/keysymdef.h and
 #   http://man.openbsd.org/OpenBSD-current/man1/tmux.1#KEY_BINDINGS
 #
-
-host=192.168.0.50
+[[ -e $HOME/.me-props ]] && . $HOME/.me-props
 
 amixer_prefix='amixer -D pulse sset Master'
 amixer_step=4%
@@ -41,6 +40,6 @@ case $control in
     ;;
 
   *)
-    $host "tmux send-keys -t mpv-once $control"
+    ssh $host "tmux send-keys -t mpv-once $control"
     ;;
 esac
