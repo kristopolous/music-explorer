@@ -54,6 +54,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
         while [[ 0 ]]; do
 
           mpv \
+            --no-cache \
             --script=$DIR/quit-on-error.lua \
             --term-playing-msg='\n${media-title}' \
             --input-ipc-server=/tmp/mpvsocket \
