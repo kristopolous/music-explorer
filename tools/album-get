@@ -11,7 +11,7 @@ if [[ $# = 0 ]]; then
     TTL+=$(< $COUNTFILE )
   done
 
-  echo "(Total) Added $TTL releases"
+  echo "(Total) Added $TTL releases $(date)"
   exit
 fi
 
