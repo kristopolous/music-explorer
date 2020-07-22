@@ -50,7 +50,8 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
       /bin/echo -e "\n$start_dir/$i\n$url\n"
 
       attempts=0
-      if [[ -e $i/url-list.m3u ]]; then
+      m3u=$i/url-list.m3
+      if [[ -e $m3u ]]; then
         while [[ 0 ]]; do
 
           mpv \
@@ -59,7 +60,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
             --term-playing-msg='\n${media-title}' \
             --input-ipc-server=/tmp/mpvsocket \
             --start=0:45 --no-audio-display \
-            "$i/url-list.m3u"
+            "$m3u"
 
           if [[ $? == "2" ]]; then
             echo "woops, need to get a new set of urls"
@@ -87,6 +88,15 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
       while [[ 0 ]]; do
         read -p "$i >> " -e n
         [[ $n == 'i' ]] && echo $url
+
+        if [[ $n == 'l' ]]; then
+          if [[ -e $m3u ]]; then
+            cat $m3u
+          else
+            ls -l $i
+          fi
+        fi
+
         [[ "$n" =~ ^(dl|x|r|s|[1-5]|pu)$ ]] && break
       done
 
