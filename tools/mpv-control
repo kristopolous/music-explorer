@@ -19,10 +19,10 @@ if [[ $1 == 'd' ]]; then
   rm $tmp
   exit
 elif [[ $1 == '9' ]]; then
-  ssh $host "$pactl_prefix -$pactl_step;$amixer_prefix $amixer_step-"
+  timeout 5s ssh $host "$pactl_prefix -$pactl_step;$amixer_prefix $amixer_step-"
   exit
 elif [[ $1 == '0' ]]; then
-  ssh $host "$pactl_prefix +$pactl_step;$amixer_prefix $amixer_step+"
+  timeout 5s ssh $host "$pactl_prefix +$pactl_step;$amixer_prefix $amixer_step+"
   exit
 fi
 
