@@ -50,7 +50,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
       /bin/echo -e "\n$start_dir/$i\n$url\n"
 
       attempts=0
-      m3u=$i/url-list.m3
+      m3u=$i/url-list.m3u
       if [[ -e $m3u ]]; then
         while [[ 0 ]]; do
 
