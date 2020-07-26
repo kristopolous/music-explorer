@@ -163,7 +163,10 @@ while True:
       valueMap[todo] = value
       # print(todo, control, controlMapping)
 
-    if todo == 'volume_abs':
+    if todo == 'local_volume_abs':
+      cmd = 'amixer -c 0 sset Master {}%'.format( int(100 * value / 127))
+
+    elif todo == 'pulse_volume_abs':
       cmd = 'amixer -D pulse sset Master {}%'.format( int(100 * value / 127))
       if usbDevice:
         cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
