@@ -97,10 +97,10 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
           fi
         fi
 
-        [[ "$n" =~ ^(dl|x|r|s|[1-5]|pu)$ ]] && break
+        [[ $n == 'dl' ]] && get_mp3s "$url" "$i"
+        [[ "$n" =~ ^(x|r|s|[1-5]|pu)$ ]] && break
       done
 
-      [[ $n == 'dl' ]] && get_mp3s "$url" "$i"
       [[ $n == 'x' ]] && exit
       [[ $n == 'r' ]] || break
     done
