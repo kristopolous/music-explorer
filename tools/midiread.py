@@ -171,6 +171,8 @@ while True:
       if usbDevice:
         cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
 
+      print(cmd)
+
     """
     elif todo == 'seek':
       if lastval: 
