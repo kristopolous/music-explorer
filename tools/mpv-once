@@ -6,6 +6,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # we're going to restore it to this.
 start_name=$( tmux display-message -p '#W' )
 start_dir=$(pwd)
+start_time=0:45
 
 tmux rename-window "mpv-once" 2> /dev/null
 
@@ -59,7 +60,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
             --script=$DIR/quit-on-error.lua \
             --term-playing-msg='\n${media-title}' \
             --input-ipc-server=/tmp/mpvsocket \
-            --start=0:45 --no-audio-display \
+            --start=$start_time --no-audio-display \
             "$m3u"
 
           if [[ $? == "2" ]]; then
@@ -81,7 +82,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
 
         mpv \
           --input-ipc-server=/tmp/mpvsocket \
-          --start=0:45 --no-audio-display \
+          --start=$start_time --no-audio-display \
           "$i"/*.mp3
       fi
 
@@ -89,7 +90,10 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
         read -p "$i >> " -e n
         [[ $n == 'i' ]] && echo $url
 
-        if [[ $n == 'l' ]]; then
+        if [[ ${n:0:1} == 'b' ]]; then
+          start_time=${n:2}
+          echo "Setting start time to $start_time"
+        elif [[ $n == 'l' ]]; then
           if [[ -e $m3u ]]; then
             cat $m3u
           else
