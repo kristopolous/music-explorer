@@ -55,6 +55,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
       if [[ -e $m3u ]]; then
         while [[ 0 ]]; do
 
+          before=$( date +%s )
           mpv \
             --no-cache \
             --script=$DIR/quit-on-error.lua \
@@ -62,6 +63,8 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
             --input-ipc-server=/tmp/mpvsocket \
             --start=$start_time --no-audio-display \
             "$m3u"
+
+          listen_time=$(( $(date +%s) - $before ))
 
           if [[ $? == "2" ]]; then
             echo "woops, need to get a new set of urls"
