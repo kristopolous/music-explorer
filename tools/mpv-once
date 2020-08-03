@@ -2,6 +2,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 . $DIR/lib.sh
+. $DIR/prefs.sh
 
 # we're going to restore it to this.
 start_name=$( tmux display-message -p '#W' )
@@ -54,11 +55,8 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
       if [[ -e $m3u ]]; then
         while [[ 0 ]]; do
 
-          mpv \
+          $player $player_opts \
             --no-cache \
-            --script=$DIR/quit-on-error.lua \
-            --term-playing-msg='\n${media-title}' \
-            --input-ipc-server=/tmp/mpvsocket \
             --start=0:45 --no-audio-display \
             "$m3u"
 
@@ -79,8 +77,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
 
       else
 
-        mpv \
-          --input-ipc-server=/tmp/mpvsocket \
+        $player $player_opts \
           --start=0:45 --no-audio-display \
           "$i"/*.mp3
       fi
@@ -106,7 +103,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
     done
 
     if [[ $n == 'pu' ]]; then 
-      album-purge "$i" $start_dir
+      $DIR/album-purge "$i" $start_dir
       n="__purge"
     elif [[ $n == 's' ]]; then
       echo "Skipping ... "
