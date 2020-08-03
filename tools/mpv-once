@@ -62,9 +62,10 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
             --start=$start_time --no-audio-display \
             --start=0:45 --no-audio-display \
             "$m3u"
+          player_exit=$?
           listen_time=$(( $(date +%s) - $before ))
 
-          if [[ $? == "2" ]]; then
+          if [[ $player_exit == "2" ]]; then
             echo "woops, need to get a new set of urls"
             if [[ $attempts -gt 2 ]]; then
               echo "This isn't going that well."
