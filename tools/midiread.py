@@ -10,9 +10,13 @@ if os.path.exists('midiconfig.ini'):
   config.read('midiconfig.ini')
   
 controlMapping = { }
+optionMap = {}
 valueMap = {}
 lastValueMap = {}
 todoMap = {}
+
+for key in config['config']:
+  optionMap[key] = config['config'][key]
 
 for key in config['mappings']:
   code = int(config['mappings'][key])
@@ -27,7 +31,15 @@ sys.exit()
 usbDevice = os.popen('pactl list sinks | grep -C 4 MPOW | grep -E "^S" | cut -d "#" -f 2').read().strip()
 
 lastval = False
-cmd = "amidi -l | tail -1 | awk ' { print $2 }'"
+ifilter = ''
+
+if optionMap.get('device'):
+  ifilter = "grep '{}'".format(optionMap.get('device'))
+else:
+  ifilter = 'tail -1'
+
+cmd = "amidi -l | %s | awk ' { print $2 }'" % (ifilter)
+print(cmd)
 
 deviceNumber = os.popen(cmd).read().strip()
 if not deviceNumber or deviceNumber == 'Device':
@@ -170,6 +182,8 @@ while True:
       cmd = 'amixer -D pulse sset Master {}%'.format( int(100 * value / 127))
       if usbDevice:
         cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
+
+      print(cmd)
 
     """
     elif todo == 'seek':

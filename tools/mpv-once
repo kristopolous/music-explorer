@@ -7,6 +7,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # we're going to restore it to this.
 start_name=$( tmux display-message -p '#W' )
 start_dir=$(pwd)
+start_time=0:45
 
 tmux rename-window "mpv-once" 2> /dev/null
 
@@ -55,10 +56,13 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
       if [[ -e $m3u ]]; then
         while [[ 0 ]]; do
 
+          before=$( date +%s )
           $player $player_opts \
             --no-cache \
+            --start=$start_time --no-audio-display \
             --start=0:45 --no-audio-display \
             "$m3u"
+          listen_time=$(( $(date +%s) - $before ))
 
           if [[ $? == "2" ]]; then
             echo "woops, need to get a new set of urls"
@@ -78,7 +82,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
       else
 
         $player $player_opts \
-          --start=0:45 --no-audio-display \
+          --start=$start_time --no-audio-display \
           "$i"/*.mp3
       fi
 
@@ -86,7 +90,10 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
         read -p "$i >> " -e n
         [[ $n == 'i' ]] && echo $url
 
-        if [[ $n == 'l' ]]; then
+        if [[ ${n:0:1} == 'b' ]]; then
+          start_time=${n:2}
+          echo "Setting start time to $start_time"
+        elif [[ $n == 'l' ]]; then
           if [[ -e $m3u ]]; then
             cat $m3u
           else
