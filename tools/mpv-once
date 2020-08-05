@@ -103,7 +103,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
         fi
 
         [[ $n == 'dl' ]] && get_mp3s "$url" "$i"
-        [[ "$n" =~ ^(x|r|s|[1-5]|pu)$ ]] && break
+        [[ "$n" =~ ^(x|r|s|sn|[1-5]|pu)$ ]] && break
       done
 
       [[ $n == 'x' ]] && exit
@@ -113,6 +113,9 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
     if [[ $n == 'pu' ]]; then 
       $DIR/album-purge "$i" $start_dir
       n="__purge"
+    elif [[ $n == 'sn' ]]; then
+      echo "Skipping (not recording) ..."
+      n="__nothing"
     elif [[ $n == 's' ]]; then
       echo "Skipping ... "
       n="__skipping"
