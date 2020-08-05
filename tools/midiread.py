@@ -44,6 +44,7 @@ print(cmd)
 deviceNumber = os.popen(cmd).read().strip()
 if not deviceNumber or deviceNumber == 'Device':
   print("{} failed to find devices!".format(cmd))
+  print(os.popen("amidi -l").read().strip())
   sys.exit(-1)
 
 print("Using Device #{}".format(deviceNumber))
