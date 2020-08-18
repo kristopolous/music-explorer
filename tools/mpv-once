@@ -41,6 +41,7 @@ touch .listen_done
 for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filter" | sort | uniq -u | shuf); do
   n=__nothing
   ls $i/*.mp3 > /dev/null 2>&1
+  listen_time=0
   if [[ $? == "0" || -e $i/url-list.m3u ]]; then
     while [[ 0 ]]; do
       if [[ -e $i/domain ]]; then
@@ -69,7 +70,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
               "$m3u"
 
             player_exit=$?
-            listen_time=$(( $(date +%s) - $before ))
+            (( listen_time += $(date +%s) - before ))
             echo "listen-time $listen_time"
           else
             # If our m3u is over a day old we just
@@ -97,7 +98,8 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
         $player $player_opts \
           --start=$start_time --no-audio-display \
           "$i"/*.mp3
-        listen_time=$(( $(date +%s) - $before ))
+
+        (( listen_time += $(date +%s) - before ))
 
         echo "listen-time $listen_time"
       fi
@@ -138,5 +140,5 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
       n="__rating_$n"
     fi
   fi
-  [[ "$n" != "__nothing" ]] && echo $i $n $(date +%Y%m%d) >> .listen_done
+  [[ "$n" != "__nothing" ]] && echo "$i $n (time:$listen_time) $(date +%Y%m%d)" >> .listen_done
 done
