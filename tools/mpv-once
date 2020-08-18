@@ -70,7 +70,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
 
             player_exit=$?
             listen_time=$(( $(date +%s) - $before ))
-            echo "listen-time $lisen_time"
+            echo "listen-time $listen_time"
           else
             # If our m3u is over a day old we just
             # assume failure
