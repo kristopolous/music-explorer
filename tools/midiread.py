@@ -205,7 +205,7 @@ while True:
           todoMap['tab'] = "chrome-tab prev"
 
 
-    elif todo[:2] == 'bw' or todo[:2] == 'fw':
+    elif todo and (todo[:2] == 'bw' or todo[:2] == 'fw'):
       amount = int(todo[2:])
       dir = 'back' if todo[:2] == 'bw' else 'forward'
       cmd = "./ipc-do.js {} {}".format(dir, amount)
