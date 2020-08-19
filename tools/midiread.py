@@ -125,7 +125,7 @@ while True:
 
     for v in todoMap.values():
       logging.info(v)
-      os.system(v)
+      os.system("{}&".format(v))
 
     todoMap = {}
 
@@ -149,7 +149,6 @@ while True:
 
   if nibHigh not in msgList:
     logging.warning(" Unknown channel message: {}".format(num))
-    sys.stdout.flush()
     continue
 
   if nibHigh == msg.system:
@@ -213,7 +212,7 @@ while True:
         bright = valueMap['brightness'] / 127.0
         params.append("-b {}".format(bright))
 
-      todoMap['screen'] = "/home/chris/bin/night {}".format(' '.join(params))
+      todoMap['screen'] = "night {}".format(' '.join(params))
 
     elif todo in ['prev','next','pauseplay'] and value == 0:
       cmd = "./ipc-do.js {}".format(todo)
@@ -228,4 +227,3 @@ while True:
     if cmd:
       logging.info(cmd)
       os.popen(cmd)
-
