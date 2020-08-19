@@ -2,7 +2,6 @@
 import sys,os,subprocess,select,configparser
 import pdb, time, logging, io
 import select 
-from pprint import pprint
 
 config = configparser.ConfigParser()
 
@@ -22,13 +21,15 @@ for key in config['mappings']:
   code = int(config['mappings'][key])
   controlMapping[code] = key
 
-"""    
-pprint(controlMapping)
+logging.basicConfig(level=getattr(logging, (os.getenv('LOG') or 'info').upper(), None))
 
-sys.exit()
-"""
-
-usbDevice = os.popen('pactl list sinks | grep -C 4 MPOW | grep -E "^S" | cut -d "#" -f 2').read().strip()
+usbDevice = os.popen((
+  '|'.join([
+    'pactl list sinks',
+    'grep -C 4 {}',
+    'grep -E "^S"',
+    'cut -d "#" -f 2'
+  ])).format(optionMap.get('bt') or 'MPOW')).read().strip()
 
 lastval = False
 ifilter = ''
@@ -123,7 +124,7 @@ while True:
     process(valueMap)
 
     for v in todoMap.values():
-      print(v)
+      logging.info(v)
       os.system(v)
 
     todoMap = {}
@@ -137,7 +138,7 @@ while True:
     logging.warning("Cannot read the stdin")
     break
 
-  print(valueMap)
+  logging.debug(valueMap)
   if not output:
     continue
 
@@ -187,17 +188,6 @@ while True:
         cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
 
       logging.info(cmd)
-
-    """
-    elif todo == 'seek':
-      if lastval: 
-        if lastval > value:
-          cmd = "./ipc-do.js back"
-        else:
-          cmd = "./ipc-do.js forward"
-
-      lastval = value
-    """
 
     if todo == 'tabs':
       if lastValueMap.get('tabs'):
