@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import sys,os,subprocess,select,configparser
-import pdb, time
+import pdb, time, logging, io
 import select 
 from pprint import pprint
 
@@ -39,15 +39,15 @@ else:
   ifilter = 'tail -1'
 
 cmd = "amidi -l | %s | awk ' { print $2 }'" % (ifilter)
-print(cmd)
+logging.info(cmd)
 
 deviceNumber = os.popen(cmd).read().strip()
 if not deviceNumber or deviceNumber == 'Device':
-  print("{} failed to find devices!".format(cmd))
-  print(os.popen("amidi -l").read().strip())
+  logging.warning("{} failed to find devices!".format(cmd))
+  logging.warning(os.popen("amidi -l").read().strip())
   sys.exit(-1)
 
-print("Using Device #{}".format(deviceNumber))
+logging.info("Using Device #{}".format(deviceNumber))
 
 cmd = "amidi -p {} -r /dev/stdout".format(deviceNumber)
 ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
@@ -69,9 +69,11 @@ def get(count) :
   return res if count > 1 else res[0]
 
 def dbg(what, bList):
-  sys.stdout.write(what)
-  [ sys.stdout.write(" [{:>02x} {}]".format(num, num)) for num in bList ]
-  sys.stdout.write(' ')
+  stuff = io.StringIO()
+  stuff.write(what)
+  [ stuff.write(" [{:>02x} {}]".format(num, num)) for num in bList ]
+  stuff.write(' ')
+  logging.debug(stuff.getvalue())
 
 sign = lambda x: '-' if x < 0 else '+'
 
@@ -89,7 +91,7 @@ def process(valueMap):
       direction += 1
 
     if todo:
-      print(todo, value, direction)
+      logging.debug(todo, value, direction)
 
     if todo == 'volume' and direction != 0:
 
@@ -106,7 +108,7 @@ def process(valueMap):
       cmd = "./ipc-do.js forward {}".format(seekDirection)
 
     if cmd:
-      print(cmd)
+      logging.info(cmd)
       os.popen(cmd)
 
 ###
@@ -132,7 +134,7 @@ while True:
   output = ps.stdout.read(1)
 
   if len(output) == 0:
-    print("Cannot read the stdin")
+    logging.warning("Cannot read the stdin")
     break
 
   print(valueMap)
@@ -142,10 +144,10 @@ while True:
   num = int.from_bytes(output, byteorder='little')
   nibHigh = num & 0xf0
 
-  sys.stdout.write(" {:>02x} ".format(num))
+  logging.debug(" {:>02x} ".format(num))
 
   if nibHigh not in msgList:
-    print(" Unknown channel message: {}".format(num))
+    logging.warning(" Unknown channel message: {}".format(num))
     sys.stdout.flush()
     continue
 
@@ -184,7 +186,7 @@ while True:
       if usbDevice:
         cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
 
-      print(cmd)
+      logging.info(cmd)
 
     """
     elif todo == 'seek':
@@ -232,14 +234,8 @@ while True:
 
     else:
       pass
-      #print("Unrecognized")
 
     if cmd:
-      print(cmd)
+      logging.info(cmd)
       os.popen(cmd)
-    else:
-      sys.stdout.write("\n")
-
-  sys.stdout.flush()
-
 
