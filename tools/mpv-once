@@ -85,7 +85,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
               echo "This isn't going that well."
               break
             fi
-            get_urls "$url" "$i"
+            timeout 20s get_urls "$url" "$i"
             (( attempts ++ ))
             continue
           fi
