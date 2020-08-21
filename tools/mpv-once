@@ -106,7 +106,9 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
         done
 
       elif [[ -e "$i"/no-files ]]; then
-        echo "There appears to be no files."
+        echo "There appears to be no files in $i."
+        n='pu'
+        break
       else
         echo "Hrmm, I don't know what to do here."
       fi

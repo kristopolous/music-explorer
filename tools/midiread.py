@@ -78,40 +78,6 @@ def dbg(what, bList):
 
 sign = lambda x: '-' if x < 0 else '+'
 
-def process(valueMap):
-  for control,value in valueMap.items():
-    todo = controlMapping.get(control)
-    cmd = None
-
-    direction = int((value - 64) / 8)
-
-    if direction > 0:
-      direction -= 1
-
-    elif direction < 0:
-      direction += 1
-
-    if todo:
-      logging.debug(todo, value, direction)
-
-    if todo == 'volume' and direction != 0:
-
-      mult = 1
-      amixerDirection = direction * mult
-      pactlDirection = direction * mult * 655
-
-      cmd = 'amixer -D pulse sset Master {}%{}'.format( abs(amixerDirection), sign(direction) )
-      if usbDevice:
-        cmd += ";pactl set-sink-volume {} {}{}".format(usbDevice, sign(direction), abs(pactlDirection))
-
-    elif todo == 'seek' and direction != 0:
-      seekDirection = direction * 10
-      cmd = "./ipc-do.js forward {}".format(seekDirection)
-
-    if cmd:
-      logging.info(cmd)
-      os.popen(cmd)
-
 ###
 # Main loop
 ###
@@ -121,7 +87,6 @@ while True:
 
   if len(readable) == 0 or time.time() > last_ts + .14:
     last_ts = time.time()
-    process(valueMap)
 
     for v in todoMap.values():
       logging.info(v)
