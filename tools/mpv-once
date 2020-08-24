@@ -40,7 +40,11 @@ fi
 
 echo */* | tr ' ' '\n' > .listen_all
 touch .listen_done
-for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filter" | sort | uniq -u | shuf); do
+all=( $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filter" | sort | uniq -u | shuf) )
+size=${#all[@]}
+ix=0 
+for i in ${all[@]}; do
+  (( ix ++ ))
   n=__nothing
   ls $i/*.mp3 > /dev/null 2>&1
   listen_time=0
@@ -55,7 +59,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
         url="https://$domain/album/$release"
       fi
 
-      /bin/echo -e "\n$start_dir/$i\n$url\n"
+      printf "\n%10s | %s\n%10s | %s\n\n" "$ix / $size" "$start_dir/$i" "" "$url"
 
       attempts=0
       m3u=$i/url-list.m3u
@@ -70,7 +74,7 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
         (( listen_time += $(date +%s) - before ))
 
         echo "listen-time $listen_time"
-      elif [[ -e $m3u ]]; then
+      elif [[ -z "$LOCAL" && -e $m3u ]]; then
         while [[ 0 ]]; do
 
           before=$( date +%s )
@@ -107,9 +111,15 @@ for i in $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filte
 
       elif [[ -e "$i"/no-files ]]; then
         echo "There appears to be no files in $i."
+        ls -ltr $i
         n='pu'
         break
       else
+        if [[ -n "$LOCAL" ]]; then
+          echo "No local files, skipping"
+          break
+        fi
+
         echo "Hrmm, I don't know what to do here."
       fi
 
