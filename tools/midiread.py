@@ -161,9 +161,9 @@ while True:
 
     elif todo == 'pulse_volume_abs':
       cmd = 'amixer -D pulse sset Master {}%'.format( int(100 * value / 127))
-      if usbDevice:
-        cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
-        cmd += ";pactl set-sink-volume {} {}".format(audioDevice, value * 512)
+      #if usbDevice:
+      #  cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
+      cmd += ";pactl set-sink-volume {} {}".format(audioDev, value * 512)
 
       logging.info(cmd)
 
