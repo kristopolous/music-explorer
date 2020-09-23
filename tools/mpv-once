@@ -46,7 +46,7 @@ ix=0
 for i in ${all[@]}; do
   (( ix ++ ))
   n=__nothing
-  ls $i/*.mp3 > /dev/null 2>&1
+  ls "$i"/*.mp3 "$i"/*.aiff > /dev/null 2>&1
   listen_time=0
   if [[ $? == "0" || -e $i/url-list.m3u ]]; then
     while [[ 0 ]]; do
@@ -61,15 +61,16 @@ for i in ${all[@]}; do
 
       printf "\n%10s | %s\n%10s | %s\n\n" "$ix / $size" "$start_dir/$i" "" "$url"
 
+      list="$i/*.mp3 $i/*.aiff"
       attempts=0
       m3u=$i/url-list.m3u
-      fileList=( "$i"/*.mp3 )
+      fileList=( $list )
 
       if (( ${#fileList[@]} )); then
         before=$( date +%s )
         $player $player_opts \
           --start=$start_time --no-audio-display \
-          "$i"/*.mp3
+          $list
 
         (( listen_time += $(date +%s) - before ))
 
