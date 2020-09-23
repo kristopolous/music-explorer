@@ -7,8 +7,10 @@ if [[ $# = 0 ]]; then
   export COUNTFILE=$(mktemp)
 
   for i in $(ls); do
-    ${BASH_SOURCE[0]} $i
-    TTL+=$(< $COUNTFILE )
+    if [[ -d $i ]]; then
+      ${BASH_SOURCE[0]} $i
+      TTL+=$(< $COUNTFILE )
+    fi
   done
 
   echo "(Total) Added $TTL releases $(date)"
