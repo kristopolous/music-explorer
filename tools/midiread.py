@@ -13,6 +13,7 @@ optionMap = {}
 valueMap = {}
 lastValueMap = {}
 todoMap = {}
+audioDev = False
 
 for key in config['config']:
   optionMap[key] = config['config'][key]
@@ -76,7 +77,19 @@ def dbg(what, bList):
   stuff.write(' ')
   logging.debug(stuff.getvalue())
 
+def active():
+  global audioDev
+  audioDev = os.popen('|'.join([
+    'pacmd list-sinks',
+    'grep -B 4 RUNNING',
+    'grep index',
+    "awk ' { print $NF } '",
+    'head -1'
+  ])).read().strip()
+
 sign = lambda x: '-' if x < 0 else '+'
+
+active()
 
 ###
 # Main loop
@@ -148,8 +161,9 @@ while True:
 
     elif todo == 'pulse_volume_abs':
       cmd = 'amixer -D pulse sset Master {}%'.format( int(100 * value / 127))
-      if usbDevice:
-        cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
+      #if usbDevice:
+      #  cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
+      cmd += ";pactl set-sink-volume {} {}".format(audioDev, value * 512)
 
       logging.info(cmd)
 
