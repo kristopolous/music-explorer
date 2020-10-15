@@ -8,6 +8,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 start_name=$( tmux display-message -p '#W' )
 start_dir=$(pwd)
 start_time=0:45
+ao=${ao:-pulse}
 day=86400
 
 shopt -s nullglob
@@ -129,7 +130,11 @@ for i in ${all[@]}; do
         read -p "$i >> " -e n
         [[ $n == 'i' ]] && echo $url
 
-        if [[ ${n:0:1} == 'b' ]]; then
+        if [[ ${n:0:2} == 'ao' ]]; then
+          ao=${n:4}
+          echo "Setting audio out to '$ao'"
+          [[ -e $DIR/prefs.sh ]] && sed -Ei 's/ao=.*/ao='$ao'/g' $DIR/prefs.sh
+        elif [[ ${n:0:1} == 'b' ]]; then
           start_time=${n:2}
           echo "Setting start time to $start_time"
         elif [[ $n == 'l' ]]; then
