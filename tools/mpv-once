@@ -131,7 +131,7 @@ for i in ${all[@]}; do
         [[ $n == 'i' ]] && echo $url
 
         if [[ ${n:0:2} == 'ao' ]]; then
-          ao=${n:4}
+          ao=${n:3}
           echo "Setting audio out to '$ao'"
           [[ -e $DIR/prefs.sh ]] && sed -Ei 's/ao=.*/ao='$ao'/g' $DIR/prefs.sh
         elif [[ ${n:0:1} == 'b' ]]; then
