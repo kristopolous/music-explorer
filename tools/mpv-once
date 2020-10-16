@@ -69,7 +69,8 @@ for i in ${all[@]}; do
 
       if (( ${#fileList[@]} )); then
         before=$( date +%s )
-        $player $player_opts \
+        set -x
+        $player --ao=$ao $player_opts \
           --start=$start_time --no-audio-display \
           $list
 
@@ -83,7 +84,7 @@ for i in ${all[@]}; do
           age=$(( $before - $(stat -c %Y "$m3u") ))
 
           if [[ $age -lt $day ]]; then
-            $player $player_opts \
+            $player --ao=$ao $player_opts \
               --no-cache \
               --start=$start_time --no-audio-display \
               "$m3u"
