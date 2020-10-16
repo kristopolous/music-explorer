@@ -69,7 +69,6 @@ for i in ${all[@]}; do
 
       if (( ${#fileList[@]} )); then
         before=$( date +%s )
-        set -x
         $player --ao=$ao $player_opts \
           --start=$start_time --no-audio-display \
           $list
