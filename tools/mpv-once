@@ -145,7 +145,10 @@ for i in ${all[@]}; do
           fi
         fi
 
-        if [[ $n == 'debug' ]]; then
+        if [[ $n == 'nodebug' ]]; then
+          echo "Turning off verbose output"
+          set +x
+        elif [[ $n == 'debug' ]]; then
           echo $PWD
           set -x
         fi
