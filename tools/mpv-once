@@ -60,7 +60,7 @@ for i in ${all[@]}; do
         url="https://$domain/album/$release"
       fi
 
-      printf "\n%10s | %s\n%10s | %s\n\n" "$ix / $size" "$start_dir/$i" "" "$url"
+      printf "\n%11s | %s\n%11s | %s\n\n" "$ix / $size" "$start_dir/$i" "" "$url"
 
       list="$i/*.mp3 $i/*.aiff"
       attempts=0
