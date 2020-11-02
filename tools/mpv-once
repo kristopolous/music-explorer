@@ -41,7 +41,7 @@ fi
 
 echo */* | tr ' ' '\n' > .listen_all
 touch .listen_done
-all=( $(cat .listen_all .listen_done | awk ' { print $1 } ' | grep -E "$filter" | sort | uniq -u | shuf) )
+all=( $(cat .listen_all .listen_done | grep -E "$filter" | awk ' { print $1 } ' | sort | uniq -u | shuf) )
 size=${#all[@]}
 ix=0 
 for i in ${all[@]}; do
