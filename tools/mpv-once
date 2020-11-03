@@ -1,8 +1,11 @@
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+player=mpv
+player_opts="--script=$DIR/quit-on-error.lua "'--term-playing-msg=\n${media-title} --input-ipc-server=/tmp/mpvsocket'
+
 . $DIR/lib.sh
-. $DIR/prefs.sh
+[[ -e $DIR/prefs ]] && . $DIR/prefs.sh
 
 # we're going to restore it to this.
 start_name=$( tmux display-message -p '#W' )
