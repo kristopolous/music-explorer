@@ -27,7 +27,7 @@ function print_on_start(e,f)
   pl = mp.get_property_native("playlist", {})
   pos = mp.get_property_native("playlist-pos-1", 1)
   toprint = string.gsub(pl[pos]['filename'], "(.*/)(.*)-%d*.mp3", "%2")
-  os.execute('echo "' .. toprint .. '" | aosd_cat -p 2  -n "Noto Sans Condensed ExtraBold 150" -R white -f 1000 -u 15000 -o 2000 -x -20 -y 20 -d 50 -r 190 -b 216 -S black -e 2 -B black -b 200&')
+  -- os.execute('echo "' .. toprint .. '" | aosd_cat -p 2  -n "Noto Sans Condensed ExtraBold 150" -R white -f 1000 -u 15000 -o 2000 -x -20 -y 20 -d 50 -r 190 -b 216 -S black -e 2 -B black -b 200&')
 end
 
 mp.register_event("log-message", lg)
