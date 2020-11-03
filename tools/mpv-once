@@ -177,7 +177,7 @@ for i in ${all[@]}; do
     fi
   fi
   if [[ "$n" != "__nothing" ]]; then 
-    cp .listen-done /tmp/.listen_done-$(date +%Y%m%d%H%M%S)
+    cp .listen_done /tmp/.listen_done-$(date +%Y%m%d%H%M%S)
 
     # Remove any previous record of this
     st=$( echo $i | tr '//' '.' )
