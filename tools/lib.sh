@@ -1,6 +1,6 @@
 #!/bin/bash
 get_urls() {
-   youtube-dl --get-duration --get-filename -gf mp3-128 -- "$1" | awk -f $DIR/ytdl2m3u.awk > "$2"/url-list.m3u
+   youtube-dl --get-duration --get-filename -gf mp3-128 -- "$1" | gawk -f $DIR/ytdl2m3u.awk > "$2"/url-list.m3u
    echo $? > "$2"/exit-code
 }
 get_mp3s() {
