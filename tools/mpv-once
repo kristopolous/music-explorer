@@ -182,9 +182,7 @@ for i in ${all[@]}; do
 
     # Remove any previous record of this
     st=$( echo $i | tr '//' '.' )
-    before=$(wc -l .listen_done)
     sed -i "/$st/d" .listen_done
-    echo "$before -> $(wc -l .listen_done)"
 
     echo "$i $n (time:$listen_time) $(date +%Y%m%d)" >> .listen_done
   fi
