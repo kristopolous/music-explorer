@@ -17,7 +17,7 @@ day=86400
 
 shopt -s nullglob
 
-tmux rename-window "mpv-once" 2> /dev/null
+#tmux rename-window "mpv-once" 2> /dev/null
 
 function finish {
   tmux rename-window "$start_name"
@@ -49,6 +49,7 @@ all=( $(cat .listen_all .listen_done | grep -E "$filter" | awk ' { print $1 } ' 
 size=${#all[@]}
 ix=0 
 for i in ${all[@]}; do
+  tmux rename-window "mpv-once" 2> /dev/null
   (( ix ++ ))
   n=__nothing
   ls "$i"/*.mp3 "$i"/*.aiff > /dev/null 2>&1

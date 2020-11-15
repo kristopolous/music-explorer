@@ -12,6 +12,10 @@ amixer_step=4%
 pactl_prefix='pactl set-sink-volume $(pactl list sinks | grep -C 4 MPOW | grep -E "^S" | cut -d "#" -f 2)'
 pactl_step=2000
 
+dbg() {
+  echo $(date) "$*" >> /tmp/keycode
+}
+  
 docmd() {
   if [[ -n "$cmd" ]]; then
     if [[ -n "$host" && "$host" != "localhost" ]]; then
@@ -36,17 +40,17 @@ elif [[ $1 == '0' ]]; then
 fi
 docmd
 
-declare -A mapping=( [left]='back' [right]='forward' [p]='pu ENTER' [return]='ENTER' [space]='" "' [comma]='prev' [period]='next' [s]='s ENTER' [r]='r ENTER' )
+declare -A mapping=( [left]='back' [right]='forward' [p]='pu ENTER' [return]='ENTER' [space]='pauseplay' [comma]='prev' [period]='next' [s]='s ENTER' [r]='r ENTER' )
 [[ ${mapping[$1]+_} ]] && control=${mapping[$1]} || control=$1
 
-# debugging
-#echo $(date) "$1->($control)" >> /tmp/keycode
-#
+dbg "$1->($control)"
 
 cmd="tmux send-keys -t mpv-once $control"
 case $control in
-  forward|prev|back|next)
-    cmd="ipc-do.js $control"
+  forward|prev|back|next|pauseplay)
+    cmd="${cmdbase}ipc-do.js $control"
     ;;
 esac
-docmd
+dbg "$cmd"
+docmd 
+
