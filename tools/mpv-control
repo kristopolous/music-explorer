@@ -36,10 +36,18 @@ declare -A mapping=( [left]='back' [right]='forward' [p]='pu ENTER' [return]='EN
 case $control in
 
   forward|prev|back|next)
-    timeout 5s ssh $host "$HOME/bin/ipc-do.js $control"
+    cmd="ipc-do.js $control"
     ;;
 
   *)
-    timeout 5s ssh $host "tmux send-keys -t mpv-once $control"
+    cmd="tmux send-keys -t mpv-once $control"
     ;;
 esac
+
+if [[ -n "$cmd" ]]; then
+  if [[ -n "$host" && "$host" != "localhost" ]]; then
+    timeout 5s ssh $host $cmd
+  else
+    $cmd
+  fi
+fi
