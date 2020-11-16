@@ -2,3 +2,4 @@ secrets.py
 *.swp
 prefs.sh
 midiconfig.ini
+.listen_*
