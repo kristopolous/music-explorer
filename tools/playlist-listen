@@ -7,5 +7,5 @@ shuf $1 | while read i; do
 	echo $i
   fname=$(mktemp --suffix=.m3u)
   _get_urls $i $fname
-	mpv --no-audio-display  $fname
+	mpv --term-playing-msg='\n${media-title}' --no-audio-display $fname
 done
