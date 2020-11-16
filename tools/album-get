@@ -96,7 +96,7 @@ while [[ $# -gt 0 ]]; do
       if [[ -z "$isnew" ]]; then
         # we put in some kind of backoff strategy
         sleep 10
-        track_count=$( youtube-dl -f mp3-128 -g -- "$url" | wc -l )
+        track_count=$( youtube-dl -if mp3-128 -g -- "$url" | wc -l )
         if [[ "$track_count" = "0" ]]; then
           echo "  ( no files )"
           touch "$place"/no-files
@@ -105,7 +105,7 @@ while [[ $# -gt 0 ]]; do
       fi
 
       # sometimes people are posting wav files ... really, that's crazy
-      [[ -z "$FULLALBUM" ]] && get_urls "$url" $place || youtube-dl -f mp3-128 -- "$url"
+      [[ -z "$FULLALBUM" ]] && get_urls "$url" $place || youtube-dl -if mp3-128 -- "$url"
       echo "$(date +%Y%m%d) $place $url" >> "$base_path/.dl_history"
       (( TTL ++ ))
     fi

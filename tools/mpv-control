@@ -12,6 +12,21 @@ amixer_step=4%
 pactl_prefix='pactl set-sink-volume $(pactl list sinks | grep -C 4 MPOW | grep -E "^S" | cut -d "#" -f 2)'
 pactl_step=2000
 
+dbg() {
+  echo $(date) "$*" >> /tmp/keycode
+}
+  
+docmd() {
+  if [[ -n "$cmd" ]]; then
+    if [[ -n "$host" && "$host" != "localhost" ]]; then
+      timeout 5s ssh $host $cmd
+    else
+      $cmd
+    fi
+    exit
+  fi
+}
+
 if [[ $1 == 'd' ]]; then
   tmp=$(mktemp)
   ssh $host "~/bin/mpv-details" > $tmp
@@ -19,27 +34,23 @@ if [[ $1 == 'd' ]]; then
   rm $tmp
   exit
 elif [[ $1 == '9' ]]; then
-  timeout 5s ssh $host "$pactl_prefix -$pactl_step;$amixer_prefix $amixer_step-"
-  exit
+  cmd="$pactl_prefix -$pactl_step;$amixer_prefix $amixer_step-"
 elif [[ $1 == '0' ]]; then
-  timeout 5s ssh $host "$pactl_prefix +$pactl_step;$amixer_prefix $amixer_step+"
-  exit
+  cmd="$pactl_prefix +$pactl_step;$amixer_prefix $amixer_step+"
 fi
+docmd
 
-declare -A mapping=( [left]='back' [right]='forward' [p]='pu ENTER' [return]='ENTER' [space]='" "' [comma]='prev' [period]='next' [s]='s ENTER' [r]='r ENTER' )
+declare -A mapping=( [left]='back' [right]='forward' [p]='pu ENTER' [return]='ENTER' [space]='pauseplay' [comma]='prev' [period]='next' [s]='s ENTER' [r]='r ENTER' )
 [[ ${mapping[$1]+_} ]] && control=${mapping[$1]} || control=$1
 
-# debugging
-#echo $(date) "$1->($control)" >> /tmp/keycode
-#
+dbg "$1->($control)"
 
+cmd="tmux send-keys -t mpv-once $control"
 case $control in
-
-  forward|prev|back|next)
-    timeout 5s ssh $host "$HOME/bin/ipc-do.js $control"
-    ;;
-
-  *)
-    timeout 5s ssh $host "tmux send-keys -t mpv-once $control"
+  forward|prev|back|next|pauseplay)
+    cmd="${cmdbase}ipc-do.js $control"
     ;;
 esac
+dbg "$cmd"
+docmd 
+
