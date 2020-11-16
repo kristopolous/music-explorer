@@ -1,0 +1,11 @@
+#!/bin/bash
+[[ -z "$DIR" ]] && DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+. $DIR/lib.sh
+
+shuf $1 | while read i; do
+	echo $i
+  fname=$(mktemp --suffix=.m3u)
+  _get_urls $i $fname
+	mpv --no-audio-display  $fname
+done
