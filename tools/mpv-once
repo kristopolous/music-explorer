@@ -150,7 +150,24 @@ for i in ${all[@]}; do
           fi
         fi
 
-        if [[ $n == 'nodebug' ]]; then
+        if [[ $n == '?' ]]; then
+          { cat <<- ENDL
+          ?       - This help page
+          3,4,5   - Rate
+          ao[...] - Set the audio out to [...]
+          b[...]  - Set the start time to [...]
+          i       - Info of the album
+          l       - List the files
+          pu      - Purge (delete)
+          r       - Repeat
+          s       - Skip (and log)
+          sn      - Skip (but do not log)
+          x       - Exit
+          debug   - Enable debugging
+          nodebug - Turn off debugging
+	ENDL
+        } | sed 's/^\s*/ /g';
+        elif [[ $n == 'nodebug' ]]; then
           echo "Turning off verbose output"
           set +x
         elif [[ $n == 'debug' ]]; then
