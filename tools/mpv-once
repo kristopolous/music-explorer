@@ -69,25 +69,26 @@ for i in ${all[@]}; do
 
       list="$i/*.mp3 $i/*.aiff"
       attempts=0
-      m3u=$i/playlist.m3u
+      m3u=$i/$PLAYLIST
       fileList=( $list )
 
-      if (( ${#fileList[@]} )); then
-        before=$( date +%s )
-        $player --ao=$ao $player_opts \
-          --start=$start_time --no-audio-display \
-          $list
+      if [[ ! -e $m3u && ! -e "$i"/no-files ]]; then
+        (
+          cd "$i"
+          echo "Trying to get $m3u"
+          get_playlist "$url"
+        )
+      fi
 
-        (( listen_time += $(date +%s) - before ))
-
-        echo "listen-time $listen_time"
-      elif [[ -z "$LOCAL" && -e $m3u ]]; then
+      if [[ -e $m3u ]]; then
+        playlistIsRemote=$(grep -i http $m3u)
         while [[ 0 ]]; do
 
           before=$( date +%s )
           age=$(( $before - $(stat -c %Y "$m3u") ))
 
-          if [[ $age -lt $day ]]; then
+          if [[ -z "$playlistIsRemote" || $age -lt $day ]]; then
+            
             $player --ao=$ao $player_opts \
               --no-cache \
               --start=$start_time --no-audio-display \
@@ -115,7 +116,15 @@ for i in ${all[@]}; do
           fi
           break
         done
+      elif (( ${#fileList[@]} )); then
+        before=$( date +%s )
+        $player --ao=$ao $player_opts \
+          --start=$start_time --no-audio-display \
+          $list
 
+        (( listen_time += $(date +%s) - before ))
+
+        echo "listen-time $listen_time"
       elif [[ -e "$i"/no-files ]]; then
         echo "There appears to be no files in $i."
         ls -ltr $i
@@ -139,9 +148,11 @@ for i in ${all[@]}; do
           ao=${n:3}
           echo "Setting audio out to '$ao'"
           [[ -e $DIR/prefs.sh ]] && sed -Ei 's/ao=.*/ao='$ao'/g' $DIR/prefs.sh
+
         elif [[ ${n:0:1} == 'b' ]]; then
           start_time=${n:2}
           echo "Setting start time to $start_time"
+
         elif [[ $n == 'l' ]]; then
           if [[ -e $m3u ]]; then
             cat $m3u
