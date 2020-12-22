@@ -95,7 +95,7 @@ while [[ $# -gt 0 ]]; do
       # case we mark it as skippable
       if [[ -z "$isnew" ]]; then
         # we put in some kind of backoff strategy
-        sleep 10
+        sleep 3
         track_count=$( youtube-dl -if mp3-128 -g -- "$url" | wc -l )
         if [[ "$track_count" = "0" ]]; then
           echo "  ( no files )"
@@ -107,7 +107,11 @@ while [[ $# -gt 0 ]]; do
       # sometimes people are posting wav files ... really, that's crazy
       if [[ -n "$FULLALBUM" ]]; then 
         youtube-dl -if mp3-128 -- "$url"
-        youtube-dl -eif mp3-128 -- "$url" > playlist.m3u
+
+        youtube-dl -eif mp3-128 -- "$url"    |\
+          sed -Ee 's/^/echo "/' -e 's/$/"*/' |\
+          /bin/sh > playlist.m3u
+
       else
         get_urls "$url" $place
       fi
