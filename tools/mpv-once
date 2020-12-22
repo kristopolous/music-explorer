@@ -54,7 +54,7 @@ for i in ${all[@]}; do
   n=__nothing
   ls "$i"/*.mp3 "$i"/*.aiff > /dev/null 2>&1
   listen_time=0
-  if [[ $? == "0" || -e $i/url-list.m3u ]]; then
+  if [[ $? == "0" || -e $i/$PLAYLIST ]]; then
     while [[ 0 ]]; do
       if [[ -e $i/domain ]]; then
         url=$(< $i/domain )
