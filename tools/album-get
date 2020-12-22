@@ -108,9 +108,7 @@ while [[ $# -gt 0 ]]; do
       if [[ -n "$FULLALBUM" ]]; then 
         youtube-dl -if mp3-128 -- "$url"
 
-        youtube-dl -eif mp3-128 -- "$url"    |\
-          sed -Ee 's/^/echo "/' -e 's/$/"*/' |\
-          /bin/sh > playlist.m3u
+        get_playlist "$url"
 
       else
         get_urls "$url" $place
