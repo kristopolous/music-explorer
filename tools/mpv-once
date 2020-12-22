@@ -69,7 +69,7 @@ for i in ${all[@]}; do
 
       list="$i/*.mp3 $i/*.aiff"
       attempts=0
-      m3u=$i/url-list.m3u
+      m3u=$i/playlist.m3u
       fileList=( $list )
 
       if (( ${#fileList[@]} )); then
