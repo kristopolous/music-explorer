@@ -105,7 +105,13 @@ while [[ $# -gt 0 ]]; do
       fi
 
       # sometimes people are posting wav files ... really, that's crazy
-      [[ -z "$FULLALBUM" ]] && get_urls "$url" $place || youtube-dl -if mp3-128 -- "$url"
+      if [[ -n "$FULLALBUM" ]]; then 
+        youtube-dl -if mp3-128 -- "$url"
+        youtube-dl -eif mp3-128 -- "$url" > playlist.m3u
+      else
+        get_urls "$url" $place
+      fi
+
       echo "$(date +%Y%m%d) $place $url" >> "$base_path/.dl_history"
       (( TTL ++ ))
     fi

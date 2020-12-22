@@ -6,7 +6,7 @@ _get_urls() {
   youtube-dl --get-duration --get-filename -gf mp3-128 -- "$1" | awk -f $DIR/ytdl2m3u.awk > "$2"
 }
 get_urls() {
-  _get_urls $1 "$2/url-list.m3u"
+  _get_urls $1 "$2/playlist.m3u"
   echo $? > "$2"/exit-code
 }
 
