@@ -18,7 +18,7 @@ get_playlist() {
 
   if [[ ! -s $PLAYLIST ]]; then 
     echo "unable to create $PLAYLIST, doing fallback"
-    ls -1 > $PLAYLIST 
+    ls -1 *.mp3 > $PLAYLIST 
   fi
 }
 
