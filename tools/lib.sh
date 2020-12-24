@@ -14,7 +14,7 @@ get_urls() {
 
 get_playlist() {
   [[ -e $PLAYLIST ]] || youtube-dl -eif mp3-128 -- "$1" |\
-    sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' | /bin/bash > $PLAYLIST
+    sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' | /bin/bash | grep mp3 > $PLAYLIST
 
   if [[ ! -s $PLAYLIST ]]; then 
     echo "unable to create $PLAYLIST, doing fallback"
@@ -27,5 +27,7 @@ get_mp3s() {
     cd "$2"
     youtube-dl -f mp3-128 -- "$1"
     echo $? > exit-code
+    echo "---exit code---"
+    echo $PWD $(cat exit-code)
   )
 }
