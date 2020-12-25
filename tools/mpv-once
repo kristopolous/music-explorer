@@ -52,9 +52,10 @@ for i in ${all[@]}; do
   tmux rename-window "mpv-once" 2> /dev/null
   (( ix ++ ))
   n=__nothing
-  ls "$i"/*.mp3 "$i"/*.aiff > /dev/null 2>&1
   listen_time=0
+  ls "$i"/*.mp3 "$i"/*.aiff > /dev/null 2>&1
   if [[ $? == "0" || -e $i/$PLAYLIST ]]; then
+    attempts=0
     while [[ 0 ]]; do
       if [[ -e $i/domain ]]; then
         url=$(< $i/domain )
@@ -68,7 +69,6 @@ for i in ${all[@]}; do
       printf "\n%11s | %s\n%11s | %s\n\n" "$ix / $size" "$start_dir/$i" "" "$url"
 
       list="$i/*.mp3 $i/*.aiff"
-      attempts=0
       m3u=$i/$PLAYLIST
       fileList=( $list )
 
