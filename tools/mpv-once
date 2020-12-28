@@ -42,27 +42,48 @@ if [[ $# -gt 0 ]]; then
   filter="$filter)"
 fi
 
+function record_listen() {
+  if [[ "$n" != "__nothing" ]]; then 
+    cp .listen_done /tmp/.listen_done-$(date +%Y%m%d%H%M%S)
+
+    # Remove any previous record of this
+    st=$( echo "$i" | tr '//' '.' )
+    sed -i "/$st/d" .listen_done
+
+    echo "$i $n (time:$listen_time) $(date +%Y%m%d)" >> .listen_done
+  fi
+}
 
 echo */* | tr ' ' '\n' > .listen_all
 touch .listen_done
 all=( $(cat .listen_all .listen_done | grep -E "$filter" | awk ' { print $1 } ' | sort | uniq -u | shuf) )
 size=${#all[@]}
 ix=0 
+
 for i in ${all[@]}; do
+
   tmux rename-window "mpv-once" 2> /dev/null
   (( ix ++ ))
-  n=__nothing
+  n="__nothing"
   listen_time=0
+
+  if [[ ! -d "$i" ]]; then
+    echo "$i is gone."
+    n="__purge"
+    record_listen
+    continue
+  fi
+
   ls "$i"/*.mp3 "$i"/*.aiff > /dev/null 2>&1
   if [[ $? == "0" || -e $i/$PLAYLIST ]]; then
     attempts=0
     while [[ 0 ]]; do
-      if [[ -e $i/domain ]]; then
-        url=$(< $i/domain )
+      if [[ -e "$i/domain" ]]; then
+        url=$(< "$i/domain" )
       else
-        label=$( dirname $i )
+        label=$( dirname "$i" )
         [[ -e $label/domain ]] && domain=$(< $label/domain ) || domain=${label}.bandcamp.com
-        release=$( basename $i )
+        release=$( basename "$i" )
         url="https://$domain/album/$release"
       fi
 
@@ -80,7 +101,7 @@ for i in ${all[@]}; do
         )
       fi
 
-      if [[ -e $m3u ]]; then
+      if [[ -s "$m3u" ]]; then
         playlistIsRemote=$(grep -i http $m3u)
         while [[ 0 ]]; do
 
@@ -206,13 +227,5 @@ for i in ${all[@]}; do
       n="__rating_$n"
     fi
   fi
-  if [[ "$n" != "__nothing" ]]; then 
-    cp .listen_done /tmp/.listen_done-$(date +%Y%m%d%H%M%S)
-
-    # Remove any previous record of this
-    st=$( echo $i | tr '//' '.' )
-    sed -i "/$st/d" .listen_done
-
-    echo "$i $n (time:$listen_time) $(date +%Y%m%d)" >> .listen_done
-  fi
+  record_listen
 done
