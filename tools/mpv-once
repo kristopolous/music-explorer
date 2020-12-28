@@ -75,7 +75,7 @@ for i in ${all[@]}; do
   fi
 
   ls "$i"/*.mp3 "$i"/*.aiff > /dev/null 2>&1
-  if [[ $? == "0" || -e $i/$PLAYLIST ]]; then
+  if [[ $? == "0" || -e "$i/$PLAYLIST" ]]; then
     attempts=0
     while [[ 0 ]]; do
       if [[ -e "$i/domain" ]]; then
@@ -90,7 +90,7 @@ for i in ${all[@]}; do
       printf "\n%11s | %s\n%11s | %s\n\n" "$ix / $size" "$start_dir/$i" "" "$url"
 
       list="$i/*.mp3 $i/*.aiff"
-      m3u=$i/$PLAYLIST
+      m3u="$i/$PLAYLIST"
       fileList=( $list )
 
       if [[ ! -e $m3u && ! -e "$i"/no-files ]]; then
@@ -148,7 +148,7 @@ for i in ${all[@]}; do
         echo "listen-time $listen_time"
       elif [[ -e "$i"/no-files ]]; then
         echo "There appears to be no files in $i."
-        ls -ltr $i
+        ls -ltr "$i"
         n='pu'
         break
       else
@@ -178,7 +178,7 @@ for i in ${all[@]}; do
           if [[ -e $m3u ]]; then
             cat $m3u
           else
-            ls -l $i
+            ls -l "$i"
           fi
         fi
 
@@ -188,6 +188,7 @@ for i in ${all[@]}; do
           3,4,5   - Rate
           ao[...] - Set the audio out to [...]
           b[...]  - Set the start time to [...]
+          dl      - Download the files
           i       - Info of the album
           l       - List the files
           pu      - Purge (delete)
