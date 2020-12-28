@@ -14,24 +14,23 @@ get_urls() {
 
 get_playlist() {
   dbg=/tmp/playlist-interim-$(date +%s)
-  [[ -e $PLAYLIST ]] || youtube-dl -eif mp3-128 -- "$1" |\
+  youtube-dl -eif mp3-128 -- "$1" |\
     sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' > $dbg 
 
-  echo $dbg
   tomatch=$(cat $dbg | wc -l)
 
   /bin/bash $dbg | grep mp3 > $PLAYLIST
 
   matched=$(cat $PLAYLIST | wc -l)
 
-  echo $tomatch " --- " $matched
-
   if [[ $tomatch != $matched ]]; then
-    echo "Woah hold on"
+    echo $dbg
+    echo "Woah hold on - there's a mismatch. Try 'dl'"
     exit
   fi
 
   if [[ ! -s $PLAYLIST ]]; then 
+    echo $dbg
     echo "unable to create $PLAYLIST, doing fallback"
     ls -1 "*.mp3" > $PLAYLIST 
   fi
@@ -42,7 +41,6 @@ get_mp3s() {
     cd "$2"
     youtube-dl -f mp3-128 -- "$1"
     echo $? > exit-code
-    echo "---exit code---"
-    echo $PWD $(cat exit-code)
+    get_playlist "$1"
   )
 }

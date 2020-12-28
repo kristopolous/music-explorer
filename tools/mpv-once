@@ -54,6 +54,13 @@ function record_listen() {
   fi
 }
 
+function playlist_wrapper() {
+  (
+    cd "$i"
+    get_playlist "$url"
+  )
+}
+
 echo */* | tr ' ' '\n' > .listen_all
 touch .listen_done
 all=( $(cat .listen_all .listen_done | grep -E "$filter" | awk ' { print $1 } ' | sort | uniq -u | shuf) )
@@ -76,6 +83,7 @@ for i in ${all[@]}; do
 
   ls "$i"/*.mp3 "$i"/*.aiff > /dev/null 2>&1
   if [[ $? == "0" || -e "$i/$PLAYLIST" ]]; then
+
     attempts=0
     while [[ 0 ]]; do
       if [[ -e "$i/domain" ]]; then
@@ -93,12 +101,17 @@ for i in ${all[@]}; do
       m3u="$i/$PLAYLIST"
       fileList=( $list )
 
-      if [[ ! -e $m3u && ! -e "$i"/no-files ]]; then
-        (
-          cd "$i"
-          echo "Trying to get $m3u"
-          get_playlist "$url"
-        )
+      if [[ -e "$m3u" ]]; then
+        ttl=$(grep -c $PLAYLIST "$m3u")
+        if [[ $ttl != 0 ]]; then
+          echo "Bogus m3u, deleting"
+          rm "$m3u"
+        fi
+      fi
+
+      if [[ ! -e "$m3u" && ! -e "$i"/no-files ]]; then
+        echo "Trying to get $m3u"
+        playlist_wrapper
       fi
 
       if [[ -s "$m3u" ]]; then
@@ -207,7 +220,9 @@ for i in ${all[@]}; do
           echo $PWD
           set -x
         fi
-        [[ $n == 'dl' ]] && get_mp3s "$url" "$i"
+        if [[ $n == 'dl' ]]; then 
+          get_mp3s "$url" "$i"
+        fi
         [[ "$n" =~ ^(x|r|s|sn|[1-5]|pu)$ ]] && break
       done
 
