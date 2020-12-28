@@ -25,6 +25,7 @@ get_playlist() {
 
   if [[ $tomatch != $matched ]]; then
     echo $dbg
+    echo "$matched -- $tomatch"
     echo "Woah hold on - there's a mismatch. Try 'dl'"
     exit
   fi
