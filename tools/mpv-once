@@ -54,13 +54,6 @@ function record_listen() {
   fi
 }
 
-function playlist_wrapper() {
-  (
-    cd "$i"
-    get_playlist "$url"
-  )
-}
-
 echo */* | tr ' ' '\n' > .listen_all
 touch .listen_done
 all=( $(cat .listen_all .listen_done | grep -E "$filter" | awk ' { print $1 } ' | sort | uniq -u | shuf) )
@@ -111,7 +104,9 @@ for i in ${all[@]}; do
 
       if [[ ! -e "$m3u" && ! -e "$i"/no-files ]]; then
         echo "Trying to get $m3u"
-        playlist_wrapper
+        pushd "$i"
+        get_playlist "$url"
+        popd
       fi
 
       if [[ -s "$m3u" ]]; then
