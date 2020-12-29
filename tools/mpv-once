@@ -6,7 +6,7 @@ player=mpv
 player_opts="--script=$DIR/quit-on-error.lua "'--term-playing-msg=\n${media-title} --input-ipc-server=/tmp/mpvsocket'
 display=0
 
-[[ -e $DIR/prefs ]] && . $DIR/prefs.sh
+[[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 
 # we're going to restore it to this.
 start_name=$( tmux display-message -p '#W' )
@@ -102,7 +102,7 @@ for i in ${all[@]}; do
         fi
       fi
 
-      if [[ ! -e "$m3u" && ! -e "$i"/no-files ]]; then
+      if [[ ! -e "$m3u" && ! -e "$i"/no-files && -n "$playlist_get" ]]; then
         echo "Trying to get $m3u"
         pushd "$i"
         get_playlist "$url"
@@ -199,6 +199,8 @@ for i in ${all[@]}; do
           dl      - Download the files
           i       - Info of the album
           l       - List the files
+          plon    - Download the playlist
+          ploff   - Do not download the playlist
           pu      - Purge (delete)
           r       - Repeat
           s       - Skip (and log)
@@ -208,6 +210,9 @@ for i in ${all[@]}; do
           nodebug - Turn off debugging
 	ENDL
         } | sed 's/^\s*/ /g';
+        elif [[ $n == 'ploff' ]]; then
+          echo "Skipping playlist downloads"
+          playlist_get=
         elif [[ $n == 'nodebug' ]]; then
           echo "Turning off verbose output"
           set +x
