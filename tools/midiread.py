@@ -2,11 +2,16 @@
 import sys,os,subprocess,select,configparser
 import pdb, time, logging, io
 import select 
+import pathlib
 
 config = configparser.ConfigParser()
+config_path = "{}/{}".format(pathlib.Path(__file__).parent.absolute(), 'midiconfig.ini')
 
-if os.path.exists('midiconfig.ini'):
-  config.read('midiconfig.ini')
+if os.path.exists(config_path):
+  config.read(config_path)
+else: 
+  print("No configuration found at {}".format(config_path))
+  sys.exit(1)
   
 controlMapping = { }
 optionMap = {}
@@ -183,13 +188,13 @@ while True:
     elif todo in ['redshift', 'brightness']:
       params = []
       gamma = valueMap.get('gamma') if 'gamma' in valueMap else (.7 * 127)
-      if 'redshift' in valueMap:
-        redshift = int(12000 * valueMap['redshift'] / 127.0 + 1000)
-        params.append("-r {}".format(redshift))
 
       if 'brightness' in valueMap:
         bright = valueMap['brightness'] / 127.0
         params.append("-b {}".format(bright))
+      if 'redshift' in valueMap:
+        redshift = int(12000 * valueMap['redshift'] / 127.0 + 1000)
+        params.append("-r {}".format(redshift))
 
       todoMap['screen'] = "night {}".format(' '.join(params))
 
