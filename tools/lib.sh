@@ -27,7 +27,6 @@ get_playlist() {
     echo $dbg
     echo "$matched -- $tomatch"
     echo "Woah hold on - there's a mismatch. Try 'dl'"
-    exit
   fi
 
   if [[ ! -s $PLAYLIST ]]; then 
