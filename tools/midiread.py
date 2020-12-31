@@ -5,7 +5,8 @@ import select
 import pathlib
 
 config = configparser.ConfigParser()
-config_path = "{}/{}".format(pathlib.Path(__file__).parent.absolute(), 'midiconfig.ini')
+base_path = pathlib.Path(__file__).parent.absolute()
+config_path = "{}/{}".format(base_path, 'midiconfig.ini')
 
 if os.path.exists(config_path):
   config.read(config_path)
@@ -183,7 +184,7 @@ while True:
     elif todo and (todo[:2] == 'bw' or todo[:2] == 'fw'):
       amount = int(todo[2:])
       dir = 'back' if todo[:2] == 'bw' else 'forward'
-      cmd = "./ipc-do.js {} {}".format(dir, amount)
+      cmd = "{}/ipc-do.js {} {}".format(base_path, dir, amount)
 
     elif todo in ['redshift', 'brightness']:
       params = []
@@ -199,7 +200,7 @@ while True:
       todoMap['screen'] = "night {}".format(' '.join(params))
 
     elif todo in ['prev','next','pauseplay'] and value == 0:
-      cmd = "./ipc-do.js {}".format(todo)
+      cmd = "{}/ipc-do.js {}".format(base_path, todo)
 
     elif todo in cmdMap:
       if value == 0:
