@@ -68,12 +68,11 @@ while [[ $# -gt 0 ]]; do
 
     # if we haven't any files then we just try to download from it again... 
     exitcode=0
-    if [[ -e $place/exit-code ]]; then
-      exitcode=$(< $place/exit-code )
-    fi
+    [[ -e $place/exit-code ]] && exitcode=$(< $place/exit-code )
 
     count=$( ls "$place"/* 2> /dev/null | grep -Ev '\/(exit-code|domain)$' | wc -l )
     if [[ "$count" = "0" || $exitcode != "0" ]]; then
+      [[ -e "$place/exit-code" ]] && rm "$place/exit-code"
       cd "$place"
       echo "--- $place"
 
