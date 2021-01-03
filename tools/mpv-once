@@ -166,7 +166,9 @@ for i in ${all[@]}; do
           break
         fi
 
-        echo "Hrmm, I don't know what to do here."
+        echo "Hrmm... I'll try to download things again."
+        get_mp3s "$url" "$i"
+
       fi
 
       while [[ 0 ]]; do
