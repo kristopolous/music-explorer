@@ -69,7 +69,7 @@ for i in ${all[@]}; do
   listen_time=0
 
   if [[ ! -d "$i" ]]; then
-    echo "$i is gone."
+    echo "$i is gone"
     n="__purge"
     record_listen
     continue
@@ -89,7 +89,7 @@ for i in ${all[@]}; do
         url="https://$domain/album/$release"
       fi
 
-      printf "\n%11s | %s\n%11s | %s\n\n" "$ix / $size" "$start_dir/$i" "" "$url"
+      printf "\n%11s - %s\n%11s - %s\n" "$ix / $size" "$start_dir/$i" "" "$url"
 
       list="$i/*.mp3 $i/*.aiff"
       m3u="$i/$PLAYLIST"
@@ -126,7 +126,7 @@ for i in ${all[@]}; do
 
             player_exit=$?
             (( listen_time += $(date +%s) - before ))
-            echo "listen-time $listen_time"
+            echo "Listen-time $listen_time"
           else
             # If our m3u is over a day old we just
             # assume failure
@@ -135,9 +135,9 @@ for i in ${all[@]}; do
           fi
 
           if [[ $player_exit == "2" ]]; then
-            echo "woops, need to get a new set of urls"
+            echo "Woops, need to get a new set of urls"
             if [[ $attempts -gt 2 ]]; then
-              echo "This isn't going that well."
+              echo "This isn't going that well"
               break
             fi
             get_urls "$url" "$i"
@@ -156,7 +156,7 @@ for i in ${all[@]}; do
 
         echo "listen-time $listen_time"
       elif [[ -e "$i"/no-files ]]; then
-        echo "There appears to be no files in $i."
+        echo "There appears to be no files in $i"
         ls -ltr "$i"
         n='pu'
         break
@@ -173,7 +173,7 @@ for i in ${all[@]}; do
       fi
 
       while [[ 0 ]]; do
-        read -p "$i >> " -e n
+        read -p "$i > " -e n
         if [[ $n == 'i' ]]; then 
           echo $url
           echo $start_dir/$i
@@ -190,18 +190,21 @@ for i in ${all[@]}; do
           echo "Setting start time to $start_time"
 
         elif [[ $n == 'l' ]]; then
+          echo
           if [[ -e $m3u ]]; then
-            echo "PLAYLIST:"
-            cat $m3u | sed 's/^/  /'
+            echo "  PLAYLIST"
+            cat $m3u | sed 's/^/    /'
             echo
           fi
 
-          echo "FILES:"
-          ls -l "$i" | sed 's/^/  /'
+          echo "  FILES"
+          ls -l "$i" | sed 's/^/    /'
+          echo
         fi
 
         if [[ $n == '?' ]]; then
           { cat <<- ENDL
+
           ?       - This help page
           !       - Do a \$SHELL here
           3,4,5   - Rate
@@ -220,8 +223,9 @@ for i in ${all[@]}; do
           x       - Exit
           debug   - Enable debugging
           nodebug - Turn off debugging
+
 	ENDL
-        } | sed 's/^\s*/ /g';
+        } | sed 's/^\s*/    /g';
         elif [[ $n == 'nopl' ]]; then
           echo "Skipping playlist downloads"
           playlist_get=
@@ -238,7 +242,7 @@ for i in ${all[@]}; do
           $SHELL
         elif [[ $n == 'dlp' ]]; then 
           (
-            echo "Downloading playlist..."
+            echo "Downloading playlist"
             cd "$i"
             get_playlist "$url"
           )
@@ -256,10 +260,10 @@ for i in ${all[@]}; do
       $DIR/album-purge "$i" $start_dir
       n="__purge"
     elif [[ $n == 'sn' ]]; then
-      echo "Skipping (not recording) ..."
+      echo "Skipping (not recording)"
       n="__nothing"
     elif [[ $n == 's' ]]; then
-      echo "Skipping ... "
+      echo "Skipping"
       n="__skipping"
     else
       n="__rating_$n"
