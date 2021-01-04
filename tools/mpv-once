@@ -5,6 +5,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 player=mpv
 player_opts="--script=$DIR/quit-on-error.lua "'--term-playing-msg=\n${media-title} --input-ipc-server=/tmp/mpvsocket'
 display=0
+playlist_get=1
 
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 
@@ -173,7 +174,11 @@ for i in ${all[@]}; do
 
       while [[ 0 ]]; do
         read -p "$i >> " -e n
-        [[ $n == 'i' ]] && echo $url
+        if [[ $n == 'i' ]]; then 
+          echo $url
+          echo $start_dir/$i
+          echo "playlist_get=$playlist_get"
+        fi
 
         if [[ ${n:0:2} == 'ao' ]]; then
           ao=${n:3}
@@ -186,23 +191,28 @@ for i in ${all[@]}; do
 
         elif [[ $n == 'l' ]]; then
           if [[ -e $m3u ]]; then
-            cat $m3u
-          else
-            ls -l "$i"
+            echo "PLAYLIST:"
+            cat $m3u | sed 's/^/  /'
+            echo
           fi
+
+          echo "FILES:"
+          ls -l "$i" | sed 's/^/  /'
         fi
 
         if [[ $n == '?' ]]; then
           { cat <<- ENDL
           ?       - This help page
+          !       - Do a \$SHELL here
           3,4,5   - Rate
           ao[...] - Set the audio out to [...]
           b[...]  - Set the start time to [...]
           dl      - Download the files
+          dlp     - Download just the playlist
           i       - Info of the album
           l       - List the files
-          plon    - Download the playlist
-          ploff   - Do not download the playlist
+          pl      - Download the playlist
+          nopl    - Do not download the playlist
           pu      - Purge (delete)
           r       - Repeat
           s       - Skip (and log)
@@ -212,17 +222,27 @@ for i in ${all[@]}; do
           nodebug - Turn off debugging
 	ENDL
         } | sed 's/^\s*/ /g';
-        elif [[ $n == 'ploff' ]]; then
+        elif [[ $n == 'nopl' ]]; then
           echo "Skipping playlist downloads"
           playlist_get=
+        elif [[ $n == 'pl' ]]; then
+          echo "Playlist on"
+          playlist_get=1
         elif [[ $n == 'nodebug' ]]; then
           echo "Turning off verbose output"
           set +x
         elif [[ $n == 'debug' ]]; then
           echo $PWD
           set -x
-        fi
-        if [[ $n == 'dl' ]]; then 
+        elif [[ $n == '!' ]]; then 
+          $SHELL
+        elif [[ $n == 'dlp' ]]; then 
+          (
+            echo "Downloading playlist..."
+            cd "$i"
+            get_playlist "$url"
+          )
+        elif [[ $n == 'dl' ]]; then 
           get_mp3s "$url" "$i"
         fi
         [[ "$n" =~ ^(x|r|s|sn|[1-5]|pu)$ ]] && break
