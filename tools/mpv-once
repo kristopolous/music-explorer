@@ -104,10 +104,11 @@ for i in ${all[@]}; do
       fi
 
       if [[ ! -e "$m3u" && ! -e "$i"/no-files && -n "$playlist_get" ]]; then
+        echo
         echo "Trying to get $m3u"
-        pushd "$i"
+        pushd "$i" > /dev/null
         get_playlist "$url"
-        popd
+        popd > /dev/null
       fi
 
       if [[ -s "$m3u" ]]; then
@@ -175,9 +176,13 @@ for i in ${all[@]}; do
       while [[ 0 ]]; do
         read -p "$i > " -e n
         if [[ $n == 'i' ]]; then 
+          {
+          echo
           echo $url
           echo $start_dir/$i
           echo "playlist_get=$playlist_get"
+          echo
+          }  |  sed 's/^/    /'
         fi
 
         if [[ ${n:0:2} == 'ao' ]]; then
@@ -203,8 +208,8 @@ for i in ${all[@]}; do
         fi
 
         if [[ $n == '?' ]]; then
+          echo "  HELP"
           { cat <<- ENDL
-
           ?       - This help page
           !       - Do a \$SHELL here
           3,4,5   - Rate
