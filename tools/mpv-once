@@ -105,7 +105,7 @@ for i in ${all[@]}; do
 
       if [[ ! -e "$m3u" && ! -e "$i"/no-files && -n "$playlist_get" ]]; then
         echo
-        echo "Trying to get $m3u"
+        echo "    Getting - $m3u"
         pushd "$i" > /dev/null
         get_playlist "$url"
         popd > /dev/null
@@ -174,7 +174,7 @@ for i in ${all[@]}; do
       fi
 
       while [[ 0 ]]; do
-        read -p "$i > " -e n
+        read -p "[$i] " -e n
         if [[ $n == 'i' ]]; then 
           {
           echo
@@ -190,7 +190,7 @@ for i in ${all[@]}; do
           echo "Setting audio out to '$ao'"
           [[ -e $DIR/prefs.sh ]] && sed -Ei 's/ao=.*/ao='$ao'/g' $DIR/prefs.sh
 
-        elif [[ ${n:0:1} == 'b' ]]; then
+        elif [[ ${n:0:2} == 'b ' ]]; then
           start_time=${n:2}
           echo "Setting start time to $start_time"
 
@@ -213,19 +213,24 @@ for i in ${all[@]}; do
           ?       - This help page
           !       - Do a \$SHELL here
           3,4,5   - Rate
-          ao[...] - Set the audio out to [...]
-          b[...]  - Set the start time to [...]
           dl      - Download the files
           dlp     - Download just the playlist
           i       - Info of the album
           l       - List the files
-          pl      - Download the playlist
-          nopl    - Do not download the playlist
           pu      - Purge (delete)
           r       - Repeat
           s       - Skip (and log)
           sn      - Skip (but do not log)
           x       - Exit
+
+          FLAGS:
+
+          pl      - Download the playlist
+          nopl    - Do not download the playlist
+
+          ao[...] - Set the audio out to [...]
+          b[...]  - Set the start time to [...]
+
           debug   - Enable debugging
           nodebug - Turn off debugging
 

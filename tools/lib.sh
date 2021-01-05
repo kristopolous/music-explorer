@@ -14,6 +14,7 @@ get_urls() {
 
 get_playlist() {
   dbg=/tmp/playlist-interim-$(date +%s)
+
   youtube-dl -eif mp3-128 -- "$1" |\
     sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' > $dbg 
 
