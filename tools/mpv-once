@@ -3,7 +3,8 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . $DIR/lib.sh
 
 player=mpv
-player_opts="--script=$DIR/quit-on-error.lua "'--term-playing-msg=\n${media-title} --input-ipc-server=/tmp/mpvsocket'
+player_opts='--msg-level=cplayer=no --term-playing-msg=${filename} --script='"$DIR"'/quit-on-error.lua --input-ipc-server=/tmp/mpvsocket'
+#player_opts=' --msg-level=cplayer=no  --term-playing-msg=${filename} --script='"$DIR"'/quit-on-error.lua --term-playing-msg=\n${media-title} --input-ipc-server=/tmp/mpvsocket'
 display=0
 playlist_get=1
 
@@ -104,8 +105,7 @@ for i in ${all[@]}; do
       fi
 
       if [[ ! -e "$m3u" && ! -e "$i"/no-files && -n "$playlist_get" ]]; then
-        echo
-        echo "    Getting - $m3u"
+        echo -e "\n    Getting - $m3u\n"
         pushd "$i" > /dev/null
         get_playlist "$url"
         popd > /dev/null
@@ -148,6 +148,7 @@ for i in ${all[@]}; do
           break
         done
       elif (( ${#fileList[@]} )); then
+
         before=$( date +%s )
         $player --ao=$ao $player_opts \
           --start=$start_time --no-audio-display \
@@ -163,12 +164,12 @@ for i in ${all[@]}; do
         break
       else
         if [[ -n "$LOCAL" ]]; then
-          echo "No local files, skipping"
+          echo -e "\n  No local files, skipping\n"
           n="sn"
           break
         fi
 
-        echo "Hrmm... I'll try to download things again."
+        echo -e "\n  I'll try to download things again\n"
         get_mp3s "$url" "$i"
 
       fi
@@ -271,10 +272,10 @@ for i in ${all[@]}; do
       $DIR/album-purge "$i" $start_dir
       n="__purge"
     elif [[ $n == 'sn' ]]; then
-      echo "Skipping (not recording)"
+      echo "  Skipping - not recording"
       n="__nothing"
     elif [[ $n == 's' ]]; then
-      echo "Skipping"
+      echo "  Skipping"
       n="__skipping"
     else
       n="__rating_$n"

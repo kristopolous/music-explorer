@@ -25,9 +25,9 @@ get_playlist() {
   matched=$(cat $PLAYLIST | wc -l)
 
   if [[ $tomatch != $matched ]]; then
-    echo $dbg
-    echo -e "\n  $matched - $tomatch"
-    echo -e "  Woah hold on - there's a mismatch!\n"
+    echo -e "\n    $matched - $tomatch"
+    echo -e "    Hold on - there's a mismatch!"
+    echo -e "    Look in - $dbg\n"
   fi
 
   if [[ ! -s $PLAYLIST ]]; then 
