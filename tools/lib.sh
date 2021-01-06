@@ -30,8 +30,8 @@ get_playlist() {
   fi
 
   if [[ ! -s $PLAYLIST ]]; then 
-    echo $dbg
-    echo -e "\n  Unable to create $PLAYLIST, trying fallback\n"
+    echo -e "\n  Unable to create $PLAYLIST, trying fallback"
+    echo -e "    Look in - $dbg\n"
     ls -1 "*.mp3" > $PLAYLIST  >& /dev/null
   fi
 }

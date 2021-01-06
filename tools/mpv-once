@@ -4,16 +4,16 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 player=mpv
 player_opts='--no-cache --no-audio-display --msg-level=cplayer=no --term-playing-msg=\n${media-title} --script='"$DIR"'/quit-on-error.lua --input-ipc-server=/tmp/mpvsocket'
-#player_opts=' --msg-level=cplayer=no  --term-playing-msg=${filename} --script='"$DIR"'/quit-on-error.lua --term-playing-msg=\n${media-title} --input-ipc-server=/tmp/mpvsocket'
 display=0
 playlist_get=1
 
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 
-# we're going to restore it to this.
+# We're going to restore it to this.
 start_name=$( tmux display-message -p '#W' )
 start_dir=$(pwd)
 start_time=0:45
+
 ao=${ao:-pulse}
 day=86400
 
@@ -54,6 +54,14 @@ function record_listen() {
 
     echo "$i $n (time:$listen_time) $(date +%Y%m%d)" >> .listen_done
   fi
+}
+
+function playit() {
+  $player --ao=$ao $player_opts \
+    --term-playing-msg=" \${playlist-pos-1} \${media-title}" \
+    --term-status-msg="   \${audio-pts} - \${duration}\n" \
+    --start=$start_time \
+    $*
 }
 
 echo */* | tr ' ' '\n' > .listen_all
@@ -99,13 +107,13 @@ for i in ${all[@]}; do
       if [[ -e "$m3u" ]]; then
         ttl=$(grep -c $PLAYLIST "$m3u")
         if [[ $ttl != 0 ]]; then
-          echo "Bogus m3u, deleting"
+          echo "  Bogus m3u ! deleting"
           rm "$m3u"
         fi
       fi
 
       if [[ ! -e "$m3u" && ! -e "$i"/no-files && -n "$playlist_get" ]]; then
-        echo -e "\n    Getting - $m3u"
+        echo -e "    Getting - $m3u"
         pushd "$i" > /dev/null
         get_playlist "$url"
         popd > /dev/null
@@ -120,10 +128,11 @@ for i in ${all[@]}; do
 
           if [[ -z "$playlistIsRemote" || $age -lt $day ]]; then
             
-            $player --ao=$ao $player_opts \
-              --term-status-msg="   \${audio-pts} - \${duration}" --start=$start_time \
-              "$m3u"
+            t_count=$(cat "$m3u" | wc -l)
+            echo
+            [[ $t_count != 1 ]] && echo -e " \033[1m$(cat "$m3u" | wc -l) TRACKS\033[0m"
 
+            playit "$m3u"
             player_exit=$?
             (( listen_time += $(date +%s) - before ))
             echo -e "\n       Time - $listen_time\n"
@@ -149,10 +158,8 @@ for i in ${all[@]}; do
       elif (( ${#fileList[@]} )); then
 
         before=$( date +%s )
-        $player --ao=$ao $player_opts \
-          --term-status-msg="   \${audio-pts} - \${duration}" --start=$start_time \
-          $list
-
+          
+        playit "$i"/*.mp3
         (( listen_time += $(date +%s) - before ))
 
         echo -e "\n       Time - $listen_time\n"
@@ -239,17 +246,24 @@ for i in ${all[@]}; do
         elif [[ $n == 'nopl' ]]; then
           echo "Skipping playlist downloads"
           playlist_get=
+
         elif [[ $n == 'pl' ]]; then
           echo "Playlist on"
           playlist_get=1
+
         elif [[ $n == 'nodebug' ]]; then
           echo "Turning off verbose output"
           set +x
+
         elif [[ $n == 'debug' ]]; then
           echo $PWD
           set -x
+
         elif [[ $n == '!' ]]; then 
-          $SHELL
+          (
+            cd "$i"
+            $SHELL
+          )
         elif [[ $n == 'dlp' ]]; then 
           (
             echo "Downloading playlist"
