@@ -16,6 +16,7 @@ start_time=0:45
 
 ao=${ao:-pulse}
 day=86400
+tabs -4
 
 shopt -s nullglob
 
@@ -58,8 +59,8 @@ function record_listen() {
 
 function playit() {
   $player --ao=$ao $player_opts \
-    --term-playing-msg=" \${playlist-pos-1} \${media-title}" \
-    --term-status-msg="   \${audio-pts} - \${duration}\n" \
+    --term-playing-msg=" \${playlist-pos-1}\t\${media-title}" \
+    --term-status-msg="\t\${audio-pts} - \${duration}\n" \
     --start=$start_time \
     $*
 }
@@ -135,7 +136,7 @@ for i in ${all[@]}; do
             playit "$m3u"
             player_exit=$?
             (( listen_time += $(date +%s) - before ))
-            echo -e "\n       Time - $listen_time\n"
+            echo -e "\n\tTime - $listen_time\n"
           else
             # If our m3u is over a day old we just
             # assume failure
@@ -162,7 +163,7 @@ for i in ${all[@]}; do
         playit "$i"/*.mp3
         (( listen_time += $(date +%s) - before ))
 
-        echo -e "\n       Time - $listen_time\n"
+        echo -e "\n\tTime - $listen_time\n"
       elif [[ -e "$i"/no-files ]]; then
         echo "There appears to be no files in $i"
         ls -ltr "$i"
