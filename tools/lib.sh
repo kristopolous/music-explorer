@@ -26,14 +26,14 @@ get_playlist() {
 
   if [[ $tomatch != $matched ]]; then
     echo $dbg
-    echo "$matched -- $tomatch"
-    echo "Woah hold on - there's a mismatch. Try 'dl'"
+    echo -e "\n  $matched - $tomatch"
+    echo -e "  Woah hold on - there's a mismatch!\n"
   fi
 
   if [[ ! -s $PLAYLIST ]]; then 
     echo $dbg
-    echo "unable to create $PLAYLIST, doing fallback"
-    ls -1 "*.mp3" > $PLAYLIST 
+    echo -e "\n  Unable to create $PLAYLIST, trying fallback\n"
+    ls -1 "*.mp3" > $PLAYLIST  >& /dev/null
   fi
 }
 

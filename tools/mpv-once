@@ -127,7 +127,7 @@ for i in ${all[@]}; do
 
             player_exit=$?
             (( listen_time += $(date +%s) - before ))
-            echo "Listen time: $listen_time"
+            echo -e "\n       Time - $listen_time\n"
           else
             # If our m3u is over a day old we just
             # assume failure
@@ -155,7 +155,7 @@ for i in ${all[@]}; do
 
         (( listen_time += $(date +%s) - before ))
 
-        echo "Listen time: $listen_time"
+        echo -e "\n       Time - $listen_time\n"
       elif [[ -e "$i"/no-files ]]; then
         echo "There appears to be no files in $i"
         ls -ltr "$i"
@@ -174,7 +174,8 @@ for i in ${all[@]}; do
       fi
 
       while [[ 0 ]]; do
-        read -p "[$i] " -e n
+        echo -ne "[\033[1m$i\033[0m] "
+        read -e n
         if [[ $n == 'i' ]]; then 
           {
           echo
@@ -196,7 +197,7 @@ for i in ${all[@]}; do
 
         elif [[ $n == 'l' ]]; then
           echo
-          if [[ -e $m3u ]]; then
+          if [[ -s "$m3u" ]]; then
             echo "  PLAYLIST"
             cat $m3u | sed 's/^/    /'
             echo
