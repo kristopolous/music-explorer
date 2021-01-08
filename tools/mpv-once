@@ -90,6 +90,7 @@ for i in ${all[@]}; do
 
     attempts=0
     while [[ 0 ]]; do
+      tabs -4
       if [[ -e "$i/domain" ]]; then
         url=$(< "$i/domain" )
       else
@@ -136,7 +137,7 @@ for i in ${all[@]}; do
             playit "$m3u"
             player_exit=$?
             (( listen_time += $(date +%s) - before ))
-            echo -e "\n\tTime - $listen_time\n"
+            echo -e "\tTime - $listen_time\n"
           else
             # If our m3u is over a day old we just
             # assume failure
@@ -163,21 +164,22 @@ for i in ${all[@]}; do
         playit "$i"/*.mp3
         (( listen_time += $(date +%s) - before ))
 
-        echo -e "\n\tTime - $listen_time\n"
+        echo -e "\tTime - $listen_time\n"
       elif [[ -e "$i"/no-files ]]; then
-        echo "There appears to be no files in $i"
-        ls -ltr "$i"
+        echo "NO FILES"
+        ls -ltr "$i"  |  sed 's/^/\t/'
         n='pu'
         break
       else
         if [[ -n "$LOCAL" ]]; then
-          echo -e "\n  No local files, skipping\n"
+          echo -e "\n\tNo local files, skipping\n"
           n="sn"
           break
         fi
 
-        echo -e "\n  I'll try to download things again\n"
+        echo -e "\n\tI'll try to download things again\n"
         get_mp3s "$url" "$i"
+        continue
 
       fi
 
@@ -206,12 +208,12 @@ for i in ${all[@]}; do
           echo
           if [[ -s "$m3u" ]]; then
             echo "  PLAYLIST"
-            cat $m3u | sed 's/^/    /'
+            cat $m3u | sed 's/^/\t/'
             echo
           fi
 
           echo "  FILES"
-          ls -l "$i" | sed 's/^/    /'
+          ls -l "$i" | sed 's/^/\t/'
           echo
         fi
 
