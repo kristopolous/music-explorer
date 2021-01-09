@@ -18,7 +18,6 @@ start_time=0:45
 
 ao=${ao:-pulse}
 day=86400
-tabs -4
 
 shopt -s nullglob
 
@@ -33,7 +32,8 @@ function headline {
 }
 
 function status {
-  echo -e "\t$1"
+  [[ -n "$2" ]] && echo
+  echo -e "\t\t$1"
 }
 
 trap finish EXIT
@@ -89,7 +89,7 @@ for i in ${all[@]}; do
   listen_time=0
 
   if [[ ! -d "$i" ]]; then
-    echo "       Gone - $i"
+    status "Gone - $i"
     n="__purge"
     record_listen
     continue
@@ -100,7 +100,7 @@ for i in ${all[@]}; do
 
     attempts=0
     while [[ 0 ]]; do
-      tabs -4
+    tabs 2,+2
       if [[ -e "$i/domain" ]]; then
         url=$(< "$i/domain" )
       else
@@ -119,13 +119,13 @@ for i in ${all[@]}; do
       if [[ -e "$m3u" ]]; then
         ttl=$(grep -c $PLAYLIST "$m3u")
         if [[ $ttl != 0 ]]; then
-          echo "  Bogus m3u ! deleting"
+          status "Bogus m3u ! deleting"
           rm "$m3u"
         fi
       fi
 
       if [[ ! -e "$m3u" && ! -e "$i"/no-files && -n "$playlist_get" ]]; then
-        echo -e "    Getting - $m3u"
+        status "Getting - $m3u"
         pushd "$i" > /dev/null
         get_playlist "$url"
         popd > /dev/null
@@ -147,18 +147,18 @@ for i in ${all[@]}; do
             playit "$m3u"
             player_exit=$?
             (( listen_time += $(date +%s) - before ))
-            echo -e "\tTime - $listen_time\n"
+            status "Time - $listen_time\n"
           else
             # If our m3u is over a day old we just
             # assume failure
-            echo "m3u age: $(( age / day ))d"
+            status "m3u age: $(( age / day ))d"
             player_exit=2
           fi
 
           if [[ $player_exit == "2" ]]; then
-            echo "Woops, need to get a new set of urls"
+            status "Woops, need to get a new set of urls"
             if [[ $attempts -gt 2 ]]; then
-              echo "This isn't going that well"
+              status "This isn't going that well"
               break
             fi
             get_urls "$url" "$i"
@@ -195,7 +195,7 @@ for i in ${all[@]}; do
 
         # only do a single download/play loop attempt
         if [[ -z "$auto" ]]; then
-          echo -e "\n\tI'll try to download things again\n"
+          status "I'll try to download things again" nl
           get_mp3s "$url" "$i"
           auto=1
           continue
@@ -229,18 +229,18 @@ for i in ${all[@]}; do
         elif [[ $n == 'l' ]]; then
           echo
           if [[ -s "$m3u" ]]; then
-            echo "  PLAYLIST"
+            headline "playlist" 
             cat $m3u | sed 's/^/\t/'
             echo
           fi
 
-          echo "  FILES"
+          headline "files"
           ls -l "$i" | sed 's/^/\t/'
           echo
         fi
 
         if [[ $n == '?' ]]; then
-          echo "  HELP"
+          headline "help" 
           { cat <<- ENDL
           ?       - This help page
           !       - Do a \$SHELL here
@@ -292,7 +292,7 @@ for i in ${all[@]}; do
           )
         elif [[ $n == 'dlp' ]]; then 
           (
-            echo "Downloading playlist"
+            status "Downloading playlist"
             cd "$i"
             get_playlist "$url"
           )
@@ -311,12 +311,15 @@ for i in ${all[@]}; do
     done
 
     if [[ $n == 'pu' ]]; then 
+
       $DIR/album-purge "$i" $start_dir
       n="__purge"
     elif [[ $n == 'sn' ]]; then
+
       status "Skipping - not recording"
       n="__nothing"
     elif [[ $n == 's' ]]; then
+
       status "Skipping"
       n="__skipping"
     else
