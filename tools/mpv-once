@@ -28,6 +28,10 @@ function finish {
   tmux rename-window "$start_name"
   exit
 }
+function headline {
+  echo -e "\t$1" | tr '[a-z]' '[A-Z]'
+}
+
 function status {
   echo -e "\t$1"
 }
@@ -167,19 +171,24 @@ for i in ${all[@]}; do
 
         before=$( date +%s )
           
-        playit "$i"/*.mp3
+        $player --ao=$ao $player_opts \
+          --term-playing-msg=" \${playlist-pos-1}\t\${media-title}" \
+          --term-status-msg="\t\${audio-pts} - \${duration}\n" \
+          --start=$start_time \
+          "$i"/*.mp3
+
         (( listen_time += $(date +%s) - before ))
 
         echo -e "\tTime - $listen_time\n"
       elif [[ -e "$i"/no-files ]]; then
 
-        echo "NO FILES"
+        headline "No files"
         ls -ltr "$i"  |  sed 's/^/\t/'
         n='pu'
         break
       else
         if [[ -n "$LOCAL" ]]; then
-          echo -e "\n\tNo local files, skipping\n"
+          status "No local files, skipping"
           n="sn"
           break
         fi
