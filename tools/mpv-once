@@ -6,6 +6,8 @@ player=mpv
 player_opts='--no-cache --no-audio-display --msg-level=cplayer=no --term-playing-msg=\n${media-title} --script='"$DIR"'/quit-on-error.lua --input-ipc-server=/tmp/mpvsocket'
 display=0
 playlist_get=1
+nopl=
+auto=
 
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 
@@ -26,6 +28,10 @@ function finish {
   tmux rename-window "$start_name"
   exit
 }
+function status {
+  echo -e "\t$1"
+}
+
 trap finish EXIT
 
 # This allows remote control
@@ -121,7 +127,7 @@ for i in ${all[@]}; do
         popd > /dev/null
       fi
 
-      if [[ -s "$m3u" ]]; then
+      if [[ -s "$m3u" && -z "$nopl" ]]; then
         playlistIsRemote=$(grep -i http $m3u)
         while [[ 0 ]]; do
 
@@ -166,6 +172,7 @@ for i in ${all[@]}; do
 
         echo -e "\tTime - $listen_time\n"
       elif [[ -e "$i"/no-files ]]; then
+
         echo "NO FILES"
         ls -ltr "$i"  |  sed 's/^/\t/'
         n='pu'
@@ -177,9 +184,15 @@ for i in ${all[@]}; do
           break
         fi
 
-        echo -e "\n\tI'll try to download things again\n"
-        get_mp3s "$url" "$i"
-        continue
+        # only do a single download/play loop attempt
+        if [[ -z "$auto" ]]; then
+          echo -e "\n\tI'll try to download things again\n"
+          get_mp3s "$url" "$i"
+          auto=1
+          continue
+        else
+          status "Not trying that again!"
+        fi
 
       fi
 
@@ -197,12 +210,12 @@ for i in ${all[@]}; do
 
         if [[ ${n:0:2} == 'ao' ]]; then
           ao=${n:3}
-          echo "Setting audio out to '$ao'"
+          status "Setting audio out to '$ao'"
           [[ -e $DIR/prefs.sh ]] && sed -Ei 's/ao=.*/ao='$ao'/g' $DIR/prefs.sh
 
         elif [[ ${n:0:2} == 'b ' ]]; then
           start_time=${n:2}
-          echo "Setting start time to $start_time"
+          status "Setting start time to $start_time"
 
         elif [[ $n == 'l' ]]; then
           echo
@@ -229,6 +242,7 @@ for i in ${all[@]}; do
           l       - List the files
           pu      - Purge (delete)
           r       - Repeat
+          r nopl  - Repeat (ignore playlist)
           s       - Skip (and log)
           sn      - Skip (but do not log)
           x       - Exit
@@ -247,15 +261,15 @@ for i in ${all[@]}; do
 	ENDL
         } | sed 's/^\s*/    /g';
         elif [[ $n == 'nopl' ]]; then
-          echo "Skipping playlist downloads"
+          status "Skipping playlist downloads"
           playlist_get=
 
         elif [[ $n == 'pl' ]]; then
-          echo "Playlist on"
+          status "Playlist on"
           playlist_get=1
 
         elif [[ $n == 'nodebug' ]]; then
-          echo "Turning off verbose output"
+          status "Turning off verbose output"
           set +x
 
         elif [[ $n == 'debug' ]]; then
@@ -276,6 +290,10 @@ for i in ${all[@]}; do
         elif [[ $n == 'dl' ]]; then 
           get_mp3s "$url" "$i"
         fi
+        if [[ "$n" == 'r nopl' ]]; then
+          status "Ignoring playlist"
+          nopl=1
+        fi
         [[ "$n" =~ ^(x|r|s|sn|[1-5]|pu)$ ]] && break
       done
 
@@ -287,14 +305,18 @@ for i in ${all[@]}; do
       $DIR/album-purge "$i" $start_dir
       n="__purge"
     elif [[ $n == 'sn' ]]; then
-      echo "   Skipping - not recording"
+      status "Skipping - not recording"
       n="__nothing"
     elif [[ $n == 's' ]]; then
-      echo "  Skipping"
+      status "Skipping"
       n="__skipping"
     else
       n="__rating_$n"
     fi
   fi
+  # The repeat while ignoring playlist is a one-time
+  # flag that has to be set the next time
+  nopl=
+  auto=
   record_listen
 done
