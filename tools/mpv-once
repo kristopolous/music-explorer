@@ -23,12 +23,30 @@ shopt -s nullglob
 
 #tmux rename-window "mpv-once" 2> /dev/null
 
+function hr {
+  echo
+  printf '\xe2\x80\x95%.0s' {1..70}
+  echo
+}
+
 function finish {
   tmux rename-window "$start_name"
   exit
 }
+
 function headline {
-  echo -e "\t$1" | tr '[a-z]' '[A-Z]'
+  case $1 in
+    3)
+      echo -e "\n\t$2"
+      ;;
+    2)
+      echo -e "\n\t\033[1m$2\033[0m" 
+      ;;
+    1)
+      up=$( echo "$2" | tr '[:lower:]' '[:upper:]' )
+      echo -e "\n\t\033[1m$up\033[0m" 
+      ;;
+  esac
 }
 
 function status {
@@ -70,7 +88,7 @@ function record_listen() {
 function playit() {
   $player --ao=$ao $player_opts \
     --term-playing-msg=" \${playlist-pos-1}\t\${media-title}" \
-    --term-status-msg="\t\${audio-pts} - \${duration}\n" \
+    --term-status-msg="\t\t\${audio-pts} - \${duration}\n" \
     --start=$start_time \
     $*
 }
@@ -100,7 +118,7 @@ for i in ${all[@]}; do
 
     attempts=0
     while [[ 0 ]]; do
-    tabs 2,+2
+    tabs 2,+3,+2
       if [[ -e "$i/domain" ]]; then
         url=$(< "$i/domain" )
       else
@@ -110,7 +128,9 @@ for i in ${all[@]}; do
         url="https://$domain/album/$release"
       fi
 
-      printf "\n%11s - %s\n%11s - %s\n" "$ix / $size" "$start_dir/$i" "" "$url"
+      headline 2 "$ix\t$url"
+      status "$start_dir/$i"
+      #printf "\n%11s - %s\n%11s - %s\n" "$ix / $size" "$start_dir/$i" "" "$url"
 
       list="$i/*.mp3 $i/*.aiff"
       m3u="$i/$PLAYLIST"
@@ -119,13 +139,13 @@ for i in ${all[@]}; do
       if [[ -e "$m3u" ]]; then
         ttl=$(grep -c $PLAYLIST "$m3u")
         if [[ $ttl != 0 ]]; then
-          status "Bogus m3u ! deleting"
+          status "Bogus m3u. Deleting"
           rm "$m3u"
         fi
       fi
 
       if [[ ! -e "$m3u" && ! -e "$i"/no-files && -n "$playlist_get" ]]; then
-        status "Getting - $m3u"
+        status "Getting $m3u" nl
         pushd "$i" > /dev/null
         get_playlist "$url"
         popd > /dev/null
@@ -141,13 +161,12 @@ for i in ${all[@]}; do
           if [[ -z "$playlistIsRemote" || $age -lt $day ]]; then
             
             t_count=$(cat "$m3u" | wc -l)
-            echo
-            [[ $t_count != 1 ]] && echo -e " \033[1m$(cat "$m3u" | wc -l) TRACKS\033[0m"
+            [[ $t_count != 1 ]] && headline 1 "$t_count tracks" || headline 1 "single"
 
             playit "$m3u"
             player_exit=$?
             (( listen_time += $(date +%s) - before ))
-            status "Time - $listen_time\n"
+            headline 3 "Time: $listen_time\n"
           else
             # If our m3u is over a day old we just
             # assume failure
@@ -161,6 +180,7 @@ for i in ${all[@]}; do
               status "This isn't going that well"
               break
             fi
+
             get_urls "$url" "$i"
             (( attempts ++ ))
             continue
@@ -173,23 +193,26 @@ for i in ${all[@]}; do
           
         $player --ao=$ao $player_opts \
           --term-playing-msg=" \${playlist-pos-1}\t\${media-title}" \
-          --term-status-msg="\t\${audio-pts} - \${duration}\n" \
+          --term-status-msg="\t\t\${audio-pts} - \${duration}\n" \
           --start=$start_time \
           "$i"/*.mp3
 
         (( listen_time += $(date +%s) - before ))
 
-        echo -e "\tTime - $listen_time\n"
+        headline 3 "Time: $listen_time"
       elif [[ -e "$i"/no-files ]]; then
 
-        headline "No files"
-        ls -ltr "$i"  |  sed 's/^/\t/'
+        headline 1 "No files"
+        ls -ltr "$i"  |  sed 's/^/\t\t/'
         n='pu'
+        hr
         break
+
       else
         if [[ -n "$LOCAL" ]]; then
           status "No local files, skipping"
           n="sn"
+          hr
           break
         fi
 
@@ -199,6 +222,7 @@ for i in ${all[@]}; do
           get_mp3s "$url" "$i"
           auto=1
           continue
+
         else
           status "Not trying that again!"
         fi
@@ -214,7 +238,7 @@ for i in ${all[@]}; do
           echo $start_dir/$i
           echo "playlist_get=$playlist_get"
           echo
-          }  |  sed 's/^/    /'
+          }  |  sed 's/^/\t/'
         fi
 
         if [[ ${n:0:2} == 'ao' ]]; then
@@ -227,20 +251,18 @@ for i in ${all[@]}; do
           status "Setting start time to $start_time"
 
         elif [[ $n == 'l' ]]; then
-          echo
           if [[ -s "$m3u" ]]; then
-            headline "playlist" 
-            cat $m3u | sed 's/^/\t/'
-            echo
+            headline 1 "playlist" 
+            cat $m3u | sed 's/^/\t\t/'
           fi
 
-          headline "files"
-          ls -l "$i" | sed 's/^/\t/'
+          headline 1 "files"
+          ls -l "$i" | sed 's/^/\t\t/'
           echo
         fi
 
         if [[ $n == '?' ]]; then
-          headline "help" 
+          headline 1 "Keyboard commands" 
           { cat <<- ENDL
           ?       - This help page
           !       - Do a \$SHELL here
@@ -268,7 +290,7 @@ for i in ${all[@]}; do
           nodebug - Turn off debugging
 
 	ENDL
-        } | sed 's/^\s*/    /g';
+        } | sed 's/^\s*/\t\t/g';
         elif [[ $n == 'nopl' ]]; then
           status "Skipping playlist downloads"
           playlist_get=

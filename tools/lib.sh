@@ -13,27 +13,29 @@ get_urls() {
 }
 
 get_playlist() {
-  dbg=/tmp/playlist-interim-$(date +%s)
+  local dbg=/tmp/playlist-interim-$(date +%s)
+  local failed=
 
   youtube-dl -eif mp3-128 -- "$1" |\
     sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' > $dbg 
 
-  tomatch=$(cat $dbg | wc -l)
-
   /bin/bash $dbg | grep mp3 > $PLAYLIST
 
-  matched=$(cat $PLAYLIST | wc -l)
+  local tomatch=$(< $dbg | wc -l)
+  local matched=$(< $PLAYLIST | wc -l)
 
   if [[ $tomatch != $matched ]]; then
-    echo -e "\n   Hold on! - $matched != $tomatch"
-    echo -e "    Look in - $dbg\n"
+    echo -e "\n\t\tHold on! - $matched != $tomatch"
+    failed=1
   fi
 
   if [[ ! -s $PLAYLIST ]]; then 
-    echo -e "\n  Unable to create $PLAYLIST, trying fallback"
-    echo -e "    Look in - $dbg\n"
-    ls -1 "*.mp3" > $PLAYLIST  >& /dev/null
+    echo -e "\n\t\tUnable to create $PLAYLIST, trying fallback"
+    ls -1 "*.mp3" > $PLAYLIST >& /dev/null
+    failed=1
   fi
+
+  [[ -n "$failed" ]] && echo -e "\t\tLook in $dbg\n"
 }
 
 get_mp3s() {
