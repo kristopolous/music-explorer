@@ -23,36 +23,11 @@ shopt -s nullglob
 
 #tmux rename-window "mpv-once" 2> /dev/null
 
-function hr {
-  echo
-  printf '\xe2\x80\x95%.0s' {1..70}
-  echo
-}
-
 function finish {
   tmux rename-window "$start_name"
   exit
 }
 
-function headline {
-  case $1 in
-    3)
-      echo -e "\n\t$2"
-      ;;
-    2)
-      echo -e "\n\t\033[1m$2\033[0m" 
-      ;;
-    1)
-      up=$( echo "$2" | tr '[:lower:]' '[:upper:]' )
-      echo -e "\n\t\033[1m$up\033[0m" 
-      ;;
-  esac
-}
-
-function status {
-  [[ -n "$2" ]] && echo
-  echo -e "\t\t$1"
-}
 
 trap finish EXIT
 

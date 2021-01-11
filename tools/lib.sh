@@ -4,9 +4,36 @@
 
 PLAYLIST=playlist.m3u
 
+function hr {
+  echo
+  printf '\xe2\x80\x95%.0s' {1..70}
+  echo
+}
+
+function headline {
+  case $1 in
+    3)
+      echo -e "\n\t$2"
+      ;;
+    2)
+      echo -e "\n\t\033[1m$2\033[0m" 
+      ;;
+    1)
+      up=$( echo "$2" | tr '[:lower:]' '[:upper:]' )
+      echo -e "\n\t\033[1m$up\033[0m" 
+      ;;
+  esac
+}
+
+function status {
+  [[ -n "$2" ]] && echo
+  echo -e "\t\t$1"
+}
+
 _get_urls() {
   youtube-dl --get-duration --get-filename -gf mp3-128 -- "$1" | awk -f $DIR/ytdl2m3u.awk > "$2"
 }
+
 get_urls() {
   _get_urls $1 "$2/$PLAYLIST"
   echo $? > "$2"/exit-code
@@ -16,8 +43,10 @@ get_playlist() {
   local dbg=/tmp/playlist-interim-$(date +%s)
   local failed=
 
-  youtube-dl -eif mp3-128 -- "$1" |\
-    sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' > $dbg 
+  {
+    youtube-dl -eif mp3-128 -- "$1" |\
+      sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' > $dbg
+  } >& /dev/null
 
   /bin/bash $dbg | grep mp3 > $PLAYLIST
 
@@ -25,17 +54,21 @@ get_playlist() {
   local matched=$(< $PLAYLIST | wc -l)
 
   if [[ $tomatch != $matched ]]; then
-    echo -e "\n\t\tHold on! - $matched != $tomatch"
+    status "Hold on! - $matched != $tomatch" nl
     failed=1
   fi
 
   if [[ ! -s $PLAYLIST ]]; then 
-    echo -e "\n\t\tUnable to create $PLAYLIST, trying fallback"
+    status "Unable to create $PLAYLIST, trying fallback" nl
     ls -1 "*.mp3" > $PLAYLIST >& /dev/null
     failed=1
   fi
 
-  [[ -n "$failed" ]] && echo -e "\t\tLook in $dbg\n"
+  if [[ -n "$failed" ]]; then 
+    status "Look in $dbg\n"
+  else
+    rm "$dbg"
+  fi
 }
 
 get_mp3s() {
