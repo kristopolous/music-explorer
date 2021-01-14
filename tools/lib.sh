@@ -6,7 +6,10 @@ PLAYLIST=playlist.m3u
 
 function hr {
   echo
-  printf '\xe2\x80\x95%.0s' {1..70}
+  set -x
+  local len=$(tput cols)
+  printf '\xe2\x80\x95%.0s' $( seq 1 $len )
+  set +x
   echo
 }
 
