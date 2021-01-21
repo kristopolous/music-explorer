@@ -193,7 +193,7 @@ for i in ${all[@]}; do
 
         # only do a single download/play loop attempt
         if [[ -z "$auto" ]]; then
-          status "I'll try to download things again" nl
+          status "I'll try to download things again" 
           get_mp3s "$url" "$i"
           auto=1
           continue
