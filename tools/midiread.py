@@ -154,7 +154,7 @@ while True:
     lastValueMap[control] = valueMap.get(control)
     valueMap[control] = value
 
-    cmd = False
+    cmdList = []
     todo = None
     if control in controlMapping:
       todo = controlMapping[control]
@@ -163,15 +163,13 @@ while True:
       # print(todo, control, controlMapping)
 
     if todo == 'local_volume_abs':
-      cmd = 'amixer -c 0 sset Master {}%'.format( int(100 * value / 127))
+      cmdList.append( 'amixer -c 0 sset Master {}%'.format( int(100 * value / 127)) )
 
     elif todo == 'pulse_volume_abs':
-      cmd = 'amixer -D pulse sset Master {}%'.format( int(100 * value / 127))
+      cmdList.append( 'amixer -D pulse sset Master {}%'.format( int(100 * value / 127)) )
       #if usbDevice:
       #  cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
-      cmd += ";pactl set-sink-volume {} {}".format(audioDev, value * 512)
-
-      logging.info(cmd)
+      cmdList.append( "pactl set-sink-volume {} {}".format(audioDev, value * 512) )
 
     if todo == 'tabs':
       if lastValueMap.get('tabs'):
@@ -184,7 +182,7 @@ while True:
     elif todo and (todo[:2] == 'bw' or todo[:2] == 'fw'):
       amount = int(todo[2:])
       dir = 'back' if todo[:2] == 'bw' else 'forward'
-      cmd = "{}/ipc-do.js {} {}".format(base_path, dir, amount)
+      cmdList.append( "{}/ipc-do.js {} {}".format(base_path, dir, amount) )
 
     elif todo in ['redshift', 'brightness']:
       params = []
@@ -200,15 +198,18 @@ while True:
       todoMap['screen'] = "night {}".format(' '.join(params))
 
     elif todo in ['prev','next','pauseplay'] and value == 0:
-      cmd = "{}/ipc-do.js {}".format(base_path, todo)
+      cmdList.append( "{}/ipc-do.js {}".format(base_path, todo) )
 
     elif todo in cmdMap:
       if value == 0:
-        cmd = "tmux send-keys -t mpv-once '{}'".format(cmdMap[todo])
+        cmdList.append( "tmux send-keys -t mpv-once '{}'".format(cmdMap[todo]) )
 
     else:
       pass
 
-    if cmd:
-      logging.info(cmd)
-      os.popen(cmd)
+    if cmdList:
+      for cmd in cmdList:
+        try:
+          logging.info("{} {}".format(os.waitstatus_to_exitcode(os.system(cmd)), cmd))
+        except:
+          pass
