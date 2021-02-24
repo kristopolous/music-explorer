@@ -72,6 +72,7 @@ echo */* | tr ' ' '\n' > .listen_all
 touch .listen_done
 all=( $(cat .listen_all .listen_done | grep -E "$filter" | awk ' { print $1 } ' | sort | uniq -u | shuf) )
 size=${#all[@]}
+echo $size
 ix=0 
 
 for i in ${all[@]}; do
@@ -93,7 +94,7 @@ for i in ${all[@]}; do
 
     attempts=0
     while [[ 0 ]]; do
-    tabs 2,+3,+2
+    tabs 2,+4,+2
       if [[ -e "$i/domain" ]]; then
         url=$(< "$i/domain" )
       else
