@@ -20,6 +20,7 @@ fi
 base_path=$PWD
 while [[ $# -gt 0 ]]; do
   arg=${1%%.}
+  cd $base_path
 
   if [[ $arg =~ \. ]]; then
     if [[ -n "$2" ]]; then 
