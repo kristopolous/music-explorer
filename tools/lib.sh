@@ -40,6 +40,17 @@ get_urls() {
   echo $? > "$2"/exit-code
 }
 
+resolve() {
+  if [[ -e "$1/domain" ]]; then
+    echo $(< "$1/domain" )
+  else
+    label=$( dirname "$1" )
+    [[ -e $label/domain ]] && domain=$(< $label/domain ) || domain=${label}.bandcamp.com
+    release=$( basename "$1" )
+    echo "https://$domain/album/$release"
+  fi
+}
+
 get_playlist() {
   local dbg=/tmp/playlist-interim-$(date +%s)
   local failed=
