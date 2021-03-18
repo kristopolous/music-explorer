@@ -2,7 +2,7 @@
 
 const net = require('net');
 const client = net.createConnection('/tmp/mpvsocket')
-const quitList = ['pause', 'playback-restart', 'unpause'];
+const quitList = ['quit', 'pause', 'playback-restart', 'unpause'];
 var cb = false;
 var command = process.argv[2];
 var direction = ['back', 'prev'].includes(command) ? -1 : 1;
@@ -11,7 +11,7 @@ const commandMap = {
   pause: ['set_property', 'pause', true],
   play: ['set_property', 'pause', false],
   startover: ['set_property', 'time-pos', 0],
-
+  quit: ['quit'],
   getpause: ['get_property', 'pause']
 }
 
