@@ -83,6 +83,17 @@ get_playlist() {
   fi
 }
 
+manual_pull() {
+  (
+    echo " ▾▾ Manual Pull "
+    cd "$2"
+    for track in $(curl -s "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sort | uniq); do
+      echo youtube-dl -f mp3-128 -- "$1$track"
+    done
+    get_playlist "$1"
+  )
+}
+
 get_mp3s() {
   (
     cd "$2"

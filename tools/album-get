@@ -61,6 +61,7 @@ while [[ $# -gt 0 ]]; do
     i=$(basename "$full")
     place="$starting_point/$i"
     isnew=
+    manual_pull=
 
     if [[ ! -e "$place" ]]; then
       isnew=true
@@ -71,7 +72,8 @@ while [[ $# -gt 0 ]]; do
     exitcode=0
     [[ -e $place/exit-code ]] && exitcode=$(< $place/exit-code )
 
-    count=$( ls "$place"/* 2> /dev/null | grep -Ev '\/(exit-code|domain)$' | wc -l )
+    # Make sure the path is full
+    count=$( ls "$place"/* 2> /dev/null | grep -Ev '\/(exit-code|album-art.jpg|domain)$' | wc -l )
     if [[ "$count" = "0" || $exitcode != "0" ]]; then
       [[ -e "$place/exit-code" ]] && rm "$place/exit-code"
       cd "$place"
@@ -94,6 +96,9 @@ while [[ $# -gt 0 ]]; do
       # option to see if nothing ought to be downloaded in which
       # case we mark it as skippable
       if [[ -z "$isnew" ]]; then
+        # this is a manual scrape for youtube-dl which can get confused.
+        manual_pull=0
+
         # we put in some kind of backoff strategy
         sleep 3
         track_count=$( youtube-dl -if mp3-128 -g -- "$url" | wc -l )
@@ -103,10 +108,15 @@ while [[ $# -gt 0 ]]; do
           continue
         fi
       fi
+      echo $url
 
       # sometimes people are posting wav files ... really, that's crazy
       if [[ -n "$FULLALBUM" ]]; then 
-        get_mp3s "$url" "$place"
+        if [[ -n "$manual_pull" ]]; then
+          manual_pull "$url" "$place"
+        else
+          get_mp3s "$url" "$place"
+        fi
       else
         get_urls "$url" "$place"
       fi
