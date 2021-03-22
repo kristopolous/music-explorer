@@ -19,6 +19,7 @@ fi
 
 base_path=$PWD
 while [[ $# -gt 0 ]]; do
+  check_for_stop
   arg=${1%%.}
   cd $base_path
 
@@ -57,6 +58,7 @@ while [[ $# -gt 0 ]]; do
 
   url=https://$base_url/$extra
   for full in $(curl -s $url | grep -Po '(?<=")[\w:\/\.]+(?<=(album|track)\/)[^?'"'"'"]*' | sort | uniq ); do
+    check_for_stop
     # sometimes we get x-dom references, sometimes it's relevant. We resolve that below.
     i=$(basename "$full")
     place="$starting_point/$i"

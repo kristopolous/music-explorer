@@ -3,12 +3,20 @@
 [[ -z "$DIR" ]] && DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 PLAYLIST=playlist.m3u
+STOPFILE=/tmp/mpvstop
 
 function hr {
   echo
   local len=$(tput cols)
   printf '\xe2\x80\x95%.0s' $( seq 1 $len )
   echo
+}
+
+check_for_stop {
+  if [[ -e $STOPFILE ]]; then
+    echo "Stopping because $STOP exists"
+    exit
+  fi
 }
 
 function headline {
@@ -52,7 +60,7 @@ resolve() {
 }
 
 pl_check() {
-  [[ -e $PLAYLIST && ! -s $PLAYLIST ]] && echo "Woops, empty playlist" && rm $PLAYLIST
+  [[ -e $PLAYLIST && ! -s $PLAYLIST ]] && echo "\tWoops, empty playlist" && rm $PLAYLIST
 }
 
 get_playlist() {
@@ -96,6 +104,7 @@ manual_pull() {
 
     for track in $(curl -s "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sort | uniq); do
       youtube-dl -f mp3-128 -- "https://$3$track"
+      check_for_stop
     done
 
     ls -1 *.mp3 > $PLAYLIST >& /dev/null
@@ -107,6 +116,7 @@ get_mp3s() {
   (
     cd "$2"
     youtube-dl -f mp3-128 -- "$1"
+    check_for_stop 
     echo $? > exit-code
     get_playlist "$1"
   )
