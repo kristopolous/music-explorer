@@ -12,7 +12,7 @@ function hr {
   echo
 }
 
-check_for_stop {
+check_for_stop() {
   if [[ -e $STOPFILE ]]; then
     echo "Stopping because $STOPFILE exists"
     exit
