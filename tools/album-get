@@ -113,7 +113,7 @@ while [[ $# -gt 0 ]]; do
       # sometimes people are posting wav files ... really, that's crazy
       if [[ -n "$FULLALBUM" ]]; then 
         if [[ -n "$manual_pull" ]]; then
-          manual_pull "$url" "$place"
+          manual_pull "$url" "$place" "$base_url"
         else
           get_mp3s "$url" "$place"
         fi

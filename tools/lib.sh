@@ -51,6 +51,10 @@ resolve() {
   fi
 }
 
+pl_check() {
+  [[ -e $PLAYLIST && ! -s $PLAYLIST ]] && echo "Woops, empty playlist" && rm $PLAYLIST
+}
+
 get_playlist() {
   local dbg=/tmp/playlist-interim-$(date +%s)
   local failed=
@@ -72,9 +76,11 @@ get_playlist() {
 
   if [[ ! -s $PLAYLIST ]]; then 
     status "Unable to create $PLAYLIST, trying fallback" nl
-    ls -1 "*.mp3" > $PLAYLIST >& /dev/null
+    ls -1 *.mp3 > $PLAYLIST >& /dev/null
     failed=1
   fi
+
+  pl_check
 
   if [[ -n "$failed" ]]; then 
     status "Look in $dbg\n"
@@ -87,10 +93,13 @@ manual_pull() {
   (
     echo " ▾▾ Manual Pull "
     cd "$2"
+
     for track in $(curl -s "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sort | uniq); do
-      echo youtube-dl -f mp3-128 -- "$1$track"
+      youtube-dl -f mp3-128 -- "https://$3$track"
     done
-    get_playlist "$1"
+
+    ls -1 *.mp3 > $PLAYLIST >& /dev/null
+    pl_check
   )
 }
 
