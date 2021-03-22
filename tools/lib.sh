@@ -60,7 +60,7 @@ resolve() {
 }
 
 pl_check() {
-  [[ -e $PLAYLIST && ! -s $PLAYLIST ]] && cat $PLAYLIST && echo -e "\tWoops, empty playlist" && rm $PLAYLIST
+  [[ -e $PLAYLIST && ! -s $PLAYLIST ]] && cat $PLAYLIST && status "Woops, empty playlist" && rm $PLAYLIST
 }
 
 get_playlist() {
@@ -84,7 +84,7 @@ get_playlist() {
 
   if [[ ! -s $PLAYLIST ]]; then 
     status "Unable to create $PLAYLIST, trying fallback" nl
-    ls -1 *.mp3 > $PLAYLIST 2> /dev/null
+    ls -1 -- *.mp3 > $PLAYLIST 2> /dev/null
     failed=1
   fi
 
@@ -108,7 +108,7 @@ manual_pull() {
       check_for_stop
     done
 
-    ls -1 *.mp3 > $PLAYLIST 2> /dev/null
+    ls -1 -- *.mp3 > $PLAYLIST 2> /dev/null
     pl_check
   )
 }
