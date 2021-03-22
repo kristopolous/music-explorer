@@ -100,10 +100,11 @@ get_playlist() {
 manual_pull() {
   (
     echo " ▾▾ Manual Pull "
+    local base=$( echo $1 | awk -F[/:] '{print $4}' )
     cd "$2"
 
     for track in $(curl -s "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sort | uniq); do
-      youtube-dl -f mp3-128 -- "https://$3$track"
+      youtube-dl -f mp3-128 -- "https://$base/$track"
       check_for_stop
     done
 
