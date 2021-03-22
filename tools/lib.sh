@@ -14,7 +14,7 @@ function hr {
 
 check_for_stop {
   if [[ -e $STOPFILE ]]; then
-    echo "Stopping because $STOP exists"
+    echo "Stopping because $STOPFILE exists"
     exit
   fi
 }
