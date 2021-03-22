@@ -9,6 +9,7 @@ if [[ $# = 0 ]]; then
   for i in $(ls); do
     if [[ -d $i ]]; then
       ${BASH_SOURCE[0]} $i
+      check_for_stop
       TTL+=$(< $COUNTFILE )
     fi
   done
@@ -110,7 +111,6 @@ while [[ $# -gt 0 ]]; do
           continue
         fi
       fi
-      echo $url
 
       # sometimes people are posting wav files ... really, that's crazy
       if [[ -n "$FULLALBUM" ]]; then 
