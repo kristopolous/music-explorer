@@ -247,6 +247,7 @@ for i in ${all[@]}; do
           dlp     - Download just the playlist
           i       - Info of the album
           l       - List the files
+          o       - Xdg-open the URL
           pu      - Purge (delete)
           r       - Repeat
           r nopl  - Repeat (ignore playlist)
@@ -270,6 +271,9 @@ for i in ${all[@]}; do
         elif [[ $n == 'nopl' ]]; then
           status "Skipping playlist downloads"
           playlist_get=
+
+        elif [[ $n == 'o' ]]; then
+          xdg-open "$url"
 
         elif [[ $n == 'pl' ]]; then
           status "Playlist on"
