@@ -63,6 +63,12 @@ pl_check() {
   [[ -e $PLAYLIST && ! -s $PLAYLIST ]] && cat $PLAYLIST && status "Woops, empty playlist" && rm $PLAYLIST
 }
 
+pl_fallback() {
+  shopt -u nullglob
+  ls -1 -- *.mp3 > $PLAYLIST 2> /dev/null
+  shopt -s nullglob
+}
+
 get_playlist() {
   local dbg=/tmp/playlist-interim-$(date +%s)
   local failed=
@@ -84,7 +90,7 @@ get_playlist() {
 
   if [[ ! -s $PLAYLIST ]]; then 
     status "Unable to create $PLAYLIST, trying fallback" nl
-    ls -1 -- *.mp3 > $PLAYLIST 2> /dev/null
+    pl_fallback
     failed=1
   fi
 
@@ -108,7 +114,7 @@ manual_pull() {
       check_for_stop
     done
 
-    ls -1 -- *.mp3 > $PLAYLIST 2> /dev/null
+    pl_fallback
     pl_check
   )
 }
