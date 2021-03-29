@@ -28,7 +28,6 @@ function finish {
   exit
 }
 
-
 trap finish EXIT
 
 # This allows remote control
@@ -113,7 +112,7 @@ for i in ${all[@]}; do
       fileList=( $list )
 
       if [[ -e "$m3u" ]]; then
-        ttl=$(grep -c $PLAYLIST "$m3u")
+        ttl=$( grep -c $PLAYLIST "$m3u" )
         if [[ $ttl != 0 ]]; then
           status "Bogus m3u. Deleting"
           rm "$m3u"
@@ -304,6 +303,8 @@ for i in ${all[@]}; do
         if [[ "$n" == 'r nopl' ]]; then
           status "Ignoring playlist"
           nopl=1
+          # We treat this like a regular replay
+          n=r
         fi
         [[ "$n" =~ ^(x|r|s|sn|[1-5]|pu)$ ]] && break
       done
