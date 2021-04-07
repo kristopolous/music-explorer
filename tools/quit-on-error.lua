@@ -30,5 +30,10 @@ function print_on_start(e,f)
   os.execute('mpv-announce "' .. toprint .. '"')
 end
 
+function openpage_handler()
+  os.execute('mpv-open-path "' .. mp.get_property('path') .. '"')
+end
+
 mp.register_event("log-message", lg)
 mp.register_event("start-file", print_on_start)
+mp.add_key_binding('o', 'openpage', openpage_handler)
