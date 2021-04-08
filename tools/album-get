@@ -76,7 +76,7 @@ while [[ $# -gt 0 ]]; do
     [[ -e $place/exit-code ]] && exitcode=$(< $place/exit-code )
 
     # Make sure the path is full
-    count=$( ls "$place"/* 2> /dev/null | grep -Ev '\/(exit-code|album-art.jpg|domain)$' | wc -l )
+    count=$( ls "$place"/* 2> /dev/null | grep -Ev '\/(page.html|exit-code|album-art.jpg|domain)$' | wc -l )
     if [[ "$count" = "0" || $exitcode != "0" ]]; then
       [[ -e "$place/exit-code" ]] && rm "$place/exit-code"
       cd "$place"
@@ -122,6 +122,7 @@ while [[ $# -gt 0 ]]; do
       else
         get_urls "$url" "$place"
       fi
+      get_page "$place"
 
       echo "$(date +%Y%m%d) $place $url" >> "$base_path/.dl_history"
       (( TTL ++ ))

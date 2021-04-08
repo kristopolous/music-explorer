@@ -31,7 +31,7 @@ function print_on_start(e,f)
 end
 
 function openpage_handler()
-  os.execute('mpv-open-path "' .. mp.get_property('path') .. '"')
+  os.execute('mpv-lib open_page "' .. mp.get_property('path') .. '"')
 end
 
 mp.register_event("log-message", lg)

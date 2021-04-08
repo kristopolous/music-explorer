@@ -1,0 +1,10 @@
+#!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+. $DIR/lib.sh
+
+if ! declare -f $1 > /dev/null; then
+  echo "Woops, $1 is not defined"
+  exit 1
+fi
+
+eval $*

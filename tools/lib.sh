@@ -3,6 +3,7 @@
 [[ -z "$DIR" ]] && DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 PLAYLIST=playlist.m3u
+PAGE=page.html
 STOPFILE=/tmp/mpvstop
 
 function hr {
@@ -67,6 +68,19 @@ pl_fallback() {
   shopt -u nullglob
   ls -1 -- *.mp3 > $PLAYLIST 2> /dev/null
   shopt -s nullglob
+}
+
+# Passes in a full path and
+#
+#   * checks for the page existence
+#   * if not exist, then resolve it
+#   * create file
+#
+get_page() {
+  [[ -e "$1/$PAGE" ]] || curl -s $(resolve "$1") > "$1/$PAGE"
+}
+open_page() {
+  xdg-open "$(resolve $(dirname "$1"))"
 }
 
 get_playlist() {
