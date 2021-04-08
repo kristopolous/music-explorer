@@ -77,7 +77,7 @@ pl_fallback() {
 #   * create file
 #
 get_page() {
-  [[ -e "$1/$PAGE" ]] || curl -s $(resolve "$1") > "$1/$PAGE"
+  [[ -s "$1/$PAGE" ]] || curl -s $(resolve "$1") > "$1/$PAGE"
 }
 open_page() {
   xdg-open "$(resolve $(dirname "$1"))"
