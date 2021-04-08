@@ -54,7 +54,7 @@ resolve() {
     echo $(< "$1/domain" )
   else
     label=$( dirname "$1" )
-    [[ -e $label/domain ]] && domain=$(< $label/domain ) || domain=${label}.bandcamp.com
+    [[ -e $label/domain ]] && domain=$(< $label/domain ) || domain=${label/.\//}.bandcamp.com
     release=$( basename "$1" )
     echo "https://$domain/album/$release"
   fi
@@ -77,7 +77,10 @@ pl_fallback() {
 #   * create file
 #
 get_page() {
-  [[ -s "$1/$PAGE" ]] || curl -s $(resolve "$1") > "$1/$PAGE"
+  if [[ ! -s "$1/$PAGE" ]]; then
+    echo $1
+    curl -Ls $(resolve "$1") > "$1/$PAGE"
+  fi
 }
 open_page() {
   xdg-open "$(resolve $(dirname "$1"))"
