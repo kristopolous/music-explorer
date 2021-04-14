@@ -9,7 +9,9 @@
 
 amixer_prefix='amixer -D pulse sset Master'
 amixer_step=4%
-pactl_prefix='pactl set-sink-volume $(pactl list sinks | grep -C 4 MPOW | grep -E "^S" | cut -d "#" -f 2)'
+pactl_source=$(pactl list sinks | grep -B 1 RUNNING | grep -E "^S" | cut -d "#" -f 2 | tail -1)
+#pactl_prefix='pactl set-sink-volume $(pactl list sinks | grep -C 4 MPOW | grep -E "^S" | cut -d "#" -f 2)'
+pactl_prefix="pactl set-sink-volume $pactl_source"
 pactl_step=2000
 
 dbg() {
@@ -21,6 +23,7 @@ docmd() {
     if [[ -n "$host" && "$host" != "localhost" ]]; then
       timeout 5s ssh $host $cmd
     else
+      set -x
       $cmd
     fi
     exit
@@ -34,9 +37,9 @@ if [[ $1 == 'd' ]]; then
   rm $tmp
   exit
 elif [[ $1 == '9' ]]; then
-  cmd="$pactl_prefix -$pactl_step;$amixer_prefix $amixer_step-"
+  cmd="$pactl_prefix -$pactl_step"  # && $amixer_prefix $amixer_step-"
 elif [[ $1 == '0' ]]; then
-  cmd="$pactl_prefix +$pactl_step;$amixer_prefix $amixer_step+"
+  cmd="$pactl_prefix +$pactl_step"  # && $amixer_prefix $amixer_step+"
 fi
 docmd
 
