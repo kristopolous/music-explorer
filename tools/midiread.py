@@ -20,6 +20,7 @@ valueMap = {}
 lastValueMap = {}
 todoMap = {}
 audioDev = False
+sourceIndex = 0
 
 for key in config['config']:
   optionMap[key] = config['config'][key]
@@ -85,13 +86,19 @@ def dbg(what, bList):
 
 def active():
   global audioDev
-  audioDev = os.popen('|'.join([
+
+  # Find all the active pulse sinks
+  audioDevList = os.popen('|'.join([
     'pacmd list-sinks',
     'grep -B 4 RUNNING',
     'grep index',
     "awk ' { print $NF } '",
-    'head -1'
-  ])).read().strip()
+  ])).read().strip().split('\n')
+  logging.debug(audioDevList)
+  # Use the sourceIndex to get the one we 
+  # want to mess with
+  audioDev = audioDevList[sourceIndex % len(audioDevList)]
+  logging.debug(audioDev)
 
 sign = lambda x: '-' if x < 0 else '+'
 
@@ -104,6 +111,8 @@ last_ts = time.time()
 while True:
   readable, blah0, blah1 = select.select([ps.stdout.fileno()], [], [], 1)
 
+  # This is how we try to prevent message flooding from
+  # the sliders.
   if len(readable) == 0 or time.time() > last_ts + .14:
     last_ts = time.time()
 
@@ -135,6 +144,7 @@ while True:
     logging.warning(" Unknown channel message: {}".format(num))
     continue
 
+  # This is basic midi stuff.
   if nibHigh == msg.system:
     vendor = [get(1)]
     while True:
@@ -162,7 +172,15 @@ while True:
       valueMap[todo] = value
       # print(todo, control, controlMapping)
 
-    if todo == 'local_volume_abs':
+    # If we're here we can try to do different operations
+    # look into the mapping section of midiconfig.ini for
+    # details
+    if todo == 'source_select' and value == 0:
+      sourceIndex += 1
+      logging.info("cycling source")
+      active()
+
+    elif todo == 'local_volume_abs':
       cmdList.append( 'amixer -c 0 sset Master {}%'.format( int(100 * value / 127)) )
 
     elif todo == 'pulse_volume_abs':
