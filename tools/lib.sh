@@ -73,7 +73,7 @@ pl_fallback() {
   shopt -u nullglob
   ( 
     cd "$1"
-    ls -1 -- *.mp3 > "$1/$PLAYLIST" 2> /dev/null
+    ls -1 -- *.mp3 > $PLAYLIST 2> /dev/null
   )
   shopt -s nullglob
 }

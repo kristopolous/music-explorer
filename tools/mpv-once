@@ -141,7 +141,7 @@ for i in ${all[@]}; do
               headline 1 "Playlist has $f_count, there's $t_count here. Ignoring playlist"
               if [[ $f_count > $t_count ]]; then
                 pl_fallback "$i"
-                t_count=$(wc -l "$m3u")
+                t_count=$(cat "$m3u" | wc -l)
               else
                 echo "Check this one."
               fi
