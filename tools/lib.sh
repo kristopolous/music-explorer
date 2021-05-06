@@ -62,7 +62,11 @@ resolve() {
 
 pl_check() {
   pl="$1/$PLAYLIST"
-  [[ -e $pl && ! -s $pl ]] && cat $pl && status "Woops, empty playlist" && rm $pl
+
+  [[ -e "$pl" && ! -s "$pl" ]] \
+    && cat "$pl" \
+    && status "Woops, empty playlist" \
+    && rm "$pl"
 }
 
 pl_fallback() {
@@ -100,17 +104,17 @@ get_playlist() {
       sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' > $dbg
   } 2> /dev/null
 
-  /bin/bash $dbg | grep mp3 > $PLAYLIST
+  /bin/bash $dbg | grep mp3 > "$path/$PLAYLIST"
 
-  local tomatch=$(wc -l $dbg)
-  local matched=$(wc -l $PLAYLIST)
+  local tomatch=$(< $dbg | wc -l)
+  local matched=$(< "$path/$PLAYLIST" | wc -l)
 
   if [[ $tomatch != $matched ]]; then
     status "Hold on! - $matched != $tomatch" nl
     failed=1
   fi
 
-  if [[ ! -s $PLAYLIST ]]; then 
+  if [[ ! -s "$path/$PLAYLIST" ]]; then 
     status "Unable to create $PLAYLIST, trying fallback" nl
     pl_fallback "$path"
     failed=1

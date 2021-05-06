@@ -122,9 +122,7 @@ for i in ${all[@]}; do
 
       if [[ ! -e "$m3u" && ! -e "$i"/no-files && -n "$playlist_get" ]]; then
         status "Getting $m3u" nl
-        pushd "$i" > /dev/null
-        get_playlist "$url"
-        popd > /dev/null
+        get_playlist "$url" "$i"
       fi
 
       if [[ -s "$m3u" && -z "$nopl" ]]; then
@@ -136,12 +134,12 @@ for i in ${all[@]}; do
 
           if [[ -z "$playlistIsRemote" || $age -lt $day ]]; then
             
-            t_count=$(wc -l "$m3u")
-            f_count=${#list[@]}
+            t_count=$(cat "$m3u" | wc -l)
+            f_count=${#fileList[@]}
 
             if [[ $f_count != $t_count ]]; then
+              headline 1 "Playlist has $f_count, there's $t_count here. Ignoring playlist"
               if [[ $f_count > $t_count ]]; then
-                headline 1 "Playlist has $f_count, there's $t_count here. Ignoring playlist"
                 pl_fallback "$i"
                 t_count=$(wc -l "$m3u")
               else
@@ -307,8 +305,7 @@ for i in ${all[@]}; do
         elif [[ $n == 'dlp' ]]; then 
           (
             status "Downloading playlist"
-            cd "$i"
-            get_playlist "$url"
+            get_playlist "$url" "$i"
           )
         elif [[ $n == 'dl' ]]; then 
           get_mp3s "$url" "$i"
