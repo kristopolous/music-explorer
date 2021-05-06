@@ -79,7 +79,6 @@ while [[ $# -gt 0 ]]; do
     count=$( ls "$place"/* 2> /dev/null | grep -Ev '\/(page.html|exit-code|album-art.jpg|domain)$' | wc -l )
     if [[ "$count" = "0" || $exitcode != "0" ]]; then
       [[ -e "$place/exit-code" ]] && rm "$place/exit-code"
-      cd "$place"
       echo "--- $place"
 
       # here's where we look for the full url

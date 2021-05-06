@@ -54,19 +54,23 @@ resolve() {
     echo $(< "$1/domain" )
   else
     label=$( dirname "$1" )
-    [[ -e $label/domain ]] && domain=$(< $label/domain ) || domain=${label/.\//}.bandcamp.com
+    [[ -e "$label/domain" ]] && domain=$(< $label/domain ) || domain=${label/.\//}.bandcamp.com
     release=$( basename "$1" )
     echo "https://$domain/album/$release"
   fi
 }
 
 pl_check() {
-  [[ -e $PLAYLIST && ! -s $PLAYLIST ]] && cat $PLAYLIST && status "Woops, empty playlist" && rm $PLAYLIST
+  pl="$1/$PLAYLIST"
+  [[ -e $pl && ! -s $pl ]] && cat $pl && status "Woops, empty playlist" && rm $pl
 }
 
 pl_fallback() {
   shopt -u nullglob
-  ls -1 -- *.mp3 > $PLAYLIST 2> /dev/null
+  ( 
+    cd "$1"
+    ls -1 -- *.mp3 > "$1/$PLAYLIST" 2> /dev/null
+  )
   shopt -s nullglob
 }
 
@@ -89,6 +93,7 @@ open_page() {
 get_playlist() {
   local dbg=/tmp/playlist-interim-$(date +%s)
   local failed=
+  local path="$2"
 
   {
     youtube-dl -eif mp3-128 -- "$1" |\
@@ -97,8 +102,8 @@ get_playlist() {
 
   /bin/bash $dbg | grep mp3 > $PLAYLIST
 
-  local tomatch=$(< $dbg | wc -l)
-  local matched=$(< $PLAYLIST | wc -l)
+  local tomatch=$(wc -l $dbg)
+  local matched=$(wc -l $PLAYLIST)
 
   if [[ $tomatch != $matched ]]; then
     status "Hold on! - $matched != $tomatch" nl
@@ -107,11 +112,11 @@ get_playlist() {
 
   if [[ ! -s $PLAYLIST ]]; then 
     status "Unable to create $PLAYLIST, trying fallback" nl
-    pl_fallback
+    pl_fallback "$path"
     failed=1
   fi
 
-  pl_check
+  pl_check "$path"
 
   if [[ -n "$failed" ]]; then 
     status "Look in $dbg\n"
@@ -122,26 +127,39 @@ get_playlist() {
 
 manual_pull() {
   (
-    echo " ▾▾ Manual Pull "
+    local path="$2"
     local base=$( echo $1 | awk -F[/:] '{print $4}' )
-    cd "$2"
+
+    echo " ▾▾ Manual Pull "
 
     for track in $(curl -s "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sort | uniq); do
-      youtube-dl -f mp3-128 -- "https://$base/$track"
+      youtube-dl \
+        --write-description \
+        -o "$path/%(title)s-%(id)s.%(ext)s" \
+        --write-info-json -f mp3-128 -- "https://$base/$track"
+
       check_for_stop
     done
 
-    pl_fallback
-    pl_check
+    pl_fallback "$path"
+    pl_check "$path"
   )
 }
 
+# (url, path)
 get_mp3s() {
   (
-    cd "$2"
-    youtube-dl -f mp3-128 -- "$1"
+    local url="$1"
+    local path="$2"
+
+    youtube-dl \
+      --write-description \
+      -o "$path/%(title)s-%(id)s.%(ext)s" \
+      --write-info-json -f mp3-128 -- "$url"
+
+    echo $? > "$path"/exit-code
     check_for_stop 
-    echo $? > exit-code
-    get_playlist "$1"
+
+    get_playlist "$url" "$path"
   )
 }

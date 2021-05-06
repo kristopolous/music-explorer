@@ -93,7 +93,8 @@ for i in ${all[@]}; do
 
     attempts=0
     while [[ 0 ]]; do
-    tabs 2,+4,+2
+      tabs 2,+4,+2
+
       if [[ -e "$i/domain" ]]; then
         url=$(< "$i/domain" )
       else
@@ -135,7 +136,19 @@ for i in ${all[@]}; do
 
           if [[ -z "$playlistIsRemote" || $age -lt $day ]]; then
             
-            t_count=$(cat "$m3u" | wc -l)
+            t_count=$(wc -l "$m3u")
+            f_count=${#list[@]}
+
+            if [[ $f_count != $t_count ]]; then
+              if [[ $f_count > $t_count ]]; then
+                headline 1 "Playlist has $f_count, there's $t_count here. Ignoring playlist"
+                pl_fallback "$i"
+                t_count=$(wc -l "$m3u")
+              else
+                echo "Check this one."
+              fi
+            fi
+
             [[ $t_count != 1 ]] && headline 1 "$t_count tracks" || headline 1 "single"
 
             playit "$m3u"
