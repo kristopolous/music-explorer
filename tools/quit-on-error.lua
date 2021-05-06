@@ -37,3 +37,9 @@ end
 mp.register_event("log-message", lg)
 mp.register_event("start-file", print_on_start)
 mp.add_key_binding('o', 'openpage', openpage_handler)
+
+for i=1,8 do
+  mp.add_key_binding(tostring(i), 'pl-' .. i, function() 
+    mp.command('playlist-play-index ' .. i)
+  end)
+end

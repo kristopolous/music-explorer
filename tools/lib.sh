@@ -91,6 +91,7 @@ get_page() {
   fi
 }
 open_page() {
+  [[ -z "$DISPLAY" ]] && export DISPLAY=:0
   xdg-open "$(resolve $(dirname "$1"))"
 }
 
@@ -129,41 +130,37 @@ get_playlist() {
   fi
 }
 
-manual_pull() {
-  (
-    local path="$2"
-    local base=$( echo $1 | awk -F[/:] '{print $4}' )
+_ytdl () {
+  local url="$1"
+  local path="$2"
 
-    echo " ▾▾ Manual Pull "
+  youtube-dl \
+    --write-description \
+    -o "$path/%(title)s-%(id)s.%(ext)s" \
+    -f mp3-128 -- "$url"
 
-    for track in $(curl -s "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sort | uniq); do
-      youtube-dl \
-        --write-description \
-        -o "$path/%(title)s-%(id)s.%(ext)s" \
-        --write-info-json -f mp3-128 -- "https://$base/$track"
-
-      check_for_stop
-    done
-
-    pl_fallback "$path"
-    pl_check "$path"
-  )
+  echo $? > "$path"/exit-code
+  check_for_stop
 }
 
-# (url, path)
+manual_pull() {
+  local path="$2"
+  local base=$( echo $1 | awk -F[/:] '{print $4}' )
+
+  echo " ▾▾ Manual Pull "
+
+  for track in $(curl -s "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sort | uniq); do
+    _ytdl "https://$base/$track" "$path"
+  done
+
+  pl_fallback "$path"
+  pl_check "$path"
+}
+
 get_mp3s() {
-  (
-    local url="$1"
-    local path="$2"
+  local url="$1"
+  local path="$2"
 
-    youtube-dl \
-      --write-description \
-      -o "$path/%(title)s-%(id)s.%(ext)s" \
-      --write-info-json -f mp3-128 -- "$url"
-
-    echo $? > "$path"/exit-code
-    check_for_stop 
-
-    get_playlist "$url" "$path"
-  )
+  _ytdl "$url" "$path" 
+  get_playlist "$url" "$path"
 }
