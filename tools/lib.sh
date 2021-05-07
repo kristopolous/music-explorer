@@ -135,7 +135,6 @@ _ytdl () {
   local path="$2"
 
   youtube-dl \
-    --write-description \
     -o "$path/%(title)s-%(id)s.%(ext)s" \
     -f mp3-128 -- "$url"
 
