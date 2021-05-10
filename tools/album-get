@@ -22,7 +22,6 @@ base_path=$PWD
 while [[ $# -gt 0 ]]; do
   check_for_stop
   arg=${1%%.}
-  cd $base_path
 
   if [[ $arg =~ \. ]]; then
     if [[ -n "$2" ]]; then 
@@ -54,8 +53,7 @@ while [[ $# -gt 0 ]]; do
   ttl=$(ls $base | grep -v domain | wc -l)
   echo "♫ $base_name ♫ ($ttl)"
 
-  cd $base
-  starting_point=$PWD
+  starting_point="$PWD/$base"
 
   url=https://$base_url/$extra
   for full in $(curl -s $url | grep -Po '(?<=")[\w:\/\.]+(?<=(album|track)\/)[^?'"'"'"]*' | sort | uniq ); do
@@ -77,6 +75,9 @@ while [[ $# -gt 0 ]]; do
 
     # Make sure the path is full
     count=$( ls "$place"/* 2> /dev/null | grep -Ev '\/(page.html|exit-code|album-art.jpg|domain)$' | wc -l )
+    echo "? $place ($count)"
+    [[ "$count" = "1" ]] && [[ ! -e "$place"/no ]] && ls "$place/"
+
     if [[ "$count" = "0" || $exitcode != "0" ]]; then
       [[ -e "$place/exit-code" ]] && rm "$place/exit-code"
       echo "--- $place"
@@ -90,9 +91,7 @@ while [[ $# -gt 0 ]]; do
       echo $url > "$place"/domain
       echo "  ⇩ $url"
 
-      if [[ -e $place/no-files ]]; then
-        continue
-      fi
+      [[ -e "$place"/no-files ]] && continue
 
       # this means we've been here before. We can use the -g 
       # option to see if nothing ought to be downloaded in which
