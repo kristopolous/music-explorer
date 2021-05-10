@@ -184,7 +184,7 @@ while True:
       cmdList.append( 'amixer -c 0 sset Master {}%'.format( int(100 * value / 127)) )
 
     elif todo == 'pulse_volume_abs':
-      cmdList.append( 'amixer -D pulse sset Master {}%'.format( int(100 * value / 127)) )
+      #cmdList.append( 'amixer -D pulse sset Master {}%'.format( int(101 * value / 127)) )
       #if usbDevice:
       #  cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
       cmdList.append( "pactl set-sink-volume {} {}".format(audioDev, value * 512) )

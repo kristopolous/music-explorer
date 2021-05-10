@@ -76,6 +76,7 @@ while [[ $# -gt 0 ]]; do
     count=$( /bin/ls "$place" 2> /dev/null | /bin/grep -Ev '\/(page.html|exit-code|album-art.jpg|domain)$' | /usr/bin/wc -l )
 
     # [[ "$count" = "1" ]] && [[ ! -e "$place"/no ]] && ls "$place/"
+    echo "- $place ($count)"
 
     if [[ "$count" = "0" || $exitcode != "0" ]]; then
       [[ -e "$place/exit-code" ]] && rm "$place/exit-code"
