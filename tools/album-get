@@ -59,8 +59,7 @@ while [[ $# -gt 0 ]]; do
   for full in $(curl -s $url | grep -Po '(?<=")[\w:\/\.]+(?<=(album|track)\/)[^?'"'"'"]*' | sort | uniq ); do
     check_for_stop
     # sometimes we get x-dom references, sometimes it's relevant. We resolve that below.
-    i=$(basename "$full")
-    place="$starting_point/$i"
+    place="$starting_point/"$(basename "$full")
     isnew=
     manual_pull=
 
@@ -74,9 +73,9 @@ while [[ $# -gt 0 ]]; do
     [[ -e $place/exit-code ]] && exitcode=$(< $place/exit-code )
 
     # Make sure the path is full
-    count=$( ls "$place"/* 2> /dev/null | grep -Ev '\/(page.html|exit-code|album-art.jpg|domain)$' | wc -l )
-    echo "? $place ($count)"
-    [[ "$count" = "1" ]] && [[ ! -e "$place"/no ]] && ls "$place/"
+    count=$( /bin/ls "$place" 2> /dev/null | /bin/grep -Ev '\/(page.html|exit-code|album-art.jpg|domain)$' | /usr/bin/wc -l )
+
+    # [[ "$count" = "1" ]] && [[ ! -e "$place"/no ]] && ls "$place/"
 
     if [[ "$count" = "0" || $exitcode != "0" ]]; then
       [[ -e "$place/exit-code" ]] && rm "$place/exit-code"
@@ -114,6 +113,7 @@ while [[ $# -gt 0 ]]; do
       if [[ -n "$FULLALBUM" ]]; then 
         if [[ -n "$manual_pull" ]]; then
           manual_pull "$url" "$place"
+
         else
           get_mp3s "$url" "$place"
         fi

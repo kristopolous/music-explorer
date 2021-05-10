@@ -70,12 +70,12 @@ pl_check() {
 }
 
 pl_fallback() {
-  shopt -u nullglob
   ( 
+    shopt -u nullglob
     cd "$1"
     ls -1 -- *.mp3 > $PLAYLIST 2> /dev/null
+    shopt -s nullglob
   )
-  shopt -s nullglob
 }
 
 # Passes in a full path and
@@ -145,6 +145,7 @@ _ytdl () {
 manual_pull() {
   local path="$2"
   local base=$( echo $1 | awk -F[/:] '{print $4}' )
+  local track=
 
   echo " ▾▾ Manual Pull "
 
