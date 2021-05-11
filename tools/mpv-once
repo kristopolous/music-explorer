@@ -138,7 +138,7 @@ for i in ${all[@]}; do
             f_count=${#fileList[@]}
 
             if [[ $f_count != $t_count ]]; then
-              headline 1 "Playlist has $f_count, there's $t_count here. Ignoring playlist"
+              headline 1 "Playlist has $t_count, there's $f_count here. Ignoring playlist"
               if [[ $f_count > $t_count ]]; then
                 pl_fallback "$i"
                 t_count=$(cat "$m3u" | wc -l)
