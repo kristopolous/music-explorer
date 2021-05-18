@@ -79,7 +79,7 @@ while [[ $# -gt 0 ]]; do
     [[ -e $place/exit-code ]] && exitcode=$(< $place/exit-code )
 
     # Make sure the path is full
-    count=$( /bin/ls "$place" 2> /dev/null | /bin/grep -Ev '\/(page.html|exit-code|album-art.jpg|domain)$' | /usr/bin/wc -l )
+    count=$( /bin/ls "$place" 2> /dev/null | /bin/grep -Ev '^(page.html|exit-code|album-art.jpg|domain)$' | /usr/bin/wc -l )
 
     # [[ "$count" = "1" ]] && [[ ! -e "$place"/no ]] && ls "$place/"
     echo "- $place ($count)"
