@@ -56,6 +56,7 @@ for row in fracSort:
   graph = ''
   accum = 0
   start = 9608
+
   for i in rateList:
     accum += row.get(i) or 0
     inst = round(accum * width) - len(graph)
@@ -68,13 +69,17 @@ for row in fracSort:
     percFloat = row['total'] / labelTotal.get(row['label'])
     perc = int(10 * percFloat)
 
+
+  if os.path.exists(row['label']):
+    if os.path.isfile("{}/no".format(row['label'])):
+      continue
+    sz = os.popen("du -sm {}".format(row['label'])).read().split('\t')[0]
+  else:
+    continue
+
   cnt += 1
   rev = '' if cnt % 3 else chr(27) + '[4m'
   reset = chr(27) + '[0m'
-  if os.path.exists(row['label']):
-    sz = os.popen("du -sm {}".format(row['label'])).read().split('\t')[0]
-  else:
-    sz = 0
 
   print(rev + " " + labelStr.format(row['label']), 
     reset + " " + graph, 

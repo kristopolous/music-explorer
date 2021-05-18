@@ -20,6 +20,11 @@ check_for_stop() {
   fi
 }
 
+purge() {
+  rm -r "$1"/*
+  touch "$1/no"
+}
+
 function headline {
   case $1 in
     3)
@@ -41,7 +46,8 @@ function status {
 }
 
 _get_urls() {
-  youtube-dl --get-duration --get-filename -gf mp3-128 -- "$1" | awk -f $DIR/ytdl2m3u.awk > "$2"
+  real_url=$(curl -Ls -o /dev/null -w %{url_effective} "$1")
+  youtube-dl --get-duration --get-filename -gf mp3-128 -- "$real_url" | awk -f $DIR/ytdl2m3u.awk > "$2"
 }
 
 get_urls() {

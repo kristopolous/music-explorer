@@ -51,9 +51,15 @@ while [[ $# -gt 0 ]]; do
     echo $base_url > $base/domain
   fi
   ttl=$(ls $base | grep -v domain | wc -l)
-  echo "♫ $base_name ♫ ($ttl)"
 
   starting_point="$PWD/$base"
+
+  if [[ -f "$starting_point/no" ]]; then
+    echo "! $base_name purged"
+    exit 0
+  else
+    echo "♫ $base_name ♫ ($ttl)"
+  fi
 
   url=https://$base_url/$extra
   for full in $(curl -s $url | grep -Po '(?<=")[\w:\/\.]+(?<=(album|track)\/)[^?'"'"'"]*' | sort | uniq ); do
