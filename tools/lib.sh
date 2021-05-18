@@ -72,6 +72,15 @@ get_urls() {
   fi
 }
 
+album_puge() {
+  local info="$1"
+  local path="$2"
+  
+  mkdir -p /tmp/"$path"
+  mv "$path"/* /tmp/"$path"
+  echo "$1" > "$path"/no
+}
+
 resolve() {
   if [[ -e "$1/domain" ]]; then
     echo $(< "$1/domain" )

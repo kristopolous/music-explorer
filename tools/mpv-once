@@ -55,7 +55,8 @@ function record_listen() {
     st=$( echo "$i" | tr '//' '.' )
     sed -i "/$st/d" .listen_done
 
-    echo "$i $n (time:$listen_time) $(date +%Y%m%d)" >> .listen_done
+    # Also record how many audio files we saw at the time
+    echo "$i $n ($_stats) $(date +%Y%m%d)" >> .listen_done
   fi
 }
 
@@ -323,10 +324,13 @@ for i in ${all[@]}; do
       [[ $n == 'r' ]] || break
     done
 
+    _stats="time:$listen_time:$f_count"
+
     if [[ $n == 'pu' ]]; then 
 
-      $DIR/album-purge "$i" $start_dir
+      album-purge "$_stats" "$i"
       n="__purge"
+
     elif [[ $n == 'sn' ]]; then
 
       status "Skipping - not recording"
