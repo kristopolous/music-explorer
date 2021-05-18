@@ -45,14 +45,31 @@ function status {
   echo -e "\t\t$1"
 }
 
-_get_urls() {
+check_url() {
   real_url=$(curl -Ls -o /dev/null -w %{url_effective} "$1")
-  youtube-dl --get-duration --get-filename -gf mp3-128 -- "$real_url" | awk -f $DIR/ytdl2m3u.awk > "$2"
+  if [[ "$real_url" != "$1" ]]; then
+    echo $real_url > "$2"/domain
+    echo $real_url
+  fi
+}
+
+_get_urls() {
+  youtube-dl \
+    --get-duration --get-filename -gf mp3-128 -- "$1" \
+    | awk -f $DIR/ytdl2m3u.awk > "$2"
 }
 
 get_urls() {
   _get_urls $1 "$2/$PLAYLIST"
-  echo $? > "$2"/exit-code
+  local ec=$?
+  if [[ ! $ec ]]; then
+    local new_url=$(check_url "$2" "$2")
+    if [[ -n "$new_url" ]]; then
+      _get_urls "$1" "$2"
+    fi
+  else
+    echo $? > "$2"/exit-code
+  fi
 }
 
 resolve() {
@@ -143,8 +160,18 @@ _ytdl () {
   youtube-dl \
     -o "$path/%(title)s-%(id)s.%(ext)s" \
     -f mp3-128 -- "$url"
+  
+  local ec=$?
+  if [[ ! $ec ]]; then
+    local new_url=$(check_url "$url" "$path")
+    # This *shouldn't* lead to endless recursion, hopefully.
+    if [[ -n "$new_url" ]]; then
+      _ytdl "$1" "$2"
+    fi
+  else
+    echo $ec > "$path"/exit-code
+  fi
 
-  echo $? > "$path"/exit-code
   check_for_stop
 }
 
