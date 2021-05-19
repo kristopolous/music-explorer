@@ -62,10 +62,10 @@ _get_urls() {
 get_urls() {
   _get_urls $1 "$2/$PLAYLIST"
   local ec=$?
-  if [[ ! $ec ]]; then
+  if [[ $ec -ne 0 ]]; then
     local new_url=$(check_url "$2" "$2")
     if [[ -n "$new_url" ]]; then
-      _get_urls "$1" "$2"
+      _get_urls "$new_url" "$2"
     fi
   else
     echo $? > "$2"/exit-code
@@ -171,11 +171,16 @@ _ytdl () {
     -f mp3-128 -- "$url"
   
   local ec=$?
-  if [[ ! $ec ]]; then
+  if [[ $ec -ne 0 ]]; then
+
+    status "Checking $url"
     local new_url=$(check_url "$url" "$path")
+    status "Found it to be $new_url"
+
     # This *shouldn't* lead to endless recursion, hopefully.
     if [[ -n "$new_url" ]]; then
-      _ytdl "$1" "$2"
+      status "Trying again"
+      _ytdl "$new_url" "$2"
     fi
   else
     echo $ec > "$path"/exit-code
