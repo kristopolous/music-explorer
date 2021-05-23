@@ -5,6 +5,7 @@
 PLAYLIST=playlist.m3u
 PAGE=page.html
 STOPFILE=/tmp/mpvstop
+FORMAT=mp3-128
 
 function hr {
   echo
@@ -55,7 +56,7 @@ check_url() {
 
 _get_urls() {
   youtube-dl \
-    --get-duration --get-filename -gf mp3-128 -- "$1" \
+    --get-duration --get-filename -gf $FORMAT -- "$1" \
     | awk -f $DIR/ytdl2m3u.awk > "$2"
 }
 
@@ -133,7 +134,7 @@ get_playlist() {
   local path="$2"
 
   {
-    youtube-dl -eif mp3-128 -- "$1" |\
+    youtube-dl -eif $FORMAT -- "$1" |\
       sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' > $dbg
   } 2> /dev/null
 
@@ -168,7 +169,7 @@ _ytdl () {
 
   youtube-dl \
     -o "$path/%(title)s-%(id)s.%(ext)s" \
-    -f mp3-128 -- "$url"
+    -f $FORMAT -- "$url"
   
   local ec=$?
   if [[ $ec -ne 0 ]]; then
