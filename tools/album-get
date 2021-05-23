@@ -1,5 +1,6 @@
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+FULLALBUM=1
 . $DIR/lib.sh
 
 declare -i TTL=0
