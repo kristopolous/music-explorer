@@ -72,7 +72,7 @@ get_urls() {
   fi
 }
 
-album_puge() {
+album_purge() {
   local info="$1"
   local path="$2"
   
