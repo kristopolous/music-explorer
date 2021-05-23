@@ -6,5 +6,7 @@ if ! declare -f $1 > /dev/null; then
   echo "Woops, $1 is not defined"
   exit 1
 fi
-
-eval $*
+fn=$1
+shift
+args="$*"
+$fn $args
