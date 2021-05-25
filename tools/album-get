@@ -79,10 +79,11 @@ while [[ $# -gt 0 ]]; do
   url=$base_url/$extra
   [[ $url =~ http ]] || url=https://$url
 
-  for full in $(curl -s $url | grep -Po $regex | sort | uniq ); do
+  for full in $(curl -sL $url | grep -Po $regex | sort | uniq ); do
     check_for_stop
     # sometimes we get x-dom references, sometimes it's relevant. We resolve that below.
-    place="$starting_point/"$(basename "$full")
+    release=$(basename "$full")
+    place="$starting_point/$release"
     isnew=
     manual_pull=
 
@@ -99,7 +100,8 @@ while [[ $# -gt 0 ]]; do
     count=$( /bin/ls "$place" 2> /dev/null | /bin/grep -Ev '^(page.html|exit-code|album-art.jpg|domain)$' | /usr/bin/wc -l )
 
     # [[ "$count" = "1" ]] && [[ ! -e "$place"/no ]] && ls "$place/"
-    echo "- $place ($count)"
+    [[ -e "$place/no" ]] && printf "  -  " || printf "  %-2d " $count 
+    echo $release
 
     if [[ "$count" = "0" || $exitcode != "0" ]]; then
       [[ -e "$place/exit-code" ]] && rm "$place/exit-code"
