@@ -1,7 +1,6 @@
 #!/bin/bash
 
-[[ -z "$DIR" ]] && DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PLAYLIST=playlist.m3u
 PAGE=page.html
 STOPFILE=/tmp/mpvstop
@@ -176,12 +175,13 @@ _ytdl () {
 
     status "Checking $url"
     local new_url=$(check_url "$url" "$path")
-    status "Found it to be $new_url"
 
     # This *shouldn't* lead to endless recursion, hopefully.
     if [[ -n "$new_url" ]]; then
       status "Trying again"
       _ytdl "$new_url" "$2"
+    else
+      status "Found nothing"
     fi
   else
     echo $ec > "$path"/exit-code
