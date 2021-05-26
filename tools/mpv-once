@@ -74,8 +74,14 @@ all=( $(cat .listen_all .listen_done | grep -E "$filter" | awk ' { print $1 } ' 
 size=${#all[@]}
 echo $size
 ix=0 
+direct=
 
 for i in ${all[@]}; do
+
+  if [[ -n "$direct" ]]; then
+    i=$direct
+    direct=
+  fi
 
   tmux rename-window "mpv-once" 2> /dev/null
   (( ix ++ ))
@@ -228,7 +234,13 @@ for i in ${all[@]}; do
           }  |  sed 's/^/\t/'
         fi
 
-        if [[ ${n:0:2} == 'ao' ]]; then
+        if [[ ${n:0:1} == 'g' ]]; then
+          direct=${n:2}
+          n="sn"
+          hr
+          break
+          
+        elif [[ ${n:0:2} == 'ao' ]]; then
           ao=${n:3}
           status "Setting audio out to '$ao'"
           [[ -e $DIR/prefs.sh ]] && sed -Ei 's/ao=.*/ao='$ao'/g' $DIR/prefs.sh
@@ -256,6 +268,7 @@ for i in ${all[@]}; do
           3,4,5   - Rate
           dl      - Download the files
           dlp     - Download just the playlist
+          g       - Go to a path
           i       - Info of the album
           l       - List the files
           o       - Xdg-open the URL
