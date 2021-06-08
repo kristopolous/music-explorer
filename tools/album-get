@@ -115,11 +115,21 @@ while [[ $# -gt 0 ]]; do
       # it's worth trying to pull this down again since the time might have
       # now lapsed.
       if [[ -n "$release_date" ]]; then
-        from_now=$(( $(date --date="$release_date" +%s) - $(date +%s) ))
+        release_date_unix=$(date --date="$release_date" +%s)
+        from_now=$(( release_date_unix - $(date +%s) ))
         if [[ $from_now -lt 0 ]]; then
-          force_try=0
-          _rm "$place/no-files"
           echo -e "\t$release_date is in the past"
+
+          # Second confirmation.
+          page_download_date=$(stat -c %Z  "$place/$PAGE")
+
+          ## we'll add a couple day buffer to the relase date for timezones and delays
+          if [[ $page_download_date -gt $(( release_date_unix + 172800 )) ]]; then
+            echo -e "\tHOWEVER, $PAGE is newer than that date"
+          else
+            force_try=0
+            _rm "$place/no-files"
+          fi
         else
           echo -e "\tFUTURE: $release_date ... skipping"
         fi
