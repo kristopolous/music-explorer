@@ -117,14 +117,23 @@ pl_fallback() {
 #   * create file
 #
 get_page() {
-  if [[ ! -s "$1/$PAGE" ]]; then
+  if [[ -s "$1/$PAGE" ]]; then
+    curl -Ls $(resolve "$1") > "/tmp/$PAGE"
+    if [[ $( stat -c %s "$1/$PAGE" ) -lt $( stat -c %s "/tmp/$PAGE" ) ]]; then
+      mv "/tmp/$PAGE" "$1/$PAGE"
+    fi
+  else 
     echo $1
     curl -Ls $(resolve "$1") > "$1/$PAGE"
   fi
 }
 open_page() {
   [[ -z "$DISPLAY" ]] && export DISPLAY=:0
-  xdg-open "$(resolve $(dirname "$1"))"
+  if [[ $1 =~ http ]]; then
+    xdg-open "$1"
+  else
+    xdg-open "$(resolve $(dirname "$2"))"
+  fi
 }
 
 get_playlist() {
