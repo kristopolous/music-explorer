@@ -109,20 +109,25 @@ while [[ $# -gt 0 ]]; do
 
     force_try=
     if [[ $count -lt 4 && -e "$place/$PAGE" ]]; then
-      content=$(grep -m 1 -Po releases\ '[A-Z][a-z]+ [0-9]{1,2}, 20[0-9]{2}' "$place/$PAGE" )
-      # This means it's worth trying to pull this down again
-      # we just transfer over the exit code here.
-      if [[ -n "$content" ]]; then
-        force_try=0
-        [[ -e $place/no-files ]] && rm "$place/no-files"
-        echo -e "\t$content"
-        cat "$place/domain"
-        read waiter
+      release_date=$(grep -m 1 -Po '((?<=releases )[A-Z][a-z]+ [0-9]{1,2}, 20[0-9]{2})' "$place/$PAGE" )
+
+      # If our record of the page contains "releases" instead of "released" 
+      # it's worth trying to pull this down again since the time might have
+      # now lapsed.
+      if [[ -n "$release_date" ]]; then
+        from_now=$(( $(date --date="$release_date" +%s) - $(date +%s) ))
+        if [[ $from_now -lt 0 ]]; then
+          force_try=0
+          _rm "$place/no-files"
+          echo -e "\t$release_date is in the past"
+        else
+          echo -e "\tFUTURE: $release_date ... skipping"
+        fi
       fi
     fi
 
     if [[ "$count" = "0" || $exitcode != "0" || -n "$force_try" ]]; then
-      [[ -e "$place/exit-code" ]] && rm "$place/exit-code"
+      _rm "$place/exit-code"
       echo "--- $place"
 
       # here's where we look for the full url
@@ -175,4 +180,4 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -n "$COUNTFILE" ]] && echo $TTL > $COUNTFILE
-[[ $TTL -gt 0 ]] && echo "Added $TTL"
+[[ $TTL -gt 1 ]] && echo "Added $TTL"

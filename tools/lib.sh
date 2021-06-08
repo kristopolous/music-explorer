@@ -171,6 +171,10 @@ get_playlist() {
   fi
 }
 
+_rm () {
+  [[ -e "$1" ]] && rm "$1"
+}
+
 _ytdl () {
   local url="$1"
   local path="$2"
