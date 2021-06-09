@@ -10,5 +10,4 @@ if ! declare -f $1 > /dev/null; then
 fi
 fn=$1
 shift
-args="$*"
-$fn $args
+$fn "$@"
