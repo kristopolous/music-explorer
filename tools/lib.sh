@@ -137,7 +137,10 @@ open_page() {
   if [[ $1 =~ http ]]; then
     xdg-open "$1"
   else
-    xdg-open "$(resolve $(dirname "$2"))"
+    [[ $# == '1' ]] && param="$1" || param="$2"
+    local basedir=$(dirname "$param")
+    local url=$(resolve "$basedir")
+    xdg-open "$url"
   fi
 }
 
