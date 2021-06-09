@@ -40,6 +40,9 @@ function headline {
   esac
 }
 
+function info {
+  echo -e "\t$1"
+}
 function status {
   [[ -n "$2" ]] && echo
   echo -e "\t\t$1"
@@ -186,14 +189,29 @@ _rm () {
   [[ -e "$1" ]] && rm "$1"
 }
 
+_tabs () {
+  tabs 2,+4,+2,+10
+}
+
 _info () {
   local path="$1"
   local url=$(resolve "$path")
   local reldate="$(grep -m 1 -Po '((?<=release[sd] )[A-Z][a-z]+ [0-9]{1,2}, 20[0-9]{2})' "$path/$PAGE" )"
-  status $path
-  status $url
-  status "released   $(date --date="$reldate" -I)"
-  status "downloaded $(stat -c %w "$path/$PAGE")"
+  _tabs
+
+  headline 2  $url
+  info        $path
+  echo
+
+  info "Released\t$(date --date="$reldate" -I)"
+  info "Downloaded\t$(stat -c %w "$path/$PAGE" | cut -d ' ' -f 1 )"
+
+  headline 2 Tracks
+  grep -Po '((?<=track-title">).*?(?=<))' "$path/$PAGE" | awk ' { print "\t"FNR". "$0 } ' 
+
+  headline 2 "Files"
+  ( cd "$path"; ls -l *mp3 ) | sed 's/^/\t/' 
+  echo
 }
 
 

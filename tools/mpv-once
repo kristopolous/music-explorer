@@ -100,7 +100,7 @@ for i in ${all[@]}; do
 
     attempts=0
     while [[ 0 ]]; do
-      tabs 2,+4,+2
+      _tabs
 
       if [[ -e "$i/domain" ]]; then
         url=$(< "$i/domain" )
