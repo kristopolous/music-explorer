@@ -225,13 +225,7 @@ for i in ${all[@]}; do
       while [[ 0 ]]; do
         read -p "[[1m$i[0m] " -e n
         if [[ $n == 'i' ]]; then 
-          {
-          echo
-          echo $url
-          echo $start_dir/$i
-          echo "playlist_get=$playlist_get"
-          echo
-          }  |  sed 's/^/\t/'
+          _info "$i"
         fi
 
         if [[ ${n:0:1} == 'g' ]]; then

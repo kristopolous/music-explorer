@@ -183,6 +183,17 @@ _rm () {
   [[ -e "$1" ]] && rm "$1"
 }
 
+_info () {
+  local path="$1"
+  local url=$(resolve "$path")
+  local reldate="$(grep -m 1 -Po '((?<=release[sd] )[A-Z][a-z]+ [0-9]{1,2}, 20[0-9]{2})' "$path/$PAGE" )"
+  status $path
+  status $url
+  status "released   $(date --date="$reldate" -I)"
+  status "downloaded $(stat -c %w "$path/$PAGE")"
+}
+
+
 _ytdl () {
   local url="$1"
   local path="$2"
