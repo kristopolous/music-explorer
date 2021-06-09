@@ -59,6 +59,10 @@ _get_urls() {
     | awk -f $DIR/ytdl2m3u.awk > "$2"
 }
 
+_stub() {
+  echo "$1" | tr '/' ':'
+}
+
 get_urls() {
   _get_urls $1 "$2/$PLAYLIST"
   local ec=$?
@@ -83,10 +87,10 @@ album_purge() {
 
 resolve() {
   if [[ -e "$1/domain" ]]; then
-    echo $(< "$1/domain" )
+    echo $(cat "$1/domain" )
   else
     label=$( dirname "$1" )
-    [[ -e "$label/domain" ]] && domain=$(< $label/domain ) || domain=${label/.\//}.bandcamp.com
+    [[ -e "$label/domain" ]] && domain=$(cat $label/domain ) || domain=${label/.\//}.bandcamp.com
     release=$( basename "$1" )
     echo "https://$domain/album/$release"
   fi
@@ -127,6 +131,7 @@ get_page() {
     curl -Ls $(resolve "$1") > "$1/$PAGE"
   fi
 }
+
 open_page() {
   [[ -z "$DISPLAY" ]] && export DISPLAY=:0
   if [[ $1 =~ http ]]; then
@@ -137,22 +142,25 @@ open_page() {
 }
 
 get_playlist() {
-  local dbg=/tmp/playlist-interim-$(date +%s)
+  local dbg=/tmp/playlist-interim:$(_stub "$2"):$(date +%s)
   local failed=
   local path="$2"
 
   {
-    youtube-dl -eif $FORMAT -- "$1" |\
-      sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' > $dbg
-  } 2> /dev/null
+    echo "cd '$2'" > $dbg
 
+    youtube-dl -eif $FORMAT -- "$1" |\
+      sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' >> $dbg
+  } 2> /dev/null
+  
   /bin/bash $dbg | grep mp3 > "$path/$PLAYLIST"
 
-  local tomatch=$(< $dbg | wc -l)
-  local matched=$(< "$path/$PLAYLIST" | wc -l)
+  # filter out the cd command
+  local tomatch=$(grep -Ev "^cd " $dbg | wc -l)
+  local matched=$(cat "$path/$PLAYLIST" | wc -l)
 
   if [[ $tomatch != $matched ]]; then
-    status "Hold on! - $matched != $tomatch" nl
+    status "Hold on! - $tomatch != $matched" nl
     failed=1
   fi
 
@@ -167,7 +175,7 @@ get_playlist() {
   if [[ -n "$failed" ]]; then 
     status "Look in $dbg\n"
   else
-    rm "$dbg"
+    _rm "$dbg"
   fi
 }
 
