@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-NONET=
+NONET=${NONET:=}
 PLAYLIST=playlist.m3u
 PAGE=page.html
 STOPFILE=/tmp/mpvstop
@@ -153,14 +153,18 @@ get_playlist() {
   local failed=
   local path="$2"
 
-  {
-    echo "cd '$2'" > $dbg
+  touch "$path/$PLAYLIST"
 
-    youtube-dl -eif $FORMAT -- "$1" |\
-      sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' >> $dbg
-  } 2> /dev/null
+  if [[ -z "$NONET" ]]; then
+    {
+      echo "cd '$2'" > $dbg
+
+      youtube-dl -eif $FORMAT -- "$1" |\
+        sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' >> $dbg
+    } 2> /dev/null
   
-  /bin/bash $dbg | grep mp3 > "$path/$PLAYLIST"
+    /bin/bash $dbg | grep mp3 > "$path/$PLAYLIST"
+  fi
 
   # filter out the cd command
   local tomatch=$(grep -Ev "^cd " $dbg | wc -l)
