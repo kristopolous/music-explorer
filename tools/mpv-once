@@ -89,6 +89,12 @@ for i in ${all[@]}; do
   listen_time=0
 
   if [[ ! -d "$i" ]]; then
+    grep -m 1 $i .listen_done > /dev/null
+    # This means it's in the done but not the all, which is fine.
+    if [[ $? -eq 0 ]]; then
+      continue
+    fi 
+
     status "Gone - $i"
     n="__purge"
     record_listen

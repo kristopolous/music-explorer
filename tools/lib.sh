@@ -1,6 +1,7 @@
 #!/bin/bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+NONET=
 PLAYLIST=playlist.m3u
 PAGE=page.html
 STOPFILE=/tmp/mpvstop
@@ -216,28 +217,30 @@ _info () {
 
 
 _ytdl () {
-  local url="$1"
-  local path="$2"
+  if [[ -z "$NONET" ]]; then
+    local url="$1"
+    local path="$2"
 
-  youtube-dl \
-    -o "$path/%(title)s-%(id)s.%(ext)s" \
-    -f $FORMAT -- "$url"
-  
-  local ec=$?
-  if [[ $ec -ne 0 ]]; then
+    youtube-dl \
+      -o "$path/%(title)s-%(id)s.%(ext)s" \
+      -f $FORMAT -- "$url"
+    
+    local ec=$?
+    if [[ $ec -ne 0 ]]; then
 
-    status "Checking $url"
-    local new_url=$(check_url "$url" "$path")
+      status "Checking $url"
+      local new_url=$(check_url "$url" "$path")
 
-    # This *shouldn't* lead to endless recursion, hopefully.
-    if [[ -n "$new_url" ]]; then
-      status "Trying again"
-      _ytdl "$new_url" "$2"
+      # This *shouldn't* lead to endless recursion, hopefully.
+      if [[ -n "$new_url" ]]; then
+        status "Trying again"
+        _ytdl "$new_url" "$2"
+      else
+        status "Found nothing"
+      fi
     else
-      status "Found nothing"
+      echo $ec > "$path"/exit-code
     fi
-  else
-    echo $ec > "$path"/exit-code
   fi
 
   check_for_stop
