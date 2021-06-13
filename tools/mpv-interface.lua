@@ -1,5 +1,13 @@
 local os = require 'os'
 mp.enable_messages('error')
+
+local function string_split(str, sep)
+   local sep, fields = sep or ":", {}
+   local pattern = string.format("([^%s]+)", sep)
+   str:gsub(pattern, function(c) fields[#fields+1] = c end)
+   return fields
+end
+
 function tprint (tbl, indent)
   if not indent then indent = 0 end
   for k, v in pairs(tbl) do
@@ -34,9 +42,16 @@ function openpage_handler()
   os.execute('mpv-lib open_page "' .. mp.get_property('path') .. '"')
 end
 
+function getinfo_handler()
+  parts = string_split(mp.get_property('path'), '/')
+  partial = parts[#parts - 2] .. '/' .. parts[#parts - 1] 
+  os.execute('mpv-lib _info "' .. partial .. '"')
+end
+
 mp.register_event("log-message", lg)
 mp.register_event("start-file", print_on_start)
 mp.add_key_binding('o', 'openpage', openpage_handler)
+mp.add_key_binding('?', 'getinfo', getinfo_handler)
 
 for i=1,8 do
   mp.add_key_binding(tostring(i), 'pl-' .. i, function() 
