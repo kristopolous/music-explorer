@@ -151,6 +151,8 @@ open_page() {
 get_playlist() {
   local dbg=/tmp/playlist-interim:$(_stub "$2"):$(date +%s)
   local failed=
+  local tomatch=
+  local matched=
   local path="$2"
 
   touch "$path/$PLAYLIST"
@@ -166,9 +168,12 @@ get_playlist() {
     /bin/bash $dbg | grep mp3 > "$path/$PLAYLIST"
   fi
 
+  # We want to support the nonet mode without
+  # making things look broken
+  
   # filter out the cd command
-  local tomatch=$(grep -Ev "^cd " $dbg | wc -l)
-  local matched=$(cat "$path/$PLAYLIST" | wc -l)
+  [[ -e "$dbg" ]] && tomatch=$(grep -Ev "^cd " $dbg | wc -l)
+  [[ -e "$path/$PLAYLIST" ]] && matched=$(cat "$path/$PLAYLIST" | wc -l)
 
   if [[ $tomatch != $matched ]]; then
     status "Hold on! - $tomatch != $matched" nl
