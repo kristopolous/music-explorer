@@ -72,6 +72,16 @@ unlistened() {
   grep -hE "$filter" .listen_all .listen_done | awk ' { print $1 } ' | sort | uniq -u | shuf
 }
 
+recent() {
+  echo */* | tr ' ' '\n' > .listen_all
+  grep "202[01]" .listen_done | awk ' { print $NF } ' | sort | uniq -c
+  ttl=$(wc -l .listen_all | awk ' { print $1 }').0
+  done=$(wc -l .listen_done | awk ' { print $1 }').0
+  wc -l .listen*
+  echo $(( 100 * done / ttl ))%
+  du -sh
+}
+
 get_urls() {
   _get_urls $1 "$2/$PLAYLIST"
   local ec=$?
