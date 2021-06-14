@@ -37,7 +37,7 @@ trap finish EXIT
 #fi
 
 filter=.
-if [[ $# -gt 0 ]]; then
+if [[ $# -gt 1 ]]; then
   filter="($1"
   shift
   while [[ $# -gt 0 ]]; do
@@ -70,7 +70,7 @@ function playit() {
 
 echo */* | tr ' ' '\n' > .listen_all
 touch .listen_done
-all=( $(cat .listen_all .listen_done | grep -E "$filter" | awk ' { print $1 } ' | sort | uniq -u | shuf) )
+all=( $(unlistened "$filter") )
 size=${#all[@]}
 echo $size
 ix=0 

@@ -67,6 +67,11 @@ _stub() {
   echo "$1" | tr '/' ':'
 }
 
+unlistened() {
+  local filter=${1:-.}
+  grep -hE "$filter" .listen_all .listen_done | awk ' { print $1 } ' | sort | uniq -u | shuf
+}
+
 get_urls() {
   _get_urls $1 "$2/$PLAYLIST"
   local ec=$?
