@@ -287,6 +287,7 @@ for i in ${all[@]}; do
           ao[...] - Set the audio out to [...]
           b[...]  - Set the start time to [...]
 
+          net     - Toggle network (off/on)
           source  - Reload lib
           debug   - Enable debugging
           nodebug - Turn off debugging
@@ -296,6 +297,10 @@ for i in ${all[@]}; do
         elif [[ $n == 'nopl' ]]; then
           status "Skipping playlist downloads"
           playlist_get=
+
+        elif [[ $n == 'net' ]]; then
+          [[ -z "$NONET" ]] && NONET=1 || NONET=
+          [[ -z "$NONET" ]] && status "Network on" || status "Network off"
 
         elif [[ $n == 'o' ]]; then
           open_page "$url"
