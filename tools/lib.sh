@@ -78,7 +78,7 @@ recent() {
   ttl=$(wc -l .listen_all | awk ' { print $1 }').0
   done=$(wc -l .listen_done | awk ' { print $1 }').0
   wc -l .listen*
-  echo $(( 100 * done / ttl ))%
+  echo $( perl -e "print 100 * $done / $ttl" )%
   du -sh
 }
 
