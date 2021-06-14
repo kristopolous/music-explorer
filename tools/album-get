@@ -28,6 +28,7 @@ while [[ $# -gt 0 ]]; do
   check_for_stop
   arg=${1%%.}
 
+  list=
   # We start with a bandcamp assumption
   regex=${site_regex[bandcamp]}
   FORMAT=mp3-128
@@ -39,6 +40,10 @@ while [[ $# -gt 0 ]]; do
       regex=${site_regex[archive]}
       base_url=$arg
       FORMAT=0
+    # This means we are getting a single album
+    elif [[ $arg =~ bandcamp.com/album/ ]]; then
+      eval $(echo $arg | awk -F\/ ' { sub(/\..*/,"",$3);print "base="$3";list=/"$(NF-1)"/"$NF }')
+      base_url=$base.bandcamp.com
     elif [[ -n "$2" ]]; then 
       base="$2" 
       domain=$arg
@@ -79,7 +84,9 @@ while [[ $# -gt 0 ]]; do
   url=$base_url/$extra
   [[ $url =~ http ]] || url=https://$url
 
-  for full in $(curl -sL $url | grep -Po $regex | sort | uniq ); do
+  list=${list:-$(curl -sL $url | grep -Po $regex | sort | uniq )}
+
+  for full in $list; do
     check_for_stop
     # sometimes we get x-dom references, sometimes it's relevant. We resolve that below.
     release=$(basename "$full")
