@@ -203,7 +203,7 @@ for i in ${all[@]}; do
 
         headline 1 "No files"
         ls -ltr "$i"  |  sed 's/^/\t\t/'
-        n='pu'
+        n='p'
         hr
         break
 
@@ -272,7 +272,7 @@ for i in ${all[@]}; do
           i       - Info of the album
           l       - List the files
           o       - Xdg-open the URL
-          pu      - Purge (delete)
+          p       - Purge (delete)
           r       - Repeat
           r nopl  - Repeat (ignore playlist)
           s       - Skip (and log)
@@ -339,7 +339,7 @@ for i in ${all[@]}; do
           # We treat this like a regular replay
           n=r
         fi
-        [[ "$n" =~ ^(x|r|s|sn|[1-5]|pu)$ ]] && break
+        [[ "$n" =~ ^(x|r|s|sn|[1-5]|p)$ ]] && break
       done
 
       [[ $n == 'x' ]] && exit
@@ -348,7 +348,7 @@ for i in ${all[@]}; do
 
     _stats="time:$listen_time:$f_count"
 
-    if [[ $n == 'pu' ]]; then 
+    if [[ $n == 'p' ]]; then 
 
       album_purge "$_stats" "$i"
       n="__purge"
