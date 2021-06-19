@@ -21,11 +21,6 @@ check_for_stop() {
   fi
 }
 
-purge() {
-  rm -r "$1"/*
-  touch "$1/no"
-}
-
 function headline {
   case $1 in
     3)
@@ -99,9 +94,13 @@ album_purge() {
   local info="$1"
   local path="$2"
   
-  mkdir -p /tmp/"$path"
+  [[ -e /tmp/"$path" ]] || mkdir -p /tmp/"$path"
   mv "$path"/* /tmp/"$path"
   echo "$1" > "$path"/no
+}
+
+purge() {
+  album_purge "CLI" "$1"
 }
 
 resolve() {
