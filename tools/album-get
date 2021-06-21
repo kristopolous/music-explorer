@@ -28,6 +28,7 @@ while [[ $# -gt 0 ]]; do
   check_for_stop
   arg=${1%%.}
 
+  list=
   # We start with a bandcamp assumption
   regex=${site_regex[bandcamp]}
   FORMAT=mp3-128
@@ -39,6 +40,10 @@ while [[ $# -gt 0 ]]; do
       regex=${site_regex[archive]}
       base_url=$arg
       FORMAT=0
+    # This means we are getting a single album
+    elif [[ $arg =~ bandcamp.com/album/ ]]; then
+      eval $(echo $arg | awk -F\/ ' { sub(/\..*/,"",$3);print "base="$3";list=/"$(NF-1)"/"$NF }')
+      base_url=$base.bandcamp.com
     elif [[ -n "$2" ]]; then 
       base="$2" 
       domain=$arg
@@ -79,7 +84,9 @@ while [[ $# -gt 0 ]]; do
   url=$base_url/$extra
   [[ $url =~ http ]] || url=https://$url
 
-  for full in $(curl -sL $url | grep -Po $regex | sort | uniq ); do
+  list=${list:-$(curl -sL $url | grep -Po $regex | sort | uniq )}
+
+  for full in $list; do
     check_for_stop
     # sometimes we get x-dom references, sometimes it's relevant. We resolve that below.
     release=$(basename "$full")
@@ -100,11 +107,44 @@ while [[ $# -gt 0 ]]; do
     count=$( /bin/ls "$place" 2> /dev/null | /bin/grep -Ev '^(page.html|exit-code|album-art.jpg|domain)$' | /usr/bin/wc -l )
 
     # [[ "$count" = "1" ]] && [[ ! -e "$place"/no ]] && ls "$place/"
-    [[ -e "$place/no" ]] && printf "  -  " || printf "  %-2d " $count 
+    if [[ -e "$place/no" ]]; then 
+      printf "  -  "
+    else
+      printf "  %-2d " $count 
+    fi
     echo $release
 
-    if [[ "$count" = "0" || $exitcode != "0" ]]; then
-      [[ -e "$place/exit-code" ]] && rm "$place/exit-code"
+    force_try=
+    if [[ $count -lt 4 && -e "$place/$PAGE" ]]; then
+      release_date=$(grep -m 1 -Po '((?<=releases )[A-Z][a-z]+ [0-9]{1,2}, 20[0-9]{2})' "$place/$PAGE" )
+
+      # If our record of the page contains "releases" instead of "released" 
+      # it's worth trying to pull this down again since the time might have
+      # now lapsed.
+      if [[ -n "$release_date" ]]; then
+        release_date_unix=$(date --date="$release_date" +%s)
+        from_now=$(( release_date_unix - $(date +%s) ))
+        if [[ $from_now -lt 0 ]]; then
+          echo -e "\t$release_date is in the past"
+
+          # Second confirmation.
+          page_download_date=$(stat -c %Z  "$place/$PAGE")
+
+          ## we'll add a couple day buffer to the relase date for timezones and delays
+          if [[ $page_download_date -gt $(( release_date_unix + 172800 )) ]]; then
+            echo -e "\tHOWEVER, $PAGE is newer than that date"
+          else
+            force_try=0
+            _rm "$place/no-files"
+          fi
+        else
+          echo -e "\tFUTURE: $release_date ... skipping"
+        fi
+      fi
+    fi
+
+    if [[ "$count" = "0" || $exitcode != "0" || -n "$force_try" ]]; then
+      _rm "$place/exit-code"
       echo "--- $place"
 
       # here's where we look for the full url
@@ -157,4 +197,4 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -n "$COUNTFILE" ]] && echo $TTL > $COUNTFILE
-[[ $TTL -gt 0 ]] && echo "Added $TTL"
+[[ $TTL -gt 1 ]] && echo "Added $TTL"

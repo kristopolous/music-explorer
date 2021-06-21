@@ -1,6 +1,7 @@
 #!/bin/bash
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+NONET=${NONET:=}
 PLAYLIST=playlist.m3u
 PAGE=page.html
 STOPFILE=/tmp/mpvstop
@@ -20,11 +21,6 @@ check_for_stop() {
   fi
 }
 
-purge() {
-  rm -r "$1"/*
-  touch "$1/no"
-}
-
 function headline {
   case $1 in
     3)
@@ -40,6 +36,9 @@ function headline {
   esac
 }
 
+function info {
+  echo -e "\t$1"
+}
 function status {
   [[ -n "$2" ]] && echo
   echo -e "\t\t$1"
@@ -59,6 +58,25 @@ _get_urls() {
     | awk -f $DIR/ytdl2m3u.awk > "$2"
 }
 
+_stub() {
+  echo "$1" | tr '/' ':'
+}
+
+unlistened() {
+  local filter=${1:-.}
+  grep -hE "$filter" .listen_all .listen_done | awk ' { print $1 } ' | sort | uniq -u | shuf
+}
+
+recent() {
+  echo */* | tr ' ' '\n' > .listen_all
+  grep "202[01]" .listen_done | awk ' { print $NF } ' | sort | uniq -c
+  ttl=$(wc -l .listen_all | awk ' { print $1 }').0
+  done=$(wc -l .listen_done | awk ' { print $1 }').0
+  wc -l .listen*
+  echo $( perl -e "print 100 * $done / $ttl" )%
+  du -sh
+}
+
 get_urls() {
   _get_urls $1 "$2/$PLAYLIST"
   local ec=$?
@@ -76,17 +94,21 @@ album_purge() {
   local info="$1"
   local path="$2"
   
-  mkdir -p /tmp/"$path"
+  [[ -e /tmp/"$path" ]] || mkdir -p /tmp/"$path"
   mv "$path"/* /tmp/"$path"
   echo "$1" > "$path"/no
 }
 
+purge() {
+  album_purge "CLI" "$1"
+}
+
 resolve() {
   if [[ -e "$1/domain" ]]; then
-    echo $(< "$1/domain" )
+    echo $(cat "$1/domain" )
   else
     label=$( dirname "$1" )
-    [[ -e "$label/domain" ]] && domain=$(< $label/domain ) || domain=${label/.\//}.bandcamp.com
+    [[ -e "$label/domain" ]] && domain=$(cat $label/domain ) || domain=${label/.\//}.bandcamp.com
     release=$( basename "$1" )
     echo "https://$domain/album/$release"
   fi
@@ -117,33 +139,58 @@ pl_fallback() {
 #   * create file
 #
 get_page() {
-  if [[ ! -s "$1/$PAGE" ]]; then
+  if [[ -s "$1/$PAGE" ]]; then
+    curl -Ls $(resolve "$1") > "/tmp/$PAGE"
+    if [[ $( stat -c %s "$1/$PAGE" ) -lt $( stat -c %s "/tmp/$PAGE" ) ]]; then
+      mv "/tmp/$PAGE" "$1/$PAGE"
+    fi
+  else 
     echo $1
     curl -Ls $(resolve "$1") > "$1/$PAGE"
   fi
 }
+
 open_page() {
   [[ -z "$DISPLAY" ]] && export DISPLAY=:0
-  xdg-open "$(resolve $(dirname "$1"))"
+  if [[ $1 =~ http ]]; then
+    xdg-open "$1"
+  else
+    [[ $# == '1' ]] && param="$1" || param="$2"
+    local basedir=$(dirname "$param")
+    local url=$(resolve "$basedir")
+    xdg-open "$url"
+  fi
 }
 
 get_playlist() {
-  local dbg=/tmp/playlist-interim-$(date +%s)
+  local dbg=/tmp/playlist-interim:$(_stub "$2"):$(date +%s)
   local failed=
+  local tomatch=
+  local matched=
   local path="$2"
 
-  {
-    youtube-dl -eif $FORMAT -- "$1" |\
-      sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' > $dbg
-  } 2> /dev/null
+  touch "$path/$PLAYLIST"
 
-  /bin/bash $dbg | grep mp3 > "$path/$PLAYLIST"
+  if [[ -z "$NONET" ]]; then
+    {
+      echo "cd '$2'" > $dbg
 
-  local tomatch=$(< $dbg | wc -l)
-  local matched=$(< "$path/$PLAYLIST" | wc -l)
+      youtube-dl -eif $FORMAT -- "$1" |\
+        sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' >> $dbg
+    } 2> /dev/null
+  
+    /bin/bash $dbg | grep mp3 > "$path/$PLAYLIST"
+  fi
+
+  # We want to support the nonet mode without
+  # making things look broken
+  
+  # filter out the cd command
+  [[ -e "$dbg" ]] && tomatch=$(grep -Ev "^cd " $dbg | wc -l)
+  [[ -e "$path/$PLAYLIST" ]] && matched=$(cat "$path/$PLAYLIST" | wc -l)
 
   if [[ $tomatch != $matched ]]; then
-    status "Hold on! - $matched != $tomatch" nl
+    status "Hold on! - $tomatch != $matched" nl
     failed=1
   fi
 
@@ -158,33 +205,65 @@ get_playlist() {
   if [[ -n "$failed" ]]; then 
     status "Look in $dbg\n"
   else
-    rm "$dbg"
+    _rm "$dbg"
   fi
 }
 
+_rm () {
+  [[ -e "$1" ]] && rm "$1"
+}
+
+_tabs () {
+  tabs 2,+4,+2,+10
+}
+
+_info () {
+  local path="$1"
+  local url=$(resolve "$path")
+  local reldate="$(grep -m 1 -Po '((?<=release[sd] )[A-Z][a-z]+ [0-9]{1,2}, 20[0-9]{2})' "$path/$PAGE" )"
+  _tabs
+
+  headline 2  $url
+  info        $path
+  echo
+
+  info "Released\t$(date --date="$reldate" -I)"
+  info "Downloaded\t$(stat -c %w "$path/$PAGE" | cut -d ' ' -f 1 )"
+
+  headline 2 Tracks
+  grep -Po '((?<=track-title">).*?(?=<))' "$path/$PAGE" | awk ' { print "\t"FNR". "$0 } ' 
+
+  headline 2 "Files"
+  ( cd "$path"; ls -l *mp3 ) | sed 's/^/\t/' 
+  echo
+}
+
+
 _ytdl () {
-  local url="$1"
-  local path="$2"
+  if [[ -z "$NONET" ]]; then
+    local url="$1"
+    local path="$2"
 
-  youtube-dl \
-    -o "$path/%(title)s-%(id)s.%(ext)s" \
-    -f $FORMAT -- "$url"
-  
-  local ec=$?
-  if [[ $ec -ne 0 ]]; then
+    youtube-dl \
+      -o "$path/%(title)s-%(id)s.%(ext)s" \
+      -f $FORMAT -- "$url"
+    
+    local ec=$?
+    if [[ $ec -ne 0 ]]; then
 
-    status "Checking $url"
-    local new_url=$(check_url "$url" "$path")
+      status "Checking $url"
+      local new_url=$(check_url "$url" "$path")
 
-    # This *shouldn't* lead to endless recursion, hopefully.
-    if [[ -n "$new_url" ]]; then
-      status "Trying again"
-      _ytdl "$new_url" "$2"
+      # This *shouldn't* lead to endless recursion, hopefully.
+      if [[ -n "$new_url" ]]; then
+        status "Trying again"
+        _ytdl "$new_url" "$2"
+      else
+        status "Found nothing"
+      fi
     else
-      status "Found nothing"
+      echo $ec > "$path"/exit-code
     fi
-  else
-    echo $ec > "$path"/exit-code
   fi
 
   check_for_stop
@@ -197,7 +276,7 @@ manual_pull() {
 
   echo " ▾▾ Manual Pull "
 
-  for track in $(curl -s "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sort | uniq); do
+  for track in $(curl -s "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sed -E s'/[?#].*//' | sort | uniq); do
     _ytdl "https://$base/$track" "$path"
   done
 

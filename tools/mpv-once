@@ -70,12 +70,18 @@ function playit() {
 
 echo */* | tr ' ' '\n' > .listen_all
 touch .listen_done
-all=( $(cat .listen_all .listen_done | grep -E "$filter" | awk ' { print $1 } ' | sort | uniq -u | shuf) )
+all=( $(unlistened "$filter") )
 size=${#all[@]}
 echo $size
 ix=0 
+direct=
 
 for i in ${all[@]}; do
+
+  if [[ -n "$direct" ]]; then
+    i=$direct
+    direct=
+  fi
 
   tmux rename-window "mpv-once" 2> /dev/null
   (( ix ++ ))
@@ -83,6 +89,12 @@ for i in ${all[@]}; do
   listen_time=0
 
   if [[ ! -d "$i" ]]; then
+    grep -m 1 $i .listen_done > /dev/null
+    # This means it's in the done but not the all, which is fine.
+    if [[ $? -eq 0 ]]; then
+      continue
+    fi 
+
     status "Gone - $i"
     n="__purge"
     record_listen
@@ -94,7 +106,7 @@ for i in ${all[@]}; do
 
     attempts=0
     while [[ 0 ]]; do
-      tabs 2,+4,+2
+      _tabs
 
       if [[ -e "$i/domain" ]]; then
         url=$(< "$i/domain" )
@@ -191,7 +203,7 @@ for i in ${all[@]}; do
 
         headline 1 "No files"
         ls -ltr "$i"  |  sed 's/^/\t\t/'
-        n='pu'
+        n='p'
         hr
         break
 
@@ -219,16 +231,16 @@ for i in ${all[@]}; do
       while [[ 0 ]]; do
         read -p "[[1m$i[0m] " -e n
         if [[ $n == 'i' ]]; then 
-          {
-          echo
-          echo $url
-          echo $start_dir/$i
-          echo "playlist_get=$playlist_get"
-          echo
-          }  |  sed 's/^/\t/'
+          _info "$i"
         fi
 
-        if [[ ${n:0:2} == 'ao' ]]; then
+        if [[ ${n:0:1} == 'g' ]]; then
+          direct=${n:2}
+          n="sn"
+          hr
+          break
+          
+        elif [[ ${n:0:2} == 'ao' ]]; then
           ao=${n:3}
           status "Setting audio out to '$ao'"
           [[ -e $DIR/prefs.sh ]] && sed -Ei 's/ao=.*/ao='$ao'/g' $DIR/prefs.sh
@@ -256,10 +268,11 @@ for i in ${all[@]}; do
           3,4,5   - Rate
           dl      - Download the files
           dlp     - Download just the playlist
+          g       - Go to a path
           i       - Info of the album
           l       - List the files
           o       - Xdg-open the URL
-          pu      - Purge (delete)
+          p       - Purge (delete)
           r       - Repeat
           r nopl  - Repeat (ignore playlist)
           s       - Skip (and log)
@@ -274,6 +287,7 @@ for i in ${all[@]}; do
           ao[...] - Set the audio out to [...]
           b[...]  - Set the start time to [...]
 
+          net     - Toggle network (off/on)
           source  - Reload lib
           debug   - Enable debugging
           nodebug - Turn off debugging
@@ -284,8 +298,12 @@ for i in ${all[@]}; do
           status "Skipping playlist downloads"
           playlist_get=
 
+        elif [[ $n == 'net' ]]; then
+          [[ -z "$NONET" ]] && NONET=1 || NONET=
+          [[ -z "$NONET" ]] && status "Network on" || status "Network off"
+
         elif [[ $n == 'o' ]]; then
-          xdg-open "$url"
+          open_page "$url"
 
         elif [[ $n == 'pl' ]]; then
           status "Playlist on"
@@ -321,7 +339,7 @@ for i in ${all[@]}; do
           # We treat this like a regular replay
           n=r
         fi
-        [[ "$n" =~ ^(x|r|s|sn|[1-5]|pu)$ ]] && break
+        [[ "$n" =~ ^(x|r|s|sn|[1-5]|p)$ ]] && break
       done
 
       [[ $n == 'x' ]] && exit
@@ -330,7 +348,7 @@ for i in ${all[@]}; do
 
     _stats="time:$listen_time:$f_count"
 
-    if [[ $n == 'pu' ]]; then 
+    if [[ $n == 'p' ]]; then 
 
       album_purge "$_stats" "$i"
       n="__purge"
