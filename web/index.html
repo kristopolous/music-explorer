@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="preconnect" href="https://fonts.gstatic.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@100;200;400;600&display=swap" rel="stylesheet">
+<style>
+*:focus {outline: none}
+#controls > div { margin: 0 0.5rem; text-align: center; display: inline-block;width:40%;font-size:0}
+body {
+  font-family: 'Barlow Semi Condensed', sans-serif;
+  background: black;
+  text-align: center; 
+  color: white
+}
+#controls a, button {border:0;background:#1f1f1f;width: 100%;font-size:2rem; padding: .75rem 0; margin: 0 ;color: white }
+#controls a {
+  display:inline-block;
+  margin: .5rem 0;
+  font-size: 1rem; width: calc(50% - .25rem)}
+#controls a:active, button:active {
+  background: white; color: #1f1f1f;
+}
+#controls div > :nth-child(3) {
+  margin-right: .5rem;
+}
+h2,h1 {
+  margin: 0.15rem;
+  color: #999;
+}
+h2 { 
+  color: #bbb;
+  font-weight: 200;
+  font-size: 1.20rem;
+  margin-bottom: .5rem 
+}
+</style>
+<main style=max-width:480px;display:inline-block>
+<h1 id=label></h1>
+<h2 id=rel></h2>
+<iframe style='border:8px solid #202020;width:350px;height:398px'></iframe>
+<div style=margin-bottom:.5rem;height:0;overflow:visible>
+<audio autoplay=true controls style=filter:invert(92%);position:relative;width:340px;top:-123px />
+</div>
+<div id=controls>
+  <div>
+    <button onclick=d(-1)>&#x23ee;</button><br/>
+    <a onclick=d(-100)>-100</a>
+    <a onclick=d(-5)>-5</a>
+  </div>
+  <div>
+    <button onclick=d(1)>&#x23ed;</button><br/>
+    <a onclick=d(5)>5</a>
+    <a onclick=d(100)>100</a>
+  </div>
+</div>
+<script>
+var el, 
+  label, 
+  rel,
+  pl = [], 
+  offset = parseInt(window.location.hash.slice(1) || localStorage['off'] || Math.round(Math.random()*1e8));
+
+function play_url(str) {
+  let 
+    l = str.split(/\//)[4],
+    r = str.split(/\//)[5];
+
+  let src = 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1];
+  console.log(src);
+  label.innerHTML = l;
+  rel.innerHTML = r;
+  document.querySelector('iframe').src = src;
+
+  // this is the url to play.
+  fetch(`url2mp3.php?path=${str}&u=${src}`)
+    .then(response => response.text())
+    .then(data => {
+      el.src = data;
+      el.play();
+    });
+
+}
+
+function d(what) {
+  offset += what;
+  localStorage['off'] = offset;
+  window.location.hash = offset;
+  getit(offset);
+  el.focus();
+}
+
+function getit(off) {
+  let _off = off % 1e6, ix;
+  if(pl[_off]) {
+    return play_url(pl[_off]);
+  }
+  fetch(`get_playlist.php?off=${off}`)
+    .then(response => response.json())
+    .then(data => {
+      for(ix=0; ix < data.length; ix++){
+        pl[_off + ix] = data[ix];
+      }
+      pl[_off + ix] = false;
+
+      play_url(pl[_off]);
+    });
+}
+
+window.onload = () => {
+  el = document.querySelector('audio');
+  label = document.querySelector('#label');
+  rel = document.querySelector('#rel');
+  el.onended = () => {
+    d(1);
+    Notification.requestPermission().then(p => {
+      if (p === "granted") {
+        let s = decodeURIComponent(el.src).split('/').reverse();
+        new Notification(s[1].replace(/-/g, ' ').toUpperCase(), {
+          body: s[0].replace(/-(\d*).mp3$/,'')});
+      }
+    });
+  }
+  getit(offset);
+}
+</script>
