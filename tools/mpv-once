@@ -76,7 +76,15 @@ echo $size
 ix=0 
 direct=
 
-for i in ${all[@]}; do
+while [[ $size -gt 0 ]]; do
+  # This approach permits for new content to come in and multiple
+  # to be running without issue.
+  i=${all[0]}
+  
+  # This appears to take about 0.1s or so.
+  all=( $(unlistened "$filter") )
+
+  #date +%s.%N
 
   if [[ -n "$direct" ]]; then
     i=$direct
