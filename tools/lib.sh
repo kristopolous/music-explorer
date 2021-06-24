@@ -67,7 +67,7 @@ _stub() {
 
 unlistened() {
   local filter=${1:-.}
-  [[ $filter == '.' ]] && cmd=cat || cmd="grep -hE \"$filter\"" 
+  [[ $filter == '.' ]] && cmd=cat || cmd="grep -hE $filter" 
   $cmd .listen_all .listen_done | cut -d ' ' -f 1 | sort | uniq -u | shuf
 }
 
