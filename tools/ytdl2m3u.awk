@@ -6,7 +6,7 @@
       split($0, parts, ":")
       duration = parts[1] * 60 + parts[2]
 
-      print "#EXTINF:" duration "," title "\n" file "\n"
+      print "#EXTINF:" duration "," title "\n./" file "\n"
       break
   }
 }

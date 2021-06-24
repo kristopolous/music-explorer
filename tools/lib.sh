@@ -184,7 +184,7 @@ get_playlist() {
         sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' >> $dbg
     } 2> /dev/null
   
-    /bin/bash $dbg | grep mp3 > "$path/$PLAYLIST"
+    /bin/bash $dbg | grep mp3 | sed -E 's/^/.\//g' > "$path/$PLAYLIST"
   fi
 
   # We want to support the nonet mode without

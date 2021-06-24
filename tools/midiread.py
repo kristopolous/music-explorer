@@ -59,6 +59,7 @@ if not deviceNumber or deviceNumber == 'Device':
 logging.info("Using Device #{}".format(deviceNumber))
 
 cmd = "amidi -p {} -r /dev/stdout".format(deviceNumber)
+print(cmd)
 ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
 
 msgList = [ 0xC0, 0xB0, 0xF0 ]
