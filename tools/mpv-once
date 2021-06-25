@@ -3,7 +3,9 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . $DIR/lib.sh
 
 player=mpv
-player_opts='--no-cache --no-audio-display --msg-level=cplayer=no --term-playing-msg=\n${media-title} --script='"$DIR"'/mpv-interface.lua --input-ipc-server=/tmp/mpvsocket'
+player_opts_orig='--no-cache --no-audio-display --msg-level=cplayer=no --term-playing-msg=\n${media-title} --script='"$DIR"'/mpv-interface.lua --input-ipc-server=/tmp/mpvsocket'
+player_opts_dbg="--msg-level=all=debug"
+player_opts=$player_opts_orig
 display=0
 playlist_get=1
 nopl=
@@ -319,14 +321,16 @@ while [[ $size -gt 0 ]]; do
 
         elif [[ $n == 'nodebug' ]]; then
           status "Turning off verbose output"
+          player_opts=$player_opts_orig
           set +x
-
-        elif [[ $n == 'source' ]]; then
-          . $DIR/lib.sh
 
         elif [[ $n == 'debug' ]]; then
           echo $PWD
+          player_opts="$player_opts_orig $player_opts_dbg"
           set -x
+
+        elif [[ $n == 'source' ]]; then
+          . $DIR/lib.sh
 
         elif [[ $n == '!' ]]; then 
           (

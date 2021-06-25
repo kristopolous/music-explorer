@@ -43,7 +43,7 @@ elif [[ $1 == '0' ]]; then
 fi
 docmd
 
-declare -A mapping=( [q]='quit' [up]='forward 60' [down]='back 60' [left]='back' [right]='forward' [p]='pu ENTER' [return]='ENTER' [space]='pauseplay' [comma]='prev' [period]='next' [s]='s ENTER' [r]='r ENTER' )
+declare -A mapping=( [q]='quit' [up]='forward 60' [down]='back 60' [left]='back' [right]='forward' [p]='p ENTER' [return]='ENTER' [space]='pauseplay' [comma]='prev' [period]='next' [s]='s ENTER' [r]='r ENTER' )
 [[ ${mapping[$1]+_} ]] && control=${mapping[$1]} || control=$1
 
 dbg "$1->($control)"
