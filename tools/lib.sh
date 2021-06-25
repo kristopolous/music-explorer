@@ -179,7 +179,8 @@ get_playlist() {
     {
       echo "cd '$2'" > $dbg
 
-      youtube-dl $SLEEP_OPTS \
+      #$SLEEP_OPTS \
+      youtube-dl \
         -eif $FORMAT -- "$1" |\
         sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' >> $dbg
     } 2> /dev/null

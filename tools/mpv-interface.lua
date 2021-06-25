@@ -46,6 +46,7 @@ function getinfo_handler()
   parts = string_split(mp.get_property('path'), '/')
   partial = parts[#parts - 2] .. '/' .. parts[#parts - 1] 
   os.execute('mpv-lib _info "' .. partial .. '"')
+  print( mp.get_property_native('media-title') )
 end
 
 mp.register_event("log-message", lg)
