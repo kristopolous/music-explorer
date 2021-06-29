@@ -7,7 +7,7 @@ PAGE=page.html
 STOPFILE=/tmp/mpvstop
 FORMAT=mp3-128
 SLEEP_MIN=1
-SLEEP_MAX=10
+SLEEP_MAX=4
 SLEEP_OPTS="--max-sleep-interval $SLEEP_MAX --min-sleep-interval $SLEEP_MIN"
 
 function hr {

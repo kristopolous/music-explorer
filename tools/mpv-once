@@ -220,7 +220,7 @@ while [[ $size -gt 0 ]]; do
       else
         if [[ -n "$LOCAL" ]]; then
           status "No local files, skipping"
-          n="sn"
+          n="s"
           hr
           break
         fi
@@ -246,7 +246,7 @@ while [[ $size -gt 0 ]]; do
 
         if [[ ${n:0:1} == 'g' ]]; then
           direct=${n:2}
-          n="sn"
+          n="s"
           hr
           break
           
@@ -259,7 +259,7 @@ while [[ $size -gt 0 ]]; do
           start_time=${n:2}
           status "Setting start time to $start_time"
 
-        elif [[ $n == 'l' ]]; then
+        elif [[ "$n" == 'l' ]]; then
           if [[ -s "$m3u" ]]; then
             headline 1 "playlist" 
             cat $m3u | sed 's/^/\t\t/'
@@ -285,8 +285,7 @@ while [[ $size -gt 0 ]]; do
           p       - Purge (delete)
           r       - Repeat
           r nopl  - Repeat (ignore playlist)
-          s       - Skip (and log)
-          sn      - Skip (but do not log)
+          s       - Skip 
           x       - Exit
 
           FLAGS:
@@ -308,11 +307,11 @@ while [[ $size -gt 0 ]]; do
           status "Skipping playlist downloads"
           playlist_get=
 
-        elif [[ $n == 'net' ]]; then
+        elif [[ "$n" == 'net' ]]; then
           [[ -z "$NONET" ]] && NONET=1 || NONET=
           [[ -z "$NONET" ]] && status "Network on" || status "Network off"
 
-        elif [[ $n == 'o' ]]; then
+        elif [[ "$n" == 'o' ]]; then
           open_page "$url"
 
         elif [[ $n == 'pl' ]]; then
@@ -329,10 +328,10 @@ while [[ $size -gt 0 ]]; do
           player_opts="$player_opts_orig $player_opts_dbg"
           set -x
 
-        elif [[ $n == 'source' ]]; then
+        elif [[ "$n" == 'source' ]]; then
           . $DIR/lib.sh
 
-        elif [[ $n == '!' ]]; then 
+        elif [[ "$n" == '!' ]]; then 
           (
             cd "$i"
             $SHELL
@@ -344,14 +343,13 @@ while [[ $size -gt 0 ]]; do
           )
         elif [[ $n == 'dl' ]]; then 
           get_mp3s "$url" "$i"
-        fi
-        if [[ "$n" == 'r nopl' ]]; then
+        elif [[ "$n" == 'r nopl' ]]; then
           status "Ignoring playlist"
           nopl=1
           # We treat this like a regular replay
           n=r
         fi
-        [[ "$n" =~ ^(x|r|s|sn|[1-5]|p)$ ]] && break
+        [[ "$n" =~ ^(x|r|s|[1-5]|p)$ ]] && break
       done
 
       [[ $n == 'x' ]] && exit
@@ -365,14 +363,11 @@ while [[ $size -gt 0 ]]; do
       album_purge "$_stats" "$i"
       n="__purge"
 
-    elif [[ $n == 'sn' ]]; then
-
-      status "Skipping - not recording"
-      n="__nothing"
     elif [[ $n == 's' ]]; then
 
       status "Skipping"
-      n="__skipping"
+      n="__nothing"
+
     else
       n="__rating_$n"
     fi
