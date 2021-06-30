@@ -73,7 +73,10 @@ unlistened() {
 
 recent() {
   echo */* | tr ' ' '\n' > .listen_all
-  grep "202[01]" .listen_done | awk ' { print $NF } ' | sort | uniq -c
+  first=$(grep -m 1 "20[2-4][0-9]" .listen_done)
+  first_date=${first##* }
+
+  grep "20[2-4][0-9]" .listen_done | awk ' { print $NF } ' | sort | uniq -c
   ttl=$(wc -l .listen_all | awk ' { print $1 }').0
   done=$(wc -l .listen_done | awk ' { print $1 }').0
   wc -l .listen*

@@ -101,6 +101,10 @@ def active():
   audioDev = audioDevList[sourceIndex % len(audioDevList)]
   logging.debug(audioDev)
 
+def addcmd(what):
+  global cmdList
+  cmdList.append( "{}/ipc-do.js {}".format(base_path, what))
+
 sign = lambda x: '-' if x < 0 else '+'
 
 active()
@@ -201,7 +205,7 @@ while True:
     elif todo and (todo[:2] == 'bw' or todo[:2] == 'fw'):
       amount = int(todo[2:])
       dir = 'back' if todo[:2] == 'bw' else 'forward'
-      cmdList.append( "{}/ipc-do.js {} {}".format(base_path, dir, amount) )
+      addcmd( "{} {}".format(dir, amount) )
 
     elif todo in ['redshift', 'brightness']:
       params = []
@@ -216,8 +220,19 @@ while True:
 
       todoMap['screen'] = "night {}".format(' '.join(params))
 
+    elif todo == 'scrub' and value == 0:
+      if 'slidescrub' in valueMap:
+        addcmd( "forward {}".format(valueMap.get('slidescrub') - 64))
+
+    elif todo == 'seek' and value == 0:
+      if 'slideseek' in valueMap:
+        if valueMap.get('slideseek') < 32:
+          addcmd( "prev" )
+        if valueMap.get('slideseek') > 96:
+          addcmd( "next" )
+
     elif todo in ['prev','next','pauseplay'] and value == 0:
-      cmdList.append( "{}/ipc-do.js {}".format(base_path, todo) )
+      addcmd( todo )
 
     elif todo in cmdMap:
       if value == 0:
