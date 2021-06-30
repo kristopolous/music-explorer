@@ -247,7 +247,7 @@ while [[ $size -gt 0 ]]; do
 
       fi
 
-      while [[ 0 ]]; do
+      while [[ -z "$NOSCORE" ]]; do
         read -p "[[1m$i[0m] " -e n
         if [[ $n == 'i' ]]; then 
           _info "$i"
@@ -306,7 +306,8 @@ while [[ $size -gt 0 ]]; do
           b[...]  - Set the start time to [...]
 
           filter  - Set a new filter
-          net     - Toggle network (off/on)
+          net     - Toggle network
+          score   - Toggle scoring
           source  - Reload lib
           debug   - Enable debugging
           nodebug - Turn off debugging
@@ -316,6 +317,10 @@ while [[ $size -gt 0 ]]; do
         elif [[ $n == 'nopl' ]]; then
           status "Skipping playlist downloads"
           playlist_get=
+
+        elif [[ "$n" == 'score' ]]; then
+          [[ -z "$NOSCORE" ]] && NOSCORE=1 || NOSCORE=
+          [[ -z "$NOSCORE" ]] && status "Scoring on" || status "Scoring off"
 
         elif [[ "$n" == 'net' ]]; then
           [[ -z "$NONET" ]] && NONET=1 || NONET=
@@ -373,12 +378,10 @@ while [[ $size -gt 0 ]]; do
     _stats="time:$listen_time:$f_count"
 
     if [[ $n == 'p' ]]; then 
-
       album_purge "$_stats" "$i"
       n="__purge"
 
     elif [[ $n == 's' ]]; then
-
       status "Skipping"
       n="__nothing"
 
@@ -390,5 +393,5 @@ while [[ $size -gt 0 ]]; do
   # flag that has to be set the next time
   nopl=
   auto=
-  record_listen
+  [[ -z "$NOSCORE" ]] && record_listen
 done
