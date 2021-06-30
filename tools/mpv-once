@@ -10,6 +10,7 @@ display=0
 playlist_get=1
 nopl=
 auto=
+[[ -n "$NOSCORE" ]] && show_prompt= || show_prompt=1
 
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 
@@ -88,12 +89,15 @@ load_tracks 1
 ix=0 
 direct=
 
-while [[ $size -gt 0 ]]; do
+while [[ ${#all[@]} -gt 0 ]]; do
   # This approach permits for new content to come in and multiple
   # to be running without issue.
+  #
+  # However When scoring is off there is no mechanism to make the playlist
+  # shrink
+  [[ -z "$NOSCORE" ]] && load_tracks || all=("${all[@]:1}")
+
   i=${all[0]}
-  
-  load_tracks
 
   #date +%s.%N
 
@@ -183,8 +187,12 @@ while [[ $size -gt 0 ]]; do
 
             playit "$m3u"
             player_exit=$?
+
+            ## See the lua script for how this is invoked, (as of this writing it's capital Q)
+            [[ $player_exit == 5 ]] && show_prompt=1
+
             (( listen_time += $(date +%s) - before ))
-            headline 3 "Time: $listen_time\n"
+            [[ -z "$NOSCORE" ]] && headline 3 "Time: $listen_time\n"
           else
             # If our m3u is over a day old we just
             # assume failure
@@ -247,7 +255,9 @@ while [[ $size -gt 0 ]]; do
 
       fi
 
-      while [[ -z "$NOSCORE" ]]; do
+      #[[ -n "$NOSCORE" ]] && hr
+
+      while [[ -n $show_prompt ]]; do 
         read -p "[[1m$i[0m] " -e n
         if [[ $n == 'i' ]]; then 
           _info "$i"
@@ -306,6 +316,7 @@ while [[ $size -gt 0 ]]; do
           b[...]  - Set the start time to [...]
 
           filter  - Set a new filter
+          list    - List things in filter
           net     - Toggle network
           score   - Toggle scoring
           source  - Reload lib
@@ -329,13 +340,22 @@ while [[ $size -gt 0 ]]; do
         elif [[ "$n" == 'o' ]]; then
           open_page "$url"
 
-        elif [[ $n == 'pl' ]]; then
+        elif [[ "$n" == 'pl' ]]; then
           status "Playlist on"
           playlist_get=1
 
+        elif [[ "$n" == 'list' ]]; then
+          echo
+          echo ${all[@]} | tr ' ' '\n' | sed 's/^\s*/\t/g'
+          echo
+
         elif [[ ${n:0:6} == 'filter' ]]; then
           set_filter ${n:8}
+          # this can be turned back on by quitting with a capital Q
+          show_prompt=
           load_tracks 1
+          n=s
+          break
 
         elif [[ $n == 'nodebug' ]]; then
           status "Turning off verbose output"

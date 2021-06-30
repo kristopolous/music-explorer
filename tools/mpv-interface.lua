@@ -49,10 +49,15 @@ function getinfo_handler()
   print( mp.get_property_native('media-title') )
 end
 
+function quit_handler()
+  mp.command('quit 5')
+end
+
 mp.register_event("log-message", lg)
 mp.register_event("start-file", print_on_start)
 mp.add_key_binding('o', 'openpage', openpage_handler)
 mp.add_key_binding('?', 'getinfo', getinfo_handler)
+mp.add_key_binding('Q', 'quit', quit_handler)
 
 for i=1,8 do
   mp.add_key_binding(tostring(i), 'pl-' .. i, function() 
