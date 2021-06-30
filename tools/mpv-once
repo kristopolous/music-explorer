@@ -38,16 +38,25 @@ trap finish EXIT
 #  exit
 #fi
 
-filter=.
-if [[ $# -gt 0 ]]; then
-  filter="($1"
-  shift
-  while [[ $# -gt 0 ]]; do
-    filter="${filter}|${1}"
+function set_filter() {
+  filter=.
+  if [[ $# -gt 0 ]]; then
+    filter="($1"
     shift
-  done
-  filter="$filter)"
-fi
+    while [[ $# -gt 0 ]]; do
+      filter="${filter}|${1}"
+      shift
+    done
+    filter="$filter)"
+  fi
+}
+
+# This appears to take about 0.1s or so.
+function load_tracks() {
+  all=( $(unlistened "$filter") )
+  size=${#all[@]}
+  [[ -n "$1" ]] && echo $size
+}
 
 function record_listen() {
   if [[ "$n" != "__nothing" ]]; then 
@@ -70,11 +79,12 @@ function playit() {
     $*
 }
 
+set_filter $*
 echo */* | tr ' ' '\n' > .listen_all
 touch .listen_done
-all=( $(unlistened "$filter") )
-size=${#all[@]}
-echo $size
+
+load_tracks 1
+
 ix=0 
 direct=
 
@@ -83,8 +93,7 @@ while [[ $size -gt 0 ]]; do
   # to be running without issue.
   i=${all[0]}
   
-  # This appears to take about 0.1s or so.
-  all=( $(unlistened "$filter") )
+  load_tracks
 
   #date +%s.%N
 
@@ -296,6 +305,7 @@ while [[ $size -gt 0 ]]; do
           ao[...] - Set the audio out to [...]
           b[...]  - Set the start time to [...]
 
+          filter  - Set a new filter
           net     - Toggle network (off/on)
           source  - Reload lib
           debug   - Enable debugging
@@ -317,6 +327,10 @@ while [[ $size -gt 0 ]]; do
         elif [[ $n == 'pl' ]]; then
           status "Playlist on"
           playlist_get=1
+
+        elif [[ ${n:0:6} == 'filter' ]]; then
+          set_filter ${n:8}
+          load_tracks 1
 
         elif [[ $n == 'nodebug' ]]; then
           status "Turning off verbose output"
