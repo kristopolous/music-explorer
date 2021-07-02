@@ -5,8 +5,10 @@
     case 0: 
       split($0, parts, ":")
       duration = parts[1] * 60 + parts[2]
+      subs='./'
+      /https?:/ ~ title { subs='' }
 
-      print "#EXTINF:" duration "," title "\n./" file "\n"
+      print "#EXTINF:" duration "," title "\n" subs file "\n"
       break
   }
 }

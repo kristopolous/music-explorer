@@ -2,6 +2,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . $DIR/lib.sh
 
+tmp=/tmp/mpvonce
 player=mpv
 player_opts_orig='--no-cache --no-audio-display --msg-level=cplayer=no --term-playing-msg=\n${media-title} --script='"$DIR"'/mpv-interface.lua --input-ipc-server=/tmp/mpvsocket'
 player_opts_dbg="--msg-level=all=debug"
@@ -11,18 +12,24 @@ playlist_get=1
 pipe=/tmp/mpv-pipe
 nopl=
 auto=
+start_time=0:45
+ao=${ao:-pulse}
 [[ -n "$NOSCORE" ]] && NOPROMPT=1 || NOPROMPT=
 
 # [[ -e $pipe ]] || mkfifo $pipe
 
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
+# We don't do anything above this in case
+# we are trying to get something to override our vars
+
+[[ -d $tmp ]] || mkdir $tmp
+
+history -r $tmp/readline-history
 
 # We're going to restore it to this.
 start_name=$( tmux display-message -p '#W' )
 start_dir=$(pwd)
-start_time=0:45
 
-ao=${ao:-pulse}
 day=86400
 STR=(TRUE FALSE)
 
@@ -31,6 +38,7 @@ shopt -s nullglob
 tmux rename-window "mpv-once" 2> /dev/null
 
 function finish {
+  history -w $tmp/readline-history
   tmux rename-window "$start_name"
   exit
 }
@@ -263,6 +271,8 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
       while [[ -z $NOPROMPT ]]; do 
         read -p "[[1m$i[0m] " -e n
+        history -s "$n"
+
         if [[ $n == 'i' ]]; then 
           _info "$i"
         fi
@@ -400,7 +410,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
         [[ "$n" =~ ^(x|r|s|[1-5]|p)$ ]] && break
       done
 
-      [[ $n == 'x' ]] && exit
+      [[ $n == 'x' ]] && finish
       [[ $n == 'r' ]] || break
     done
 

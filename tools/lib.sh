@@ -56,12 +56,6 @@ check_url() {
   fi
 }
 
-_get_urls() {
-  youtube-dl $SLEEP_OPTS \
-    --get-duration --get-filename -gf $FORMAT -- "$1" \
-    | awk -f $DIR/ytdl2m3u.awk > "$2"
-}
-
 _stub() {
   echo "$1" | tr '/' ':'
 }
@@ -87,6 +81,12 @@ recent() {
   wc -l .listen*
   echo $( perl -e "print 100 * $done / $ttl" )%
   du -sh
+}
+
+_get_urls() {
+  youtube-dl $SLEEP_OPTS \
+    --get-duration --get-filename -gf $FORMAT -- "$1" \
+    | awk -f $DIR/ytdl2m3u.awk > "$2"
 }
 
 get_urls() {
