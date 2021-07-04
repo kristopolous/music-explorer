@@ -8,9 +8,12 @@ player_opts_dbg="--msg-level=all=debug"
 player_opts=$player_opts_orig
 display=0
 playlist_get=1
+pipe=/tmp/mpv-pipe
 nopl=
 auto=
 [[ -n "$NOSCORE" ]] && NOPROMPT=1 || NOPROMPT=
+
+# [[ -e $pipe ]] || mkfifo $pipe
 
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 
@@ -294,33 +297,33 @@ while [[ ${#all[@]} -gt 0 ]]; do
           headline 1 "Keyboard commands" 
           { cat <<- ENDL
           ?       - This help page
-          !       - Do a \$SHELL here
           3,4,5   - Rate
+          p       - Purge (delete)
           dl      - Download the files
           dlp     - Download just the playlist
           g       - Go to a path
-          i       - Info of the album
+          i       - Info on the release
           l       - List the files
           o       - Xdg-open the URL
-          p       - Purge (delete)
           r       - Repeat
           r nopl  - Repeat (ignore playlist)
           s       - Skip 
           x       - Exit
 
-          FLAGS:
-
           pl      - Download the playlist
           nopl    - Do not download the playlist
 
-          ao[...] - Set the audio out to [...]
-          b[...]  - Set the start time to [...]
+          ao      - Set audio out    [$ao]
+          b       - Set start time   [$start_time]
 
-          filter  - Set a new filter
+          filter  - Set a new filter [$filter]
+          net     - Toggle network   [${STR[${NONET:-0}]}]
+          score   - Toggle scoring   [${STR[${NOSCORE:-0}]}]
+          prompt  - Toggle prompt    [${STR[${NOPROMPT:-0}]}]
+
           list    - List things in filter
-          net     - Toggle network [${STR[${NONET:-0}]}]
-          score   - Toggle scoring [${STR[${NOSCORE:-0}]}]
-          prompt  - Toggle prompt  [${STR[${NOPROMPT:-0}]}]
+
+          !       - Do a \$SHELL at the file directory
           source  - Reload lib
           debug   - Enable debugging
           nodebug - Turn off debugging

@@ -3,6 +3,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 NONET=${NONET:=}
 PLAYLIST=playlist.m3u
+PLAYLIST_DBG=
 PAGE=page.html
 STOPFILE=/tmp/mpvstop
 FORMAT=mp3-128
@@ -174,7 +175,7 @@ open_page() {
 }
 
 get_playlist() {
-  local dbg=/tmp/playlist-interim:$(_stub "$2"):$(date +%s)
+  PLAYLIST_DBG=/tmp/playlist-interim:$(_stub "$2"):$(date +%s)
   local failed=
   local tomatch=
   local matched=
@@ -184,22 +185,22 @@ get_playlist() {
 
   if [[ -z "$NONET" ]]; then
     {
-      echo "cd '$2'" > $dbg
+      echo "cd '$2'" > $PLAYLIST_DBG
 
       #$SLEEP_OPTS \
       youtube-dl \
         -eif $FORMAT -- "$1" |\
-        sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' >> $dbg
+        sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' >> $PLAYLIST_DBG
     } 2> /dev/null
   
-    /bin/bash $dbg | grep mp3 | sed -E 's/^/.\//g' > "$path/$PLAYLIST"
+    /bin/bash $PLAYLIST_DBG | grep mp3 | sed -E 's/^/.\//g' > "$path/$PLAYLIST"
   fi
 
   # We want to support the nonet mode without
   # making things look broken
   
   # filter out the cd command
-  [[ -e "$dbg" ]] && tomatch=$(grep -Ev "^cd " $dbg | wc -l)
+  [[ -e "$PLAYLIST_DBG" ]] && tomatch=$(grep -Ev "^cd " $PLAYLIST_DBG | wc -l)
   [[ -e "$path/$PLAYLIST" ]] && matched=$(cat "$path/$PLAYLIST" | wc -l)
 
   if [[ $tomatch != $matched ]]; then
@@ -216,9 +217,9 @@ get_playlist() {
   pl_check "$path"
 
   if [[ -n "$failed" ]]; then 
-    status "Look in $dbg\n"
-  else
-    _rm "$dbg"
+    status "Look in $PLAYLIST_DBG\n"
+    #else
+    #  _rm "$PLAYLIST_DBG"
   fi
 }
 
