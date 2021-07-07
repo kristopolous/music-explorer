@@ -6,7 +6,7 @@ import pathlib
 
 config = configparser.ConfigParser()
 base_path = pathlib.Path(__file__).parent.absolute()
-config_path = "{}/{}".format(base_path, 'midiconfig.ini')
+config_path = "{}/{}".format(base_path, os.getenv('CONFIG') or 'midiconfig.ini')
 
 if os.path.exists(config_path):
   config.read(config_path)
@@ -176,6 +176,8 @@ while True:
       lastValueMap[todo] = valueMap.get(todo)
       valueMap[todo] = value
       # print(todo, control, controlMapping)
+
+    print(todo, value)
 
     # If we're here we can try to do different operations
     # look into the mapping section of midiconfig.ini for

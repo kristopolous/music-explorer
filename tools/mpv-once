@@ -21,6 +21,7 @@ start_time=0:45
 
 ao=${ao:-pulse}
 day=86400
+STR=(TRUE FALSE)
 
 shopt -s nullglob
 
@@ -317,8 +318,8 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
           filter  - Set a new filter
           list    - List things in filter
-          net     - Toggle network
-          score   - Toggle scoring
+          net     - Toggle network [${STR[${NONET:-0}]}]
+          score   - Toggle scoring [${STR[${NOSCORE:-0}]}]
           source  - Reload lib
           debug   - Enable debugging
           nodebug - Turn off debugging
