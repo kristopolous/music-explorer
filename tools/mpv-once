@@ -10,7 +10,7 @@ display=0
 playlist_get=1
 nopl=
 auto=
-[[ -n "$NOSCORE" ]] && show_prompt= || show_prompt=1
+[[ -n "$NOSCORE" ]] && NOPROMPT=1 || NOPROMPT=
 
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 
@@ -190,7 +190,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
             player_exit=$?
 
             ## See the lua script for how this is invoked, (as of this writing it's capital Q)
-            [[ $player_exit == 5 ]] && show_prompt=1
+            [[ $player_exit == 5 ]] && NOPROMPT=
 
             (( listen_time += $(date +%s) - before ))
             [[ -z "$NOSCORE" ]] && headline 3 "Time: $listen_time\n"
@@ -258,7 +258,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
       #[[ -n "$NOSCORE" ]] && hr
 
-      while [[ -n $show_prompt ]]; do 
+      while [[ -z $NOPROMPT ]]; do 
         read -p "[[1m$i[0m] " -e n
         if [[ $n == 'i' ]]; then 
           _info "$i"
@@ -320,6 +320,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
           list    - List things in filter
           net     - Toggle network [${STR[${NONET:-0}]}]
           score   - Toggle scoring [${STR[${NOSCORE:-0}]}]
+          prompt  - Toggle prompt  [${STR[${NOPROMPT:-0}]}]
           source  - Reload lib
           debug   - Enable debugging
           nodebug - Turn off debugging
@@ -338,6 +339,10 @@ while [[ ${#all[@]} -gt 0 ]]; do
           [[ -z "$NONET" ]] && NONET=1 || NONET=
           [[ -z "$NONET" ]] && status "Network on" || status "Network off"
 
+        elif [[ "$n" == 'prompt' ]]; then
+          [[ -z "$NOPROMPT" ]] && NOPROMPT=1 || NOPROMPT=
+          [[ -z "$NOPROMPT" ]] && status "Prompt on" || status "Prompt off"
+
         elif [[ "$n" == 'o' ]]; then
           open_page "$url"
 
@@ -347,13 +352,13 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
         elif [[ "$n" == 'list' ]]; then
           echo
-          echo ${all[@]} | tr ' ' '\n' | sed 's/^\s*/\t/g'
+          echo ${all[@]} | tr ' ' '\n' | sed 's/^\s*/\t/g' | sort
           echo
 
         elif [[ ${n:0:6} == 'filter' ]]; then
           set_filter ${n:8}
           # this can be turned back on by quitting with a capital Q
-          show_prompt=
+          NOPROMPT=1
           load_tracks 1
           n=s
           break
