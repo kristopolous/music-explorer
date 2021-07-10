@@ -307,3 +307,31 @@ get_mp3s() {
   _ytdl "$url" "$path" 
   get_playlist "$url" "$path"
 }
+
+details() {
+  for pid in $(pgrep -f "^mpv "); do
+    current=$(lsof -F n -p $pid | grep -E mp3\$ | cut -c 2-)
+    track=$(basename "$current")
+
+    release_path=$(dirname "$current")
+    release=$(basename "$release_path")
+
+    label_path=$(dirname "$release_path")
+    label=$(basename "$label_path")
+         
+    if [[ -e $release_path/domain ]]; then
+      release_url=$(< $release_path/domain ) 
+    elif [[ -e $label_path/domain ]]; then
+      release_url=$(< $label_path/domain )/$release
+    else
+      release_url=https://${label}.bandcamp.com/album/$release
+    fi
+
+    echo $release_url
+    echo
+    echo $label // $release
+    echo ${track/-[0-9]*.mp3/}
+    id3v2 -R "$current" | grep -E '^\w{4}\:'  | grep -vE '(APIC|TPE2|COMM)'
+    echo "----- ($pid) ------"
+  done
+}
