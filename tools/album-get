@@ -5,6 +5,8 @@ FULLALBUM=1
 
 declare -i TTL=0
 declare -A site_regex
+[[ -n "$DEBUG" ]] && set -x
+
 site_regex[bandcamp]='(?<=")[\w:\/\.]+(?<=(album|track)\/)[^?'"'"'"]*' 
 site_regex[archive]='(?<=")/details/[^"@&]+(?=..title)'
 
@@ -31,7 +33,7 @@ while [[ $# -gt 0 ]]; do
   list=
   # We start with a bandcamp assumption
   regex=${site_regex[bandcamp]}
-  FORMAT=mp3-128
+  FORMAT="-f mp3-128"
   if [[ $arg =~ \. ]]; then
     if [[ $arg =~ archive.org ]]; then
       base=$(basename "$arg")
@@ -39,7 +41,13 @@ while [[ $# -gt 0 ]]; do
       # Do an override here.
       regex=${site_regex[archive]}
       base_url=$arg
-      FORMAT=0
+      FORMAT=
+    elif [[ $arg =~ soundcloud.com ]]; then
+      # there is no descent, we use the base
+      list=($arg)
+      base=$(basename "$arg")
+      domain=$arg
+      FORMAT=
     # This means we are getting a single album
     elif [[ $arg =~ bandcamp.com/album/ ]]; then
       eval $(echo $arg | awk -F\/ ' { sub(/\..*/,"",$3);print "base="$3";list=/"$(NF-1)"/"$NF }')
@@ -169,7 +177,7 @@ while [[ $# -gt 0 ]]; do
 
         # we put in some kind of backoff strategy
         sleep 3
-        track_count=$( youtube-dl -if mp3-128 -g -- "$url" | wc -l )
+        track_count=$( youtube-dl -i $FORMAT -g -- "$url" | wc -l )
         if [[ "$track_count" = "0" ]]; then
           echo "  ( no files )"
           touch "$place"/no-files
