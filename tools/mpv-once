@@ -8,9 +8,7 @@ player_opts_orig='--no-cache --no-audio-display --msg-level=cplayer=no --term-pl
 player_opts_dbg="--msg-level=all=debug"
 player_opts=$player_opts_orig
 display=0
-playlist_get=1
 pipe=/tmp/mpv-pipe
-nopl=
 auto=
 start_time=0:45
 ao=${ao:-pulse}
@@ -31,7 +29,7 @@ start_name=$( tmux display-message -p '#W' )
 start_dir=$(pwd)
 
 day=86400
-STR=(TRUE FALSE)
+STR=(on off)
 
 shopt -s nullglob
 
@@ -168,7 +166,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
         fi
       fi
 
-      if [[ ! -e "$m3u" && ! -e "$i"/no-files && -n "$playlist_get" ]]; then
+      if [[ ! -e "$m3u" && ! -e "$i"/no-files && -z "$NOPL" ]]; then
         status "Getting $m3u" nl
         get_playlist "$url" "$i"
       fi
@@ -320,48 +318,55 @@ while [[ ${#all[@]} -gt 0 ]]; do
           s       - Skip 
           x       - Exit
 
-          pl      - Download the playlist
-          nopl    - Do not download the playlist
+          ao      - Set audio out   [$ao]
+          b       - Set start time  [$start_time]
+          filter  - Set filter      [$filter]
 
-          ao      - Set audio out    [$ao]
-          b       - Set start time   [$start_time]
-
-          filter  - Set a new filter [$filter]
-          net     - Toggle network   [${STR[${NONET:-0}]}]
-          score   - Toggle scoring   [${STR[${NOSCORE:-0}]}]
-          prompt  - Toggle prompt    [${STR[${NOPROMPT:-0}]}]
+          pl      - Toggle playlist [${STR[${NOPL:-0}]}]
+          net     - Toggle network  [${STR[${NONET:-0}]}]
+          score   - Toggle scoring  [${STR[${NOSCORE:-0}]}]
+          prompt  - Toggle prompt   [${STR[${NOPROMPT:-0}]}]
+          debug   - Toggle debug    [${STR[${DEBUG:-1}]}]
 
           list    - List things in filter
 
           !       - Do a \$SHELL at the file directory
           source  - Reload lib
-          debug   - Enable debugging
-          nodebug - Turn off debugging
 
 	ENDL
         } | sed 's/^\s*/\t\t/g';
-        elif [[ $n == 'nopl' ]]; then
-          status "Skipping playlist downloads"
-          playlist_get=
 
         elif [[ "$n" == 'score' ]]; then
           [[ -z "$NOSCORE" ]] && NOSCORE=1 || NOSCORE=
-          [[ -z "$NOSCORE" ]] && status "Scoring on" || status "Scoring off"
+          status "Scoring ${STR[${NOSCORE:-0}]}"
 
         elif [[ "$n" == 'net' ]]; then
           [[ -z "$NONET" ]] && NONET=1 || NONET=
-          [[ -z "$NONET" ]] && status "Network on" || status "Network off"
+          status "Network ${STR[${NONET:-0}]}"
 
         elif [[ "$n" == 'prompt' ]]; then
           [[ -z "$NOPROMPT" ]] && NOPROMPT=1 || NOPROMPT=
-          [[ -z "$NOPROMPT" ]] && status "Prompt on" || status "Prompt off"
+          status "Prompt ${STR[${NOPROMPT:-0}]}"
+
+        elif [[ "$n" == 'pl' ]]; then
+          [[ -z "$NOPL" ]] && NOPL=1 || NOPL=
+          status "Playlist ${STR[${NOPL:-0}]}"
+
+        elif [[ "$n" == 'debug' ]]; then
+          if [[ -z "$DEBUG" ]]; then 
+            DEBUG=0 
+            echo $PWD
+            player_opts="$player_opts_orig $player_opts_dbg"
+            set -x
+          else
+            DEBUG=
+            player_opts=$player_opts_orig
+            set +x
+          fi
+          status "Debug ${STR[${DEBUG:-1}]}"
 
         elif [[ "$n" == 'o' ]]; then
           open_page "$url"
-
-        elif [[ "$n" == 'pl' ]]; then
-          status "Playlist on"
-          playlist_get=1
 
         elif [[ "$n" == 'list' ]]; then
           echo
@@ -375,16 +380,6 @@ while [[ ${#all[@]} -gt 0 ]]; do
           load_tracks 1
           n=s
           break
-
-        elif [[ $n == 'nodebug' ]]; then
-          status "Turning off verbose output"
-          player_opts=$player_opts_orig
-          set +x
-
-        elif [[ $n == 'debug' ]]; then
-          echo $PWD
-          player_opts="$player_opts_orig $player_opts_dbg"
-          set -x
 
         elif [[ "$n" == 'source' ]]; then
           . $DIR/lib.sh
@@ -401,6 +396,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
           )
         elif [[ $n == 'dl' ]]; then 
           get_mp3s "$url" "$i"
+
         elif [[ "$n" == 'r nopl' ]]; then
           status "Ignoring playlist"
           nopl=1
