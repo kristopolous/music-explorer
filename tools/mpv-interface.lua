@@ -60,6 +60,14 @@ mp.register_event("start-file", print_on_start)
 mp.add_key_binding('o', 'openpage', openpage_handler)
 mp.add_key_binding('?', 'getinfo', getinfo_handler)
 mp.add_key_binding('Q', 'quit', quit_handler)
+
+mp.add_key_binding('S', 'skip', function()
+  mp.command('quit 6')
+end)
+mp.add_key_binding('P', 'purge', function()
+  mp.command('quit 7')
+end)
+
 mp.add_key_binding('e', 'env', function() 
   for i, s in pairs(posix.getenv()) do
     print(i, s)

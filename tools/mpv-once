@@ -200,6 +200,13 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
             ## See the lua script for how this is invoked, (as of this writing it's capital Q)
             [[ $player_exit == 5 ]] && NOPROMPT=
+            if [[ $player_exit == 6 ]]; then 
+              n=s
+              skipprompt=1 
+            elif [[ $player_exit == 7 ]]; then 
+              n=p
+              skipprompt=1 
+            fi
 
             (( listen_time += $(date +%s) - before ))
             [[ -z "$NOSCORE" ]] && headline 3 "Time: $listen_time\n"
@@ -267,7 +274,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
       #[[ -n "$NOSCORE" ]] && hr
 
-      while [[ -z $NOPROMPT ]]; do 
+      while [[ -z "$NOPROMPT" && -z "$skipprompt" ]]; do 
         read -p "[[1m$i[0m] " -e n
         history -s "$n"
 
@@ -374,9 +381,9 @@ while [[ ${#all[@]} -gt 0 ]]; do
           echo
 
         elif [[ ${n:0:6} == 'filter' ]]; then
-          set_filter ${n:8}
+          set_filter ${n:7}
           # this can be turned back on by quitting with a capital Q
-          NOPROMPT=1
+          echo $filter
           load_tracks 1
           n=s
           break
@@ -423,10 +430,12 @@ while [[ ${#all[@]} -gt 0 ]]; do
     else
       n="__rating_$n"
     fi
+    [[ -n "$skipprompt" ]] && hr
   fi
   # The repeat while ignoring playlist is a one-time
   # flag that has to be set the next time
   nopl=
   auto=
+  skipprompt=
   [[ -z "$NOSCORE" ]] && record_listen
 done
