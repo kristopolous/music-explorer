@@ -47,6 +47,7 @@ while [[ $# -gt 0 ]]; do
       list=($arg)
       base=$(basename "$arg")
       domain=$arg
+      base_url=$arg
       FORMAT=
     # This means we are getting a single album
     elif [[ $arg =~ bandcamp.com/album/ ]]; then
@@ -176,7 +177,7 @@ while [[ $# -gt 0 ]]; do
         manual_pull=0
 
         # we put in some kind of backoff strategy
-        sleep 3
+        sleep 2
         track_count=$( youtube-dl -i $FORMAT -g -- "$url" | wc -l )
         if [[ "$track_count" = "0" ]]; then
           echo "  ( no files )"
