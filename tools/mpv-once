@@ -315,6 +315,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
           3,4,5   - Rate
           p       - Purge (delete)
           dl      - Download the files
+          dlm     - Download manually
           dlp     - Download just the playlist
           g       - Go to a path
           i       - Info on the release
@@ -404,6 +405,9 @@ while [[ ${#all[@]} -gt 0 ]]; do
         elif [[ $n == 'dl' ]]; then 
           get_mp3s "$url" "$i"
 
+        elif [[ $n == 'dlm' ]]; then 
+          manual_pull "$url" "$i"
+ 
         elif [[ "$n" == 'r nopl' ]]; then
           status "Ignoring playlist"
           nopl=1

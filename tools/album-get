@@ -101,7 +101,7 @@ while [[ $# -gt 0 ]]; do
     release=$(basename "$full")
     place="$starting_point/$release"
     isnew=
-    manual_pull=
+    manual_pull_flag=
 
     if [[ ! -e "$place" ]]; then
       isnew=true
@@ -174,7 +174,7 @@ while [[ $# -gt 0 ]]; do
       # case we mark it as skippable
       if [[ -z "$isnew" ]]; then
         # this is a manual scrape for youtube-dl which can get confused.
-        manual_pull=0
+        manual_pull_flag=0
 
         # we put in some kind of backoff strategy
         sleep 2
@@ -188,7 +188,7 @@ while [[ $# -gt 0 ]]; do
 
       # sometimes people are posting wav files ... really, that's crazy
       if [[ -n "$FULLALBUM" ]]; then 
-        if [[ -n "$manual_pull" ]]; then
+        if [[ -n "$manual_pull_flag" ]]; then
           manual_pull "$url" "$place"
 
         else
