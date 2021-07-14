@@ -28,7 +28,6 @@ history -r $tmp/readline-history
 start_name=$( tmux display-message -p '#W' )
 start_dir=$(pwd)
 
-day=86400
 STR=(on off)
 
 shopt -s nullglob
@@ -178,7 +177,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
           before=$( date +%s )
           age=$(( $before - $(stat -c %Y "$m3u") ))
 
-          if [[ -z "$playlistIsRemote" || $age -lt $day ]]; then
+          if [[ -z "$playlistIsRemote" || $age -lt $DAY ]]; then
             
             t_count=$(cat "$m3u" | wc -l)
             f_count=${#fileList[@]}
@@ -213,7 +212,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
           else
             # If our m3u is over a day old we just
             # assume failure
-            status "m3u age: $(( age / day ))d"
+            status "m3u age: $(( age / DAY ))d"
             player_exit=2
           fi
 

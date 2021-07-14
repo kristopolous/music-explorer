@@ -12,6 +12,7 @@ FORMAT="-f mp3-128"
 SLEEP_MIN=1
 SLEEP_MAX=4
 SLEEP_OPTS="--max-sleep-interval $SLEEP_MAX --min-sleep-interval $SLEEP_MIN"
+DAY=86400
 
 function hr {
   echo
@@ -74,14 +75,24 @@ unlistened() {
 
 recent() {
   echo */* | tr ' ' '\n' > .listen_all
+  # The great 2049 problem.
+  # It will not be global environmental collapse.
+  # NO! It will be this bash line.
   first=$(grep -m 1 "20[2-4][0-9]" .listen_done)
   first_date=${first##* }
+  days=$(( ($(date +%s) - $(date --date=$first_date +%s)) / DAY ))
 
   grep "20[2-4][0-9]" .listen_done | awk ' { print $NF } ' | sort | uniq -c
   ttl=$(wc -l .listen_all | awk ' { print $1 }').0
   done=$(wc -l .listen_done | awk ' { print $1 }').0
   wc -l .listen*
-  echo $( perl -e "print 100 * $done / $ttl" )%
+
+  perl << END
+    print 100 * $done / $ttl . "%\n";
+    print "Listen:   " . $done / $days . "/day\n";
+    print "Download: " . $ttl / $days . "/day\n";
+END
+
   du -sh
 }
 
