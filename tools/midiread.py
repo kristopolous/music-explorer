@@ -185,66 +185,67 @@ while True:
     # If we're here we can try to do different operations
     # look into the mapping section of midiconfig.ini for
     # details
-    if 'source_select' in todo and value == 0:
-      sourceIndex += 1
-      logging.info("cycling source")
-      active()
+    if todo:
+      if 'source_select' in todo and value == 0:
+        sourceIndex += 1
+        logging.info("cycling source")
+        active()
 
-    if 'local_volume_abs' in todo:
-      cmdList.append( 'amixer -c 0 sset Master {}%'.format( int(100 * value / 127)) )
+      if 'local_volume_abs' in todo:
+        cmdList.append( 'amixer -c 0 sset Master {}%'.format( int(100 * value / 127)) )
 
-    if 'pulse_volume_abs' in todo:
-      #cmdList.append( 'amixer -D pulse sset Master {}%'.format( int(101 * value / 127)) )
-      #if usbDevice:
-      #  cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
-      cmdList.append( "pactl set-sink-volume {} {}".format(audioDev, value * 512) )
+      if 'pulse_volume_abs' in todo:
+        #cmdList.append( 'amixer -D pulse sset Master {}%'.format( int(101 * value / 127)) )
+        #if usbDevice:
+        #  cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
+        cmdList.append( "pactl set-sink-volume {} {}".format(audioDev, value * 512) )
 
-    if 'tabs' in todo:
-      if lastValueMap.get('tabs'):
-        if lastValueMap['tabs'] / 3 > valueMap['tabs'] / 3:
-          todoMap['tab'] = "chrome-tab next"
-        else:
-          todoMap['tab'] = "chrome-tab prev"
+      if 'tabs' in todo:
+        if lastValueMap.get('tabs'):
+          if lastValueMap['tabs'] / 3 > valueMap['tabs'] / 3:
+            todoMap['tab'] = "chrome-tab next"
+          else:
+            todoMap['tab'] = "chrome-tab prev"
 
 
-    elif todo and (todo[:2] == 'bw' or todo[:2] == 'fw'):
-      amount = int(todo[2:])
-      dir = 'back' if todo[:2] == 'bw' else 'forward'
-      addcmd( "{} {}".format(dir, amount) )
+      elif todo and (todo[:2] == 'bw' or todo[:2] == 'fw'):
+        amount = int(todo[2:])
+        dir = 'back' if todo[:2] == 'bw' else 'forward'
+        addcmd( "{} {}".format(dir, amount) )
 
-    if 'redshift' in todo:
-      params = []
-      gamma = valueMap.get('gamma') if 'gamma' in valueMap else (.7 * 127)
+      if 'redshift' in todo:
+        params = []
+        gamma = valueMap.get('gamma') if 'gamma' in valueMap else (.7 * 127)
 
-      if 'brightness' in valueMap:
-        bright = valueMap['brightness'] / 127.0
-        params.append("-b {}".format(bright))
-      if 'redshift' in valueMap:
-        redshift = int(12000 * valueMap['redshift'] / 127.0 + 1000)
-        params.append("-r {}".format(redshift))
+        if 'brightness' in valueMap:
+          bright = valueMap['brightness'] / 127.0
+          params.append("-b {}".format(bright))
+        if 'redshift' in valueMap:
+          redshift = int(12000 * valueMap['redshift'] / 127.0 + 1000)
+          params.append("-r {}".format(redshift))
 
-      todoMap['screen'] = "night {}".format(' '.join(params))
+        todoMap['screen'] = "night {}".format(' '.join(params))
 
-    if 'scrub' in todo and value == 0:
-      if 'slidescrub' in valueMap:
-        addcmd( "forward {}".format(valueMap.get('slidescrub') - 64))
+      if 'scrub' in todo and value == 0:
+        if 'slidescrub' in valueMap:
+          addcmd( "forward {}".format(valueMap.get('slidescrub') - 64))
 
-    if 'seek' in todo and value == 0:
-      if 'slideseek' in valueMap:
-        if valueMap.get('slideseek') < 32:
-          addcmd( "prev" )
-        if valueMap.get('slideseek') > 96:
-          addcmd( "next" )
+      if 'seek' in todo and value == 0:
+        if 'slideseek' in valueMap:
+          if valueMap.get('slideseek') < 32:
+            addcmd( "prev" )
+          if valueMap.get('slideseek') > 96:
+            addcmd( "next" )
 
-    elif todo[0] in ['prev','next','pauseplay'] and value == 0:
-      addcmd( todo[0] )
+      elif todo[0] in ['prev','next','pauseplay'] and value == 0:
+        addcmd( todo[0] )
 
-    elif todo[0] in cmdMap:
-      if value == 0:
-        cmdList.append( "tmux send-keys -t mpv-once '{}'".format(cmdMap[todo[0]]) )
+      elif todo[0] in cmdMap:
+        if value == 0:
+          cmdList.append( "tmux send-keys -t mpv-once '{}'".format(cmdMap[todo[0]]) )
 
-    else:
-      pass
+      else:
+        pass
 
     if cmdList:
       for cmd in cmdList:
