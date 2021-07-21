@@ -14,7 +14,7 @@ else:
   print("No configuration found at {}".format(config_path))
   sys.exit(1)
   
-controlMapping = { }
+controlMapping = {}
 optionMap = {}
 valueMap = {}
 lastValueMap = {}
@@ -27,7 +27,9 @@ for key in config['config']:
 
 for key in config['mappings']:
   code = int(config['mappings'][key])
-  controlMapping[code] = key
+  if type(controlMapping.get(code)) is not list:
+    controlMapping[code] = []
+  controlMapping[code].append(key) 
 
 logging.basicConfig(level=getattr(logging, (os.getenv('LOG') or 'info').upper(), None))
 
@@ -173,30 +175,31 @@ while True:
     todo = None
     if control in controlMapping:
       todo = controlMapping[control]
-      lastValueMap[todo] = valueMap.get(todo)
-      valueMap[todo] = value
-      # print(todo, control, controlMapping)
+      for key in todo:
+        lastValueMap[key] = valueMap.get(key)
+        valueMap[key] = value
+        # print(todo, control, controlMapping)
 
     print(todo, value)
 
     # If we're here we can try to do different operations
     # look into the mapping section of midiconfig.ini for
     # details
-    if todo == 'source_select' and value == 0:
+    if 'source_select' in todo and value == 0:
       sourceIndex += 1
       logging.info("cycling source")
       active()
 
-    elif todo == 'local_volume_abs':
+    if 'local_volume_abs' in todo:
       cmdList.append( 'amixer -c 0 sset Master {}%'.format( int(100 * value / 127)) )
 
-    elif todo == 'pulse_volume_abs':
+    if 'pulse_volume_abs' in todo:
       #cmdList.append( 'amixer -D pulse sset Master {}%'.format( int(101 * value / 127)) )
       #if usbDevice:
       #  cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
       cmdList.append( "pactl set-sink-volume {} {}".format(audioDev, value * 512) )
 
-    if todo == 'tabs':
+    if 'tabs' in todo:
       if lastValueMap.get('tabs'):
         if lastValueMap['tabs'] / 3 > valueMap['tabs'] / 3:
           todoMap['tab'] = "chrome-tab next"
@@ -209,7 +212,7 @@ while True:
       dir = 'back' if todo[:2] == 'bw' else 'forward'
       addcmd( "{} {}".format(dir, amount) )
 
-    elif todo in ['redshift', 'brightness']:
+    if 'redshift' in todo:
       params = []
       gamma = valueMap.get('gamma') if 'gamma' in valueMap else (.7 * 127)
 
@@ -222,23 +225,23 @@ while True:
 
       todoMap['screen'] = "night {}".format(' '.join(params))
 
-    elif todo == 'scrub' and value == 0:
+    if 'scrub' in todo and value == 0:
       if 'slidescrub' in valueMap:
         addcmd( "forward {}".format(valueMap.get('slidescrub') - 64))
 
-    elif todo == 'seek' and value == 0:
+    if 'seek' in todo and value == 0:
       if 'slideseek' in valueMap:
         if valueMap.get('slideseek') < 32:
           addcmd( "prev" )
         if valueMap.get('slideseek') > 96:
           addcmd( "next" )
 
-    elif todo in ['prev','next','pauseplay'] and value == 0:
-      addcmd( todo )
+    elif todo[0] in ['prev','next','pauseplay'] and value == 0:
+      addcmd( todo[0] )
 
-    elif todo in cmdMap:
+    elif todo[0] in cmdMap:
       if value == 0:
-        cmdList.append( "tmux send-keys -t mpv-once '{}'".format(cmdMap[todo]) )
+        cmdList.append( "tmux send-keys -t mpv-once '{}'".format(cmdMap[todo[0]]) )
 
     else:
       pass
