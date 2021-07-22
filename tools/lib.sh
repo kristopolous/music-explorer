@@ -207,6 +207,8 @@ get_playlist() {
     } 2> /dev/null
   
     /bin/bash $PLAYLIST_DBG | grep mp3 | sed -E 's/^/.\//g' > "$path/$PLAYLIST"
+  else
+    info "Network is toggled off. Skipping playlist" 
   fi
 
   # We want to support the nonet mode without
@@ -291,6 +293,8 @@ _ytdl () {
     else
       echo $ec > "$path"/exit-code
     fi
+  else
+    info "Network is toggled off. Skipping ytdl"
   fi
 
   check_for_stop
@@ -304,7 +308,7 @@ manual_pull() {
   echo " ▾▾ Manual Pull "
 
   for track in $(curl -s "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sed -E s'/[?#].*//' | sort | uniq); do
-    _ytdl "https://$base/$track" "$path"
+    _ytdl "https://$base/${track##/}" "$path"
   done
 
   pl_fallback "$path"

@@ -31,6 +31,8 @@ while [[ $# -gt 0 ]]; do
   arg=${1%%.}
 
   list=
+  # Always attempt to look to see if new things/updates?
+  always_attempt=
   # We start with a bandcamp assumption
   regex=${site_regex[bandcamp]}
   FORMAT="-f mp3-128"
@@ -47,6 +49,7 @@ while [[ $# -gt 0 ]]; do
       list=($arg)
       base=$(basename "$arg")
       domain=$arg
+      always_attempt=1
       base_url=$arg
       FORMAT=
     # This means we are getting a single album
@@ -124,7 +127,7 @@ while [[ $# -gt 0 ]]; do
     echo $release
 
     force_try=
-    if [[ $count -lt 4 && -e "$place/$PAGE" ]]; then
+    if [[ -n "$always_attempt" || ( $count -lt 4 && -e "$place/$PAGE" ) ]]; then
       release_date=$(grep -m 1 -Po '((?<=releases )[A-Z][a-z]+ [0-9]{1,2}, 20[0-9]{2})' "$place/$PAGE" )
 
       # If our record of the page contains "releases" instead of "released" 
