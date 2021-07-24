@@ -59,13 +59,16 @@ var el,
   pl = [], 
   offset = parseInt(window.location.hash.slice(1) || localStorage['off'] || Math.round(Math.random()*1e8));
 
+function path_to_url(str) {
+  return 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1];
+}
+
 function play_url(str) {
   let 
     l = str.split(/\//)[4],
-    r = str.split(/\//)[5];
+    r = str.split(/\//)[5],
+    src = path_to_url(str);
 
-  let src = 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1];
-  console.log(src);
   label.innerHTML = l;
   rel.innerHTML = r;
   document.querySelector('iframe').src = src;
@@ -76,6 +79,12 @@ function play_url(str) {
     .then(data => {
       el.src = data;
       el.play();
+      [1, 5, 100].forEach( delta => {
+        if(pl[offset + delta]) {
+          // prefetch next
+          fetch('url2mp3.php?u=' + path_to_url(pl[offset + delta]))
+        }
+      });
     });
 
 }
