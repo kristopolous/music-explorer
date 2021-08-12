@@ -2,28 +2,40 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . $DIR/lib.sh
 
+tmp=/tmp/mpvonce
 player=mpv
-player_opts='--no-cache --no-audio-display --msg-level=cplayer=no --term-playing-msg=\n${media-title} --script='"$DIR"'/mpv-interface.lua --input-ipc-server=/tmp/mpvsocket'
+player_opts_orig='--no-cache --no-audio-display --msg-level=cplayer=no --term-playing-msg=\n${media-title} --script='"$DIR"'/mpv-interface.lua --input-ipc-server=/tmp/mpvsocket'
+player_opts_dbg="--msg-level=all=debug"
+player_opts=$player_opts_orig
 display=0
-playlist_get=1
-nopl=
+pipe=/tmp/mpv-pipe
 auto=
+start_time=0:45
+ao=${ao:-pulse}
+[[ -n "$NOSCORE" ]] && NOPROMPT=1 || NOPROMPT=
+
+# [[ -e $pipe ]] || mkfifo $pipe
 
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
+# We don't do anything above this in case
+# we are trying to get something to override our vars
+
+[[ -d $tmp ]] || mkdir $tmp
+
+history -r $tmp/readline-history
 
 # We're going to restore it to this.
 start_name=$( tmux display-message -p '#W' )
 start_dir=$(pwd)
-start_time=0:45
 
-ao=${ao:-pulse}
-day=86400
+STR=(on off)
 
 shopt -s nullglob
 
 tmux rename-window "mpv-once" 2> /dev/null
 
 function finish {
+  history -w $tmp/readline-history
   tmux rename-window "$start_name"
   exit
 }
@@ -36,16 +48,25 @@ trap finish EXIT
 #  exit
 #fi
 
-filter=.
-if [[ $# -gt 0 ]]; then
-  filter="($1"
-  shift
-  while [[ $# -gt 0 ]]; do
-    filter="${filter}|${1}"
+function set_filter() {
+  filter=.
+  if [[ $# -gt 0 ]]; then
+    filter="($1"
     shift
-  done
-  filter="$filter)"
-fi
+    while [[ $# -gt 0 ]]; do
+      filter="${filter}|${1}"
+      shift
+    done
+    filter="$filter)"
+  fi
+}
+
+# This appears to take about 0.1s or so.
+function load_tracks() {
+  all=( $(unlistened "$filter") )
+  size=${#all[@]}
+  [[ -n "$1" ]] && echo $size
+}
 
 function record_listen() {
   if [[ "$n" != "__nothing" ]]; then 
@@ -68,15 +89,26 @@ function playit() {
     $*
 }
 
+set_filter $*
 echo */* | tr ' ' '\n' > .listen_all
 touch .listen_done
-all=( $(unlistened "$filter") )
-size=${#all[@]}
-echo $size
+
+load_tracks 1
+
 ix=0 
 direct=
 
-for i in ${all[@]}; do
+while [[ ${#all[@]} -gt 0 ]]; do
+  # This approach permits for new content to come in and multiple
+  # to be running without issue.
+  #
+  # However When scoring is off there is no mechanism to make the playlist
+  # shrink
+  [[ -z "$NOSCORE" ]] && load_tracks || all=("${all[@]:1}")
+
+  i=${all[0]}
+
+  #date +%s.%N
 
   if [[ -n "$direct" ]]; then
     i=$direct
@@ -133,7 +165,7 @@ for i in ${all[@]}; do
         fi
       fi
 
-      if [[ ! -e "$m3u" && ! -e "$i"/no-files && -n "$playlist_get" ]]; then
+      if [[ ! -e "$m3u" && ! -e "$i"/no-files && -z "$NOPL" ]]; then
         status "Getting $m3u" nl
         get_playlist "$url" "$i"
       fi
@@ -145,7 +177,7 @@ for i in ${all[@]}; do
           before=$( date +%s )
           age=$(( $before - $(stat -c %Y "$m3u") ))
 
-          if [[ -z "$playlistIsRemote" || $age -lt $day ]]; then
+          if [[ -z "$playlistIsRemote" || $age -lt $DAY ]]; then
             
             t_count=$(cat "$m3u" | wc -l)
             f_count=${#fileList[@]}
@@ -164,12 +196,23 @@ for i in ${all[@]}; do
 
             playit "$m3u"
             player_exit=$?
+
+            ## See the lua script for how this is invoked, (as of this writing it's capital Q)
+            [[ $player_exit == 5 ]] && NOPROMPT=
+            if [[ $player_exit == 6 ]]; then 
+              n=s
+              skipprompt=1 
+            elif [[ $player_exit == 7 ]]; then 
+              n=p
+              skipprompt=1 
+            fi
+
             (( listen_time += $(date +%s) - before ))
-            headline 3 "Time: $listen_time\n"
+            [[ -z "$NOSCORE" ]] && headline 3 "Time: $listen_time\n"
           else
             # If our m3u is over a day old we just
             # assume failure
-            status "m3u age: $(( age / day ))d"
+            status "m3u age: $(( age / DAY ))d"
             player_exit=2
           fi
 
@@ -210,7 +253,7 @@ for i in ${all[@]}; do
       else
         if [[ -n "$LOCAL" ]]; then
           status "No local files, skipping"
-          n="sn"
+          n="s"
           hr
           break
         fi
@@ -228,15 +271,19 @@ for i in ${all[@]}; do
 
       fi
 
-      while [[ 0 ]]; do
+      #[[ -n "$NOSCORE" ]] && hr
+
+      while [[ -z "$NOPROMPT" && -z "$skipprompt" ]]; do 
         read -p "[[1m$i[0m] " -e n
+        history -s "$n"
+
         if [[ $n == 'i' ]]; then 
           _info "$i"
         fi
 
         if [[ ${n:0:1} == 'g' ]]; then
           direct=${n:2}
-          n="sn"
+          n="s"
           hr
           break
           
@@ -249,7 +296,7 @@ for i in ${all[@]}; do
           start_time=${n:2}
           status "Setting start time to $start_time"
 
-        elif [[ $n == 'l' ]]; then
+        elif [[ "$n" == 'l' ]]; then
           if [[ -s "$m3u" ]]; then
             headline 1 "playlist" 
             cat $m3u | sed 's/^/\t\t/'
@@ -264,63 +311,87 @@ for i in ${all[@]}; do
           headline 1 "Keyboard commands" 
           { cat <<- ENDL
           ?       - This help page
-          !       - Do a \$SHELL here
           3,4,5   - Rate
+          p       - Purge (delete)
           dl      - Download the files
+          dlm     - Download manually
           dlp     - Download just the playlist
           g       - Go to a path
-          i       - Info of the album
+          i       - Info on the release
           l       - List the files
           o       - Xdg-open the URL
-          p       - Purge (delete)
           r       - Repeat
           r nopl  - Repeat (ignore playlist)
-          s       - Skip (and log)
-          sn      - Skip (but do not log)
+          s       - Skip 
           x       - Exit
 
-          FLAGS:
+          ao      - Set audio out   [$ao]
+          b       - Set start time  [$start_time]
+          filter  - Set filter      [$filter]
 
-          pl      - Download the playlist
-          nopl    - Do not download the playlist
+          pl      - Toggle playlist [${STR[${NOPL:-0}]}]
+          net     - Toggle network  [${STR[${NONET:-0}]}]
+          score   - Toggle scoring  [${STR[${NOSCORE:-0}]}]
+          prompt  - Toggle prompt   [${STR[${NOPROMPT:-0}]}]
+          debug   - Toggle debug    [${STR[${DEBUG:-1}]}]
 
-          ao[...] - Set the audio out to [...]
-          b[...]  - Set the start time to [...]
+          list    - List things in filter
 
-          net     - Toggle network (off/on)
+          !       - Do a \$SHELL at the file directory
           source  - Reload lib
-          debug   - Enable debugging
-          nodebug - Turn off debugging
 
 	ENDL
         } | sed 's/^\s*/\t\t/g';
-        elif [[ $n == 'nopl' ]]; then
-          status "Skipping playlist downloads"
-          playlist_get=
 
-        elif [[ $n == 'net' ]]; then
+        elif [[ "$n" == 'score' ]]; then
+          [[ -z "$NOSCORE" ]] && NOSCORE=1 || NOSCORE=
+          status "Scoring ${STR[${NOSCORE:-0}]}"
+
+        elif [[ "$n" == 'net' ]]; then
           [[ -z "$NONET" ]] && NONET=1 || NONET=
-          [[ -z "$NONET" ]] && status "Network on" || status "Network off"
+          status "Network ${STR[${NONET:-0}]}"
 
-        elif [[ $n == 'o' ]]; then
+        elif [[ "$n" == 'prompt' ]]; then
+          [[ -z "$NOPROMPT" ]] && NOPROMPT=1 || NOPROMPT=
+          status "Prompt ${STR[${NOPROMPT:-0}]}"
+
+        elif [[ "$n" == 'pl' ]]; then
+          [[ -z "$NOPL" ]] && NOPL=1 || NOPL=
+          status "Playlist ${STR[${NOPL:-0}]}"
+
+        elif [[ "$n" == 'debug' ]]; then
+          if [[ -z "$DEBUG" ]]; then 
+            DEBUG=0 
+            echo $PWD
+            player_opts="$player_opts_orig $player_opts_dbg"
+            set -x
+          else
+            DEBUG=
+            player_opts=$player_opts_orig
+            set +x
+          fi
+          status "Debug ${STR[${DEBUG:-1}]}"
+
+        elif [[ "$n" == 'o' ]]; then
           open_page "$url"
 
-        elif [[ $n == 'pl' ]]; then
-          status "Playlist on"
-          playlist_get=1
+        elif [[ "$n" == 'list' ]]; then
+          echo
+          echo ${all[@]} | tr ' ' '\n' | sed 's/^\s*/\t/g' | sort
+          echo
 
-        elif [[ $n == 'nodebug' ]]; then
-          status "Turning off verbose output"
-          set +x
+        elif [[ ${n:0:6} == 'filter' ]]; then
+          set_filter ${n:7}
+          # this can be turned back on by quitting with a capital Q
+          echo $filter
+          load_tracks 1
+          n=s
+          break
 
-        elif [[ $n == 'source' ]]; then
+        elif [[ "$n" == 'source' ]]; then
           . $DIR/lib.sh
 
-        elif [[ $n == 'debug' ]]; then
-          echo $PWD
-          set -x
-
-        elif [[ $n == '!' ]]; then 
+        elif [[ "$n" == '!' ]]; then 
           (
             cd "$i"
             $SHELL
@@ -332,42 +403,42 @@ for i in ${all[@]}; do
           )
         elif [[ $n == 'dl' ]]; then 
           get_mp3s "$url" "$i"
-        fi
-        if [[ "$n" == 'r nopl' ]]; then
+
+        elif [[ $n == 'dlm' ]]; then 
+          manual_pull "$url" "$i"
+ 
+        elif [[ "$n" == 'r nopl' ]]; then
           status "Ignoring playlist"
           nopl=1
           # We treat this like a regular replay
           n=r
         fi
-        [[ "$n" =~ ^(x|r|s|sn|[1-5]|p)$ ]] && break
+        [[ "$n" =~ ^(x|r|s|[1-5]|p)$ ]] && break
       done
 
-      [[ $n == 'x' ]] && exit
+      [[ $n == 'x' ]] && finish
       [[ $n == 'r' ]] || break
     done
 
     _stats="time:$listen_time:$f_count"
 
     if [[ $n == 'p' ]]; then 
-
       album_purge "$_stats" "$i"
       n="__purge"
 
-    elif [[ $n == 'sn' ]]; then
-
-      status "Skipping - not recording"
-      n="__nothing"
     elif [[ $n == 's' ]]; then
-
       status "Skipping"
-      n="__skipping"
+      n="__nothing"
+
     else
       n="__rating_$n"
     fi
+    [[ -n "$skipprompt" ]] && hr
   fi
   # The repeat while ignoring playlist is a one-time
   # flag that has to be set the next time
   nopl=
   auto=
-  record_listen
+  skipprompt=
+  [[ -z "$NOSCORE" ]] && record_listen
 done

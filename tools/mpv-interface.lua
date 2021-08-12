@@ -1,6 +1,8 @@
 local os = require 'os'
 local io = require 'io'
 local pfx = '/tmp/eb383810f22a-'
+local posix = require 'posix'
+
 mp.enable_messages('error')
 
 f = io.open( pfx .. "last-volume", "r" )
@@ -56,6 +58,11 @@ function getinfo_handler()
   parts = string_split(mp.get_property('path'), '/')
   partial = parts[#parts - 2] .. '/' .. parts[#parts - 1] 
   os.execute('mpv-lib _info "' .. partial .. '"')
+  print( mp.get_property_native('media-title') )
+end
+
+function quit_handler()
+  mp.command('quit 5')
 end
 
 function record_volume()
@@ -71,6 +78,20 @@ mp.register_event("start-file", print_on_start)
 mp.register_event("shutdown", record_volume)
 mp.add_key_binding('o', 'openpage', openpage_handler)
 mp.add_key_binding('?', 'getinfo', getinfo_handler)
+mp.add_key_binding('Q', 'quit', quit_handler)
+
+mp.add_key_binding('S', 'skip', function()
+  mp.command('quit 6')
+end)
+mp.add_key_binding('P', 'purge', function()
+  mp.command('quit 7')
+end)
+
+mp.add_key_binding('e', 'env', function() 
+  for i, s in pairs(posix.getenv()) do
+    print(i, s)
+  end
+end)
 
 for i=1,8 do
   mp.add_key_binding(tostring(i), 'pl-' .. i, function() 

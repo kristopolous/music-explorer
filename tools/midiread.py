@@ -6,7 +6,7 @@ import pathlib
 
 config = configparser.ConfigParser()
 base_path = pathlib.Path(__file__).parent.absolute()
-config_path = "{}/{}".format(base_path, 'midiconfig.ini')
+config_path = "{}/{}".format(base_path, os.getenv('CONFIG') or 'midiconfig.ini')
 
 if os.path.exists(config_path):
   config.read(config_path)
@@ -14,7 +14,7 @@ else:
   print("No configuration found at {}".format(config_path))
   sys.exit(1)
   
-controlMapping = { }
+controlMapping = {}
 optionMap = {}
 valueMap = {}
 lastValueMap = {}
@@ -27,7 +27,9 @@ for key in config['config']:
 
 for key in config['mappings']:
   code = int(config['mappings'][key])
-  controlMapping[code] = key
+  if type(controlMapping.get(code)) is not list:
+    controlMapping[code] = []
+  controlMapping[code].append(key) 
 
 logging.basicConfig(level=getattr(logging, (os.getenv('LOG') or 'info').upper(), None))
 
@@ -59,6 +61,7 @@ if not deviceNumber or deviceNumber == 'Device':
 logging.info("Using Device #{}".format(deviceNumber))
 
 cmd = "amidi -p {} -r /dev/stdout".format(deviceNumber)
+print(cmd)
 ps = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
 
 msgList = [ 0xC0, 0xB0, 0xF0 ]
@@ -99,6 +102,10 @@ def active():
   # want to mess with
   audioDev = audioDevList[sourceIndex % len(audioDevList)]
   logging.debug(audioDev)
+
+def addcmd(what):
+  global cmdList
+  cmdList.append( "{}/ipc-do.js {}".format(base_path, what))
 
 sign = lambda x: '-' if x < 0 else '+'
 
@@ -168,62 +175,77 @@ while True:
     todo = None
     if control in controlMapping:
       todo = controlMapping[control]
-      lastValueMap[todo] = valueMap.get(todo)
-      valueMap[todo] = value
-      # print(todo, control, controlMapping)
+      for key in todo:
+        lastValueMap[key] = valueMap.get(key)
+        valueMap[key] = value
+        # print(todo, control, controlMapping)
+
+    print(todo, value)
 
     # If we're here we can try to do different operations
     # look into the mapping section of midiconfig.ini for
     # details
-    if todo == 'source_select' and value == 0:
-      sourceIndex += 1
-      logging.info("cycling source")
-      active()
+    if todo:
+      if 'source_select' in todo and value == 0:
+        sourceIndex += 1
+        logging.info("cycling source")
+        active()
 
-    elif todo == 'local_volume_abs':
-      cmdList.append( 'amixer -c 0 sset Master {}%'.format( int(100 * value / 127)) )
+      if 'local_volume_abs' in todo:
+        cmdList.append( 'amixer -c 0 sset Master {}%'.format( int(100 * value / 127)) )
 
-    elif todo == 'pulse_volume_abs':
-      #cmdList.append( 'amixer -D pulse sset Master {}%'.format( int(101 * value / 127)) )
-      #if usbDevice:
-      #  cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
-      cmdList.append( "pactl set-sink-volume {} {}".format(audioDev, value * 512) )
+      if 'pulse_volume_abs' in todo:
+        #cmdList.append( 'amixer -D pulse sset Master {}%'.format( int(101 * value / 127)) )
+        #if usbDevice:
+        #  cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
+        cmdList.append( "pactl set-sink-volume {} {}".format(audioDev, value * 512) )
 
-    if todo == 'tabs':
-      if lastValueMap.get('tabs'):
-        if lastValueMap['tabs'] / 3 > valueMap['tabs'] / 3:
-          todoMap['tab'] = "chrome-tab next"
-        else:
-          todoMap['tab'] = "chrome-tab prev"
+      if 'tabs' in todo:
+        if lastValueMap.get('tabs'):
+          if lastValueMap['tabs'] / 3 > valueMap['tabs'] / 3:
+            todoMap['tab'] = "chrome-tab next"
+          else:
+            todoMap['tab'] = "chrome-tab prev"
 
 
-    elif todo and (todo[:2] == 'bw' or todo[:2] == 'fw'):
-      amount = int(todo[2:])
-      dir = 'back' if todo[:2] == 'bw' else 'forward'
-      cmdList.append( "{}/ipc-do.js {} {}".format(base_path, dir, amount) )
+      elif todo and (todo[:2] == 'bw' or todo[:2] == 'fw'):
+        amount = int(todo[2:])
+        dir = 'back' if todo[:2] == 'bw' else 'forward'
+        addcmd( "{} {}".format(dir, amount) )
 
-    elif todo in ['redshift', 'brightness']:
-      params = []
-      gamma = valueMap.get('gamma') if 'gamma' in valueMap else (.7 * 127)
+      if 'redshift' in todo:
+        params = []
+        gamma = valueMap.get('gamma') if 'gamma' in valueMap else (.7 * 127)
 
-      if 'brightness' in valueMap:
-        bright = valueMap['brightness'] / 127.0
-        params.append("-b {}".format(bright))
-      if 'redshift' in valueMap:
-        redshift = int(12000 * valueMap['redshift'] / 127.0 + 1000)
-        params.append("-r {}".format(redshift))
+        if 'brightness' in valueMap:
+          bright = valueMap['brightness'] / 127.0
+          params.append("-b {}".format(bright))
+        if 'redshift' in valueMap:
+          redshift = int(12000 * valueMap['redshift'] / 127.0 + 1000)
+          params.append("-r {}".format(redshift))
 
-      todoMap['screen'] = "night {}".format(' '.join(params))
+        todoMap['screen'] = "night {}".format(' '.join(params))
 
-    elif todo in ['prev','next','pauseplay'] and value == 0:
-      cmdList.append( "{}/ipc-do.js {}".format(base_path, todo) )
+      if 'scrub' in todo and value == 0:
+        if 'slidescrub' in valueMap:
+          addcmd( "forward {}".format(valueMap.get('slidescrub') - 64))
 
-    elif todo in cmdMap:
-      if value == 0:
-        cmdList.append( "tmux send-keys -t mpv-once '{}'".format(cmdMap[todo]) )
+      if 'seek' in todo and value == 0:
+        if 'slideseek' in valueMap:
+          if valueMap.get('slideseek') < 32:
+            addcmd( "prev" )
+          if valueMap.get('slideseek') > 96:
+            addcmd( "next" )
 
-    else:
-      pass
+      elif todo[0] in ['prev','next','pauseplay'] and value == 0:
+        addcmd( todo[0] )
+
+      elif todo[0] in cmdMap:
+        if value == 0:
+          cmdList.append( "tmux send-keys -t mpv-once '{}'".format(cmdMap[todo[0]]) )
+
+      else:
+        pass
 
     if cmdList:
       for cmd in cmdList:

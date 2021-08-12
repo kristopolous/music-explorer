@@ -1,5 +1,0 @@
-#!/bin/bash
-while [ $# -gt 0 ]; do
-  album-get $1
-  shift
-done

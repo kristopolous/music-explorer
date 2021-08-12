@@ -5,6 +5,8 @@ FULLALBUM=1
 
 declare -i TTL=0
 declare -A site_regex
+[[ -n "$DEBUG" ]] && set -x
+
 site_regex[bandcamp]='(?<=")[\w:\/\.]+(?<=(album|track)\/)[^?'"'"'"]*' 
 site_regex[archive]='(?<=")/details/[^"@&]+(?=..title)'
 
@@ -29,9 +31,11 @@ while [[ $# -gt 0 ]]; do
   arg=${1%%.}
 
   list=
+  # Always attempt to look to see if new things/updates?
+  always_attempt=
   # We start with a bandcamp assumption
   regex=${site_regex[bandcamp]}
-  FORMAT=mp3-128
+  FORMAT="-f mp3-128"
   if [[ $arg =~ \. ]]; then
     if [[ $arg =~ archive.org ]]; then
       base=$(basename "$arg")
@@ -39,7 +43,15 @@ while [[ $# -gt 0 ]]; do
       # Do an override here.
       regex=${site_regex[archive]}
       base_url=$arg
-      FORMAT=0
+      FORMAT=
+    elif [[ $arg =~ soundcloud.com ]]; then
+      # there is no descent, we use the base
+      list=($arg)
+      base=$(basename "$arg")
+      domain=$arg
+      always_attempt=1
+      base_url=$arg
+      FORMAT=
     # This means we are getting a single album
     elif [[ $arg =~ bandcamp.com/album/ ]]; then
       eval $(echo $arg | awk -F\/ ' { sub(/\..*/,"",$3);print "base="$3";list=/"$(NF-1)"/"$NF }')
@@ -92,7 +104,7 @@ while [[ $# -gt 0 ]]; do
     release=$(basename "$full")
     place="$starting_point/$release"
     isnew=
-    manual_pull=
+    manual_pull_flag=
 
     if [[ ! -e "$place" ]]; then
       isnew=true
@@ -115,7 +127,7 @@ while [[ $# -gt 0 ]]; do
     echo $release
 
     force_try=
-    if [[ $count -lt 4 && -e "$place/$PAGE" ]]; then
+    if [[ -n "$always_attempt" || ( $count -lt 4 && -e "$place/$PAGE" ) ]]; then
       release_date=$(grep -m 1 -Po '((?<=releases )[A-Z][a-z]+ [0-9]{1,2}, 20[0-9]{2})' "$place/$PAGE" )
 
       # If our record of the page contains "releases" instead of "released" 
@@ -165,11 +177,11 @@ while [[ $# -gt 0 ]]; do
       # case we mark it as skippable
       if [[ -z "$isnew" ]]; then
         # this is a manual scrape for youtube-dl which can get confused.
-        manual_pull=0
+        manual_pull_flag=0
 
         # we put in some kind of backoff strategy
-        sleep 3
-        track_count=$( youtube-dl -if mp3-128 -g -- "$url" | wc -l )
+        sleep 2
+        track_count=$( youtube-dl -i $FORMAT -g -- "$url" | wc -l )
         if [[ "$track_count" = "0" ]]; then
           echo "  ( no files )"
           touch "$place"/no-files
@@ -179,7 +191,7 @@ while [[ $# -gt 0 ]]; do
 
       # sometimes people are posting wav files ... really, that's crazy
       if [[ -n "$FULLALBUM" ]]; then 
-        if [[ -n "$manual_pull" ]]; then
+        if [[ -n "$manual_pull_flag" ]]; then
           manual_pull "$url" "$place"
 
         else

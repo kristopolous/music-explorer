@@ -2,10 +2,17 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 NONET=${NONET:=}
+NOPL=${NOPL:=}
+DEBUG=${DEBUG:=}
 PLAYLIST=playlist.m3u
+PLAYLIST_DBG=
 PAGE=page.html
 STOPFILE=/tmp/mpvstop
-FORMAT=mp3-128
+FORMAT="-f mp3-128"
+SLEEP_MIN=1
+SLEEP_MAX=4
+SLEEP_OPTS="--max-sleep-interval $SLEEP_MAX --min-sleep-interval $SLEEP_MIN"
+DAY=86400
 
 function hr {
   echo
@@ -39,9 +46,25 @@ function headline {
 function info {
   echo -e "\t$1"
 }
+
 function status {
   [[ -n "$2" ]] && echo
   echo -e "\t\t$1"
+}
+
+album_art() {
+  for i in */*; do
+    [[ ! -d $i ]] && continue
+
+    if [[ ! -e $i/no && ! -e $i/album-art.jpg ]] ; then
+
+      album=$(resolve $i)
+
+      url=$(curl -Ls $album | grep -A 4 'tralbumArt' | grep popupImage | grep -Po 'https:.*[jp][pn]g')
+      [[ -n "$url" ]] && curl -so $i/album-art.jpg $url
+      echo "$url => $album"
+    fi
+  done
 }
 
 check_url() {
@@ -52,29 +75,47 @@ check_url() {
   fi
 }
 
-_get_urls() {
-  youtube-dl \
-    --get-duration --get-filename -gf $FORMAT -- "$1" \
-    | awk -f $DIR/ytdl2m3u.awk > "$2"
-}
-
 _stub() {
   echo "$1" | tr '/' ':'
 }
 
 unlistened() {
   local filter=${1:-.}
-  grep -hE "$filter" .listen_all .listen_done | awk ' { print $1 } ' | sort | uniq -u | shuf
+  [[ $filter == '.' ]] && cmd=cat || cmd="grep -hE $filter" 
+  if [[ -n "$NOSCORE" ]]; then
+    $cmd .listen_all | cut -d ' ' -f 1 | shuf
+  else
+    $cmd .listen_all .listen_done | cut -d ' ' -f 1 | sort | uniq -u | shuf
+  fi
 }
 
 recent() {
   echo */* | tr ' ' '\n' > .listen_all
-  grep "202[01]" .listen_done | awk ' { print $NF } ' | sort | uniq -c
+  # The great 2049 problem.
+  # It will not be global environmental collapse.
+  # NO! It will be this bash line.
+  first=$(grep -m 1 "20[2-4][0-9]" .listen_done)
+  first_date=${first##* }
+  days=$(( ($(date +%s) - $(date --date=$first_date +%s)) / DAY ))
+
+  grep "20[2-4][0-9]" .listen_done | awk ' { print $NF } ' | sort | uniq -c
   ttl=$(wc -l .listen_all | awk ' { print $1 }').0
   done=$(wc -l .listen_done | awk ' { print $1 }').0
   wc -l .listen*
-  echo $( perl -e "print 100 * $done / $ttl" )%
+
+  perl << END
+    print 100 * $done / $ttl . "%\n";
+    print "Listen:   " . $done / $days . "/day\n";
+    print "Download: " . $ttl / $days . "/day\n";
+END
+
   du -sh
+}
+
+_get_urls() {
+  youtube-dl $SLEEP_OPTS \
+    --get-duration --get-filename -g $FORMAT -- "$1" \
+    | awk -f $DIR/ytdl2m3u.awk > "$2"
 }
 
 get_urls() {
@@ -163,7 +204,7 @@ open_page() {
 }
 
 get_playlist() {
-  local dbg=/tmp/playlist-interim:$(_stub "$2"):$(date +%s)
+  PLAYLIST_DBG=/tmp/playlist-interim:$(_stub "$2"):$(date +%s)
   local failed=
   local tomatch=
   local matched=
@@ -173,20 +214,24 @@ get_playlist() {
 
   if [[ -z "$NONET" ]]; then
     {
-      echo "cd '$2'" > $dbg
+      echo "cd '$2'" > $PLAYLIST_DBG
 
-      youtube-dl -eif $FORMAT -- "$1" |\
-        sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' >> $dbg
+      #$SLEEP_OPTS \
+      youtube-dl \
+        -ei $FORMAT -- "$1" |\
+        sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' >> $PLAYLIST_DBG
     } 2> /dev/null
   
-    /bin/bash $dbg | grep mp3 > "$path/$PLAYLIST"
+    /bin/bash $PLAYLIST_DBG | grep mp3 | sed -E 's/^/.\//g' > "$path/$PLAYLIST"
+  else
+    info "Network is toggled off. Skipping playlist" 
   fi
 
   # We want to support the nonet mode without
   # making things look broken
   
   # filter out the cd command
-  [[ -e "$dbg" ]] && tomatch=$(grep -Ev "^cd " $dbg | wc -l)
+  [[ -e "$PLAYLIST_DBG" ]] && tomatch=$(grep -Ev "^cd " $PLAYLIST_DBG | wc -l)
   [[ -e "$path/$PLAYLIST" ]] && matched=$(cat "$path/$PLAYLIST" | wc -l)
 
   if [[ $tomatch != $matched ]]; then
@@ -203,9 +248,9 @@ get_playlist() {
   pl_check "$path"
 
   if [[ -n "$failed" ]]; then 
-    status "Look in $dbg\n"
-  else
-    _rm "$dbg"
+    status "Look in $PLAYLIST_DBG\n"
+    #else
+    #  _rm "$PLAYLIST_DBG"
   fi
 }
 
@@ -244,9 +289,9 @@ _ytdl () {
     local url="$1"
     local path="$2"
 
-    youtube-dl \
+    youtube-dl $SLEEP_OPTS \
       -o "$path/%(title)s-%(id)s.%(ext)s" \
-      -f $FORMAT -- "$url"
+      $FORMAT -- "$url"
     
     local ec=$?
     if [[ $ec -ne 0 ]]; then
@@ -264,6 +309,8 @@ _ytdl () {
     else
       echo $ec > "$path"/exit-code
     fi
+  else
+    info "Network is toggled off. Skipping ytdl"
   fi
 
   check_for_stop
@@ -277,7 +324,7 @@ manual_pull() {
   echo " ▾▾ Manual Pull "
 
   for track in $(curl -s "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sed -E s'/[?#].*//' | sort | uniq); do
-    _ytdl "https://$base/$track" "$path"
+    _ytdl "https://$base/${track##/}" "$path"
   done
 
   pl_fallback "$path"
@@ -290,4 +337,32 @@ get_mp3s() {
 
   _ytdl "$url" "$path" 
   get_playlist "$url" "$path"
+}
+
+details() {
+  for pid in $(pgrep -f "^mpv "); do
+    current=$(lsof -F n -p $pid | grep -E mp3\$ | cut -c 2-)
+    track=$(basename "$current")
+
+    release_path=$(dirname "$current")
+    release=$(basename "$release_path")
+
+    label_path=$(dirname "$release_path")
+    label=$(basename "$label_path")
+         
+    if [[ -e $release_path/domain ]]; then
+      release_url=$(< $release_path/domain ) 
+    elif [[ -e $label_path/domain ]]; then
+      release_url=$(< $label_path/domain )/$release
+    else
+      release_url=https://${label}.bandcamp.com/album/$release
+    fi
+
+    echo $release_url
+    echo
+    echo $label // $release
+    echo ${track/-[0-9]*.mp3/}
+    id3v2 -R "$current" | grep -E '^\w{4}\:'  | grep -vE '(APIC|TPE2|COMM)'
+    echo "----- ($pid) ------"
+  done
 }
