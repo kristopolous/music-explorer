@@ -1,5 +1,15 @@
 local os = require 'os'
+local io = require 'io'
+local pfx = '/tmp/eb383810f22a-'
 mp.enable_messages('error')
+
+f = io.open( pfx .. "last-volume", "r" )
+if f ~= nil then
+  io.input(f)
+  volume = io.read()
+  vol = mp.set_property('volume', volume)
+  io.close(f)
+end
 
 local function string_split(str, sep)
    local sep, fields = sep or ":", {}
@@ -48,8 +58,17 @@ function getinfo_handler()
   os.execute('mpv-lib _info "' .. partial .. '"')
 end
 
+function record_volume()
+  vol = mp.get_property('volume')
+  f = io.open( pfx .. "last-volume", "w" )
+  io.output(f)
+  io.write(vol)
+  io.close(f)
+end
+
 mp.register_event("log-message", lg)
 mp.register_event("start-file", print_on_start)
+mp.register_event("shutdown", record_volume)
 mp.add_key_binding('o', 'openpage', openpage_handler)
 mp.add_key_binding('?', 'getinfo', getinfo_handler)
 
