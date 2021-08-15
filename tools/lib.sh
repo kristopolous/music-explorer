@@ -140,6 +140,12 @@ album_purge() {
   echo "$1" > "$path"/no
 }
 
+unpurge() {
+  local path="$1"
+  _rm "$path"/no 
+  [[ -e /tmp/"$path" ]] && mv /tmp/"$path"/* "$path"
+}
+
 purge() {
   album_purge "CLI" "$1"
 }
