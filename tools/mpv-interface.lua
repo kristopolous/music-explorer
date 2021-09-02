@@ -39,7 +39,7 @@ function lg(e)
   tprint(e,2)
   if e.level == "error" and e.prefix == 'stream' then
     print("Exiting...")
-    mp.command('quit 2')
+    mp.command('quit 1')
   end
 end
 
@@ -61,9 +61,6 @@ function getinfo_handler()
   print( mp.get_property_native('media-title') )
 end
 
-function quit_handler()
-  mp.command('quit 5')
-end
 
 function record_volume()
   vol = mp.get_property('volume')
@@ -71,6 +68,21 @@ function record_volume()
   io.output(f)
   io.write(vol)
   io.close(f)
+end
+--
+-- exit codes
+--
+--  1       - error
+--  2       - purge
+--  3 .. 5  - score
+--  6       - skip
+--  7       - quit and reprompt
+--
+-- known as player_exit in mpv-once
+--
+
+function quit_handler()
+  mp.command('quit 7')
 end
 
 mp.register_event("log-message", lg)
@@ -84,7 +96,7 @@ mp.add_key_binding('S', 'skip', function()
   mp.command('quit 6')
 end)
 mp.add_key_binding('P', 'purge', function()
-  mp.command('quit 7')
+  mp.command('quit 2')
 end)
 
 mp.add_key_binding('e', 'env', function() 
@@ -93,8 +105,8 @@ mp.add_key_binding('e', 'env', function()
   end
 end)
 
-for i=1,8 do
+for i=2,5 do
   mp.add_key_binding(tostring(i), 'pl-' .. i, function() 
-    mp.command('playlist-play-index ' .. i)
+    mp.command('quit ' .. i)
   end)
 end
