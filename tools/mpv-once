@@ -192,7 +192,11 @@ while [[ ${#all[@]} -gt 0 ]]; do
               fi
             fi
 
-            [[ $t_count != 1 ]] && headline 1 "$t_count tracks" || headline 1 "single"
+            if [[ $t_count != 1 ]]; then 
+              headline 1 "$t_count tracks" 
+            else
+              [[ "$url" =~ "/track" ]] && headline 1 "single" || headline 1 "1 track"
+            fi
 
             playit "$m3u"
             player_exit=$?
