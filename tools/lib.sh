@@ -272,8 +272,9 @@ _info () {
   info        $path
   echo
 
+  echo $path/$PAGE
   info "Released\t$(date --date="$reldate" -I)"
-  info "Downloaded\t$(stat -c %w "$path/$PAGE" | cut -d ' ' -f 1 )"
+  info "Downloaded\t$(stat -c %y "$path/$PAGE" | cut -d ' ' -f 1 )"
 
   headline 2 Tracks
   grep -Po '((?<=track-title">).*?(?=<))' "$path/$PAGE" | awk ' { print "\t"FNR". "$0 } ' 
