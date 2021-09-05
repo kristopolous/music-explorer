@@ -2,6 +2,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 NONET=${NONET:=}
+NOSCAN=${NOSCAN:=}
 NOPL=${NOPL:=}
 DEBUG=${DEBUG:=}
 PLAYLIST=playlist.m3u
