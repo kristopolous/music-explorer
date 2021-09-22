@@ -274,18 +274,24 @@ _info () {
   local reldate="$(grep -m 1 -Po '((?<=release[sd] )[A-Z][a-z]+ [0-9]{1,2}, 20[0-9]{2})' "$path/$PAGE" )"
   _tabs
 
-  headline 2  $url
-  info        $path
-  echo
+  {
+    headline 2  $url
+    info        $path
+    echo
 
-  info "Released\t$(date --date="$reldate" -I)"
-  info "Downloaded\t$(stat -c %w "$path/$PAGE" | cut -d ' ' -f 1 )"
+    info "Released\t$(date --date="$reldate" -I)"
+    info "Downloaded\t$(stat -c %w "$path/$PAGE" | cut -d ' ' -f 1 )"
 
-  headline 2 Tracks
-  grep -Po '((?<=track-title">).*?(?=<))' "$path/$PAGE" | awk ' { print "\t"FNR". "$0 } ' 
+    headline 2 Tracks
+    grep -Po '((?<=track-title">).*?(?=<))' "$path/$PAGE" | awk ' { print FNR". "$0 } ' 
 
-  headline 2 "Files"
-  ( cd "$path"; ls -l *mp3 ) | sed 's/^/\t/' 
+    headline 2 "Files"
+    ( cd "$path"; ls -l *mp3 )
+
+    headline 2 "PLS"
+    cat "$path/playlist.m3u"
+  } | sed -E 's/^([^\t])/\t\1/'
+
   echo
 }
 
