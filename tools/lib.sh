@@ -2,6 +2,7 @@
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 NONET=${NONET:=}
+NOSCAN=${NOSCAN:=}
 NOPL=${NOPL:=}
 DEBUG=${DEBUG:=}
 PLAYLIST=playlist.m3u
@@ -268,10 +269,17 @@ _tabs () {
   tabs 2,+4,+2,+10
 }
 
+_info_section()  {
+  local count=$(echo "$2" | wc -l)
+  headline 2 "$count $1"
+  echo "$2"
+}
+
 _info () {
   local path="$1"
   local url=$(resolve "$path")
   local reldate="$(grep -m 1 -Po '((?<=release[sd] )[A-Z][a-z]+ [0-9]{1,2}, 20[0-9]{2})' "$path/$PAGE" )"
+  local matcher=
   _tabs
 
   {
@@ -282,14 +290,12 @@ _info () {
     info "Released\t$(date --date="$reldate" -I)"
     info "Downloaded\t$(stat -c %w "$path/$PAGE" | cut -d ' ' -f 1 )"
 
-    headline 2 Tracks
-    grep -Po '((?<=track-title">).*?(?=<))' "$path/$PAGE" | awk ' { print FNR". "$0 } ' 
+    [[ $url =~ 'album' ]] && matcher='track-title' || matcher='trackTitle'
 
-    headline 2 "Files"
-    ( cd "$path"; ls -l *mp3 )
+    _info_section "Tracks"      "$(cat "$path/$PAGE" | tr '\n' ' ' | grep -Po '((?<='$matcher'">).*?(?=<))' | sed -E 's/^\s*//g' | awk ' { print FNR". "$0 } ')"
+    _info_section "Files"       "$(cd "$path"; ls -l *mp3)" 
+    _info_section "PLS entries" "$(cat "$path/playlist.m3u")"
 
-    headline 2 "PLS"
-    cat "$path/playlist.m3u"
   } | sed -E 's/^([^\t])/\t\1/'
 
   echo
