@@ -29,6 +29,10 @@ check_for_stop() {
   fi
 }
 
+announce() {
+  [[ -n "$announce" ]] && echo "$*" | aosd_cat -p 2  -n "Noto Sans Condensed ExtraBold 150" -R white -f 1000 -u 15000 -o 2000 -x -20 -y 20 -d 50 -r 190 -b 216 -S black -e 2 -B black -w 3600 -b 200&
+}
+
 function headline {
   case $1 in
     3)
