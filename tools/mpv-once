@@ -90,7 +90,8 @@ function playit() {
 }
 
 set_filter $*
-echo */* | tr ' ' '\n' > .listen_all
+scan
+
 touch .listen_done
 
 load_tracks 1
@@ -347,12 +348,13 @@ while [[ ${#all[@]} -gt 0 ]]; do
           b       - Set start time  [$start_time]
           filter  - Set filter      [$filter]
 
-          pl      - Toggle playlist [${STR[${NOPL:-0}]}]
-          net     - Toggle network  [${STR[${NONET:-0}]}]
-          score   - Toggle scoring  [${STR[${NOSCORE:-0}]}]
-          prompt  - Toggle prompt   [${STR[${NOPROMPT:-0}]}]
-          debug   - Toggle debug    [${STR[${DEBUG:-1}]}]
-          scan    - Toggle rescan   [${STR[${NOSCAN:-1}]}]
+          pl      - Toggle playlist     [${STR[${NOPL:-0}]}]
+          net     - Toggle network      [${STR[${NONET:-0}]}]
+          score   - Toggle scoring      [${STR[${NOSCORE:-0}]}]
+          prompt  - Toggle prompt       [${STR[${NOPROMPT:-0}]}]
+          debug   - Toggle debug        [${STR[${DEBUG:-1}]}]
+          scan    - Toggle rescan       [${STR[${NOSCAN:-1}]}]
+          backup  - Toggle purge backup [${STR[${NOBACKUP:-0}]}]
 
           list    - List things in filter
 
@@ -361,6 +363,10 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
 	ENDL
         } | sed 's/^\s*/\t\t/g';
+
+        elif [[ "$n" == 'backup' ]]; then
+          [[ -z "$NOBACKUP" ]] && NOBACKUP=1 || NOBACKUP=
+          status "Backup ${STR[${NOBACKUP:-0}]}"
 
         elif [[ "$n" == 'scan' ]]; then
           [[ -z "$NOSCAN" ]] && NOSCAN=1 || NOSCAN=

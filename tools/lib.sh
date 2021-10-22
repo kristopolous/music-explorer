@@ -3,6 +3,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 NONET=${NONET:=}
 NOSCAN=${NOSCAN:=}
+NOBACKUP=${NOBACKUP:=}
 NOPL=${NOPL:=}
 DEBUG=${DEBUG:=}
 PLAYLIST=playlist.m3u
@@ -52,6 +53,10 @@ function info {
   echo -e "\t$1"
 }
 
+function debug {
+  [[ -n "$DEBUG" ]] && echo -e "\t$1"
+}
+
 function status {
   [[ -n "$2" ]] && echo
   echo -e "\t\t$1"
@@ -94,8 +99,16 @@ unlistened() {
   fi
 }
 
+scan() {
+  if [[ -z "$NOSCAN" ]]; then
+    echo */* | tr ' ' '\n' > .listen_all
+  else
+    debug "Skipping scan"
+  fi
+}
+
 recent() {
-  echo */* | tr ' ' '\n' > .listen_all
+  scan
   # The great 2049 problem.
   # It will not be global environmental collapse.
   # NO! It will be this bash line.
@@ -140,8 +153,14 @@ album_purge() {
   local info="$1"
   local path="$2"
   
-  [[ -e /tmp/"$path" ]] || mkdir -p /tmp/"$path"
-  mv "$path"/* /tmp/"$path"
+  if [[ -z "$NOBACKUP" ]]; then
+    [[ -e /tmp/"$path" ]] || mkdir -p /tmp/"$path"
+    mv "$path"/* /tmp/"$path"
+  else
+    debug "Bypassing backup and deleting"
+    rm "$path"/*
+  fi
+
   echo "$1" > "$path"/no
 }
 
