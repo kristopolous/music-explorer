@@ -15,6 +15,7 @@ SLEEP_MIN=1
 SLEEP_MAX=4
 SLEEP_OPTS="--max-sleep-interval $SLEEP_MAX --min-sleep-interval $SLEEP_MIN"
 DAY=86400
+[[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 
 function hr {
   echo
