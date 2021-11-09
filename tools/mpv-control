@@ -5,7 +5,8 @@
 #   /usr/include/X11/keysymdef.h and
 #   http://man.openbsd.org/OpenBSD-current/man1/tmux.1#KEY_BINDINGS
 #
-[[ -e $HOME/.me-props ]] && . $HOME/.me-props
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+[[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 
 amixer_prefix='amixer -D pulse sset Master'
 amixer_step=4%
