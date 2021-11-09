@@ -6,6 +6,7 @@
 #   http://man.openbsd.org/OpenBSD-current/man1/tmux.1#KEY_BINDINGS
 #
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cmdbase=$DIR/
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 
 amixer_prefix='amixer -D pulse sset Master'
@@ -16,7 +17,7 @@ pactl_prefix="pactl set-sink-volume $pactl_source"
 pactl_step=2000
 
 dbg() {
-  echo $(date) "$*" >> /tmp/keycode
+  echo $(date +%s) "$*" >> /tmp/keycode
 }
   
 docmd() {
