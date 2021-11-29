@@ -280,8 +280,6 @@ get_playlist() {
 
   if [[ -n "$failed" ]]; then 
     status "Look in $PLAYLIST_DBG\n"
-    #else
-    #  _rm "$PLAYLIST_DBG"
   fi
 }
 
@@ -322,7 +320,6 @@ _info () {
 
     headline 2  $url
     info        $path
-
   } | sed -E 's/^([^\t])/\t\1/'
 
   echo
