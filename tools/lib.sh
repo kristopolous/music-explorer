@@ -306,11 +306,11 @@ _info () {
   local matcher=
   _tabs
 
-  {
-    headline 2  $url
-    info        $path
-    echo
+  # If we were passed additional arguments then this will
+  # tell us a full path of where we can find this.
+  [[ -n "$2$3" ]] && path=$(dirname "$2/$3")
 
+  {
     info "Released\t$(date --date="$reldate" -I)"
     info "Downloaded\t$(stat -c %w "$path/$PAGE" | cut -d ' ' -f 1 )"
 
@@ -319,6 +319,9 @@ _info () {
     _info_section "Tracks"      "$(cat "$path/$PAGE" | tr '\n' ' ' | grep -Po '((?<='$matcher'">).*?(?=<))' | sed -E 's/^\s*//g' | awk ' { print FNR". "$0 } ')"
     _info_section "Files"       "$(cd "$path"; ls -l *mp3)" 
     _info_section "PLS entries" "$(cat "$path/playlist.m3u")"
+
+    headline 2  $url
+    info        $path
 
   } | sed -E 's/^([^\t])/\t\1/'
 

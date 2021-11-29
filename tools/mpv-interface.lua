@@ -57,7 +57,11 @@ end
 function getinfo_handler()
   parts = string_split(mp.get_property('path'), '/')
   partial = parts[#parts - 2] .. '/' .. parts[#parts - 1] 
-  os.execute('mpv-lib _info "' .. partial .. '"')
+  os.execute('mpv-lib _info "' .. table.concat({
+    partial, 
+    mp.get_property('working-directory'),
+    mp.get_property('path')
+  }, '" "') .. '"')
   print( mp.get_property_native('media-title') )
 end
 
