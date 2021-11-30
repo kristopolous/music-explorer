@@ -85,8 +85,8 @@ end
 -- known as player_exit in mpv-once
 --
 
-function quit_handler()
-  mp.command('quit 7')
+function quit_handler(level)
+  mp.command('quit ' .. level)
 end
 
 mp.register_event("log-message", lg)
@@ -94,7 +94,9 @@ mp.register_event("start-file", print_on_start)
 mp.register_event("shutdown", record_volume)
 mp.add_key_binding('o', 'openpage', openpage_handler)
 mp.add_key_binding('?', 'getinfo', getinfo_handler)
-mp.add_key_binding('Q', 'quit', quit_handler)
+mp.add_key_binding('Q', 'quit', function() 
+  quit_handler(7)
+end)
 
 mp.add_key_binding('S', 'skip', function()
   mp.command('quit 6')
