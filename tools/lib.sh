@@ -234,6 +234,17 @@ open_page() {
   fi
 }
 
+listen_playlist() {
+  filter=${2:-.}
+
+  shuf $1 | grep -E $filter | while read i; do
+    echo $i
+    fname=$(mktemp --suffix=.m3u)
+    _get_urls $i $fname
+    mpv --term-playing-msg='\n${media-title}' --no-audio-display $fname
+  done
+}
+
 get_playlist() {
   PLAYLIST_DBG=/tmp/playlist-interim:$(_stub "$2"):$(date +%s)
   local failed=
