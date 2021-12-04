@@ -14,7 +14,6 @@ FORMAT="-f mp3-128"
 SLEEP_MIN=1
 SLEEP_MAX=4
 SLEEP_OPTS="--max-sleep-interval $SLEEP_MAX --min-sleep-interval $SLEEP_MIN"
-DAY=86400
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 
 function hr {
@@ -115,7 +114,7 @@ recent() {
   # NO! It will be this bash line.
   first=$(grep -m 1 "20[2-4][0-9]" .listen_done)
   first_date=${first##* }
-  days=$(( ($(date +%s) - $(date --date=$first_date +%s)) / DAY ))
+  days=$(( ($(date +%s) - $(date --date=$first_date +%s)) / 86400 ))
 
   grep "20[2-4][0-9]" .listen_done | awk ' { print $NF } ' | sort | uniq -c
   ttl=$(wc -l .listen_all | awk ' { print $1 }').0
