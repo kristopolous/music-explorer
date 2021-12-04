@@ -89,7 +89,11 @@ function playit() {
     $*
 }
 
-set_filter $*
+if [[ -f "$1" ]]; then
+  set_filter $(< $1)
+else
+  set_filter $*
+fi
 scan
 
 touch .listen_done
