@@ -16,6 +16,14 @@ SLEEP_MAX=4
 SLEEP_OPTS="--max-sleep-interval $SLEEP_MAX --min-sleep-interval $SLEEP_MIN"
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 
+# some simple things first.
+_rm ()  { [[ -e "$1" ]] && rm "$1"; }
+_tabs() { tabs 2,+4,+2,+10; }
+_stub() { echo "$1" | tr '/' ':'; }
+info()  { echo -e "\t$1"; }
+debug() { [[ -n "$DEBUG" ]] && echo -e "\t$1"; }
+purge() { album_purge "CLI" "$1"; }
+
 function hr {
   echo
   local len=$(tput cols)
@@ -35,27 +43,14 @@ announce() {
 }
 
 function headline {
-  case $1 in
-    3)
-      echo -e "\n\t$2"
-      ;;
-    2)
-      echo -e "\n\t\033[1m$2\033[0m" 
-      ;;
-    1)
-      up=$( echo "$2" | tr '[:lower:]' '[:upper:]' )
-      echo -e "\n\t\033[1m$up\033[0m" 
-      ;;
-  esac
+  [[ $1 == "3" ]] && echo -e "\n\t$2"
+  [[ $1 == "2" ]] && echo -e "\n\t\033[1m$2\033[0m" 
+  if [[ $1 == "1" ]]; then
+    up=$( echo "$2" | tr '[:lower:]' '[:upper:]' )
+    echo -e "\n\t\033[1m$up\033[0m" 
+  fi
 }
 
-function info {
-  echo -e "\t$1"
-}
-
-function debug {
-  [[ -n "$DEBUG" ]] && echo -e "\t$1"
-}
 
 function status {
   [[ -n "$2" ]] && echo
@@ -85,9 +80,6 @@ check_url() {
   fi
 }
 
-_stub() {
-  echo "$1" | tr '/' ':'
-}
 
 unlistened() {
   local filter=${1:-.}
@@ -170,9 +162,6 @@ unpurge() {
   [[ -e /tmp/"$path" ]] && mv /tmp/"$path"/* "$path"
 }
 
-purge() {
-  album_purge "CLI" "$1"
-}
 
 resolve() {
   if [[ -e "$1/domain" ]]; then
@@ -233,17 +222,6 @@ open_page() {
   fi
 }
 
-listen_playlist() {
-  filter=${2:-.}
-
-  shuf $1 | grep -E $filter | while read i; do
-    echo $i
-    fname=$(mktemp --suffix=.m3u)
-    _get_urls $i $fname
-    mpv --term-playing-msg='\n${media-title}' --no-audio-display $fname
-  done
-}
-
 get_playlist() {
   PLAYLIST_DBG=/tmp/playlist-interim:$(_stub "$2"):$(date +%s)
   local failed=
@@ -293,14 +271,6 @@ get_playlist() {
   fi
 }
 
-_rm () {
-  [[ -e "$1" ]] && rm "$1"
-}
-
-_tabs () {
-  tabs 2,+4,+2,+10
-}
-
 _info_section()  {
   local count=$(echo "$2" | wc -l)
   headline 2 "$count $1"
@@ -334,7 +304,6 @@ _info () {
 
   echo
 }
-
 
 _ytdl () {
   if [[ -z "$NONET" ]]; then
