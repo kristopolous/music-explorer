@@ -176,12 +176,12 @@ while [[ $# -gt 0 ]]; do
       # option to see if nothing ought to be downloaded in which
       # case we mark it as skippable
       if [[ -z "$isnew" ]]; then
-        # this is a manual scrape for youtube-dl which can get confused.
+        # this is a manual scrape for $YTDL which can get confused.
         manual_pull_flag=0
 
         # we put in some kind of backoff strategy
         sleep 2
-        track_count=$( youtube-dl -i $FORMAT -g -- "$url" | wc -l )
+        track_count=$( $YTDL -i $FORMAT -g -- "$url" | wc -l )
         if [[ "$track_count" = "0" ]]; then
           echo "  ( no files )"
           touch "$place"/no-files

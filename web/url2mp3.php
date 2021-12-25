@@ -19,7 +19,7 @@ $mp3 = $client->get($key);
 if(!$mp3) {
   preg_match('/(share.*data-url=")(https:[^"]*track[^"]*)/', $content, $matches);
   $url = $matches[count($matches)-1];
-  $mp3 = shell_exec("youtube-dl -g $url");
+  $mp3 = shell_exec("yt-dlp -g $url");
   $client->set($key, $mp3);
   $client->expire($key, 60 * 60 * 12);
 }

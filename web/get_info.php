@@ -16,5 +16,5 @@ if(!file_exists("$dir/playlist.m3u")) {
       break;
     }
   }
-  echo shell_exec("youtube-dl -g --playlist-items $offset $domain");
+  echo shell_exec("yt-dlp -g --playlist-items $offset $domain");
 }

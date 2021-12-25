@@ -1,6 +1,6 @@
 # Music-Explorer
 
-A set of tools for exploring music surrounding youtube-dl and mpv.
+A set of tools for exploring music surrounding yt-dlp and mpv.
 
 There's also a way to navigate and control the music that uses tmux, notion, and a usb foot pedal, really. You should have id3v2 and amixer if you want to do that one.
 
@@ -29,7 +29,7 @@ Ok, that was easy. Now figure out where you want the music to go. I'm going to u
     $ mkdir -p /sd/mp3/label
     $ cd /sd/mp3/label
 
-Let's say you want to get a label or artist, heck let's use me, pay me nothing, it's cool. (install youtube-dl, it's in apt, before you do this)
+Let's say you want to get a label or artist, heck let's use me, pay me nothing, it's cool.
 
     $ album-get chrismckenzie
     ♫ chrismckenzie ♫

@@ -8,6 +8,7 @@ NOPL=${NOPL:=}
 DEBUG=${DEBUG:=}
 PLAYLIST=playlist.m3u
 PLAYLIST_DBG=
+YTDL=yt-dlp
 PAGE=page.html
 STOPFILE=/tmp/mpvstop
 FORMAT="-f mp3-128"
@@ -123,7 +124,7 @@ END
 }
 
 _get_urls() {
-  youtube-dl $SLEEP_OPTS \
+  $YTDL $SLEEP_OPTS \
     --get-duration --get-filename -g $FORMAT -- "$1" \
     | awk -f $DIR/ytdl2m3u.awk > "$2"
 }
@@ -236,7 +237,7 @@ get_playlist() {
       echo "cd '$2'" > $PLAYLIST_DBG
 
       #$SLEEP_OPTS \
-      youtube-dl \
+      $YTDL \
         -ei $FORMAT -- "$1" |\
         sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' >> $PLAYLIST_DBG
     } 2> /dev/null
@@ -310,7 +311,7 @@ _ytdl () {
     local url="$1"
     local path="$2"
 
-    youtube-dl $SLEEP_OPTS \
+    $YTDL $SLEEP_OPTS \
       -o "$path/%(title)s-%(id)s.%(ext)s" \
       $FORMAT -- "$url"
     
