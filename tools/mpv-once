@@ -12,6 +12,8 @@ pipe=/tmp/mpv-pipe
 auto=
 start_time=0:45
 ao=${ao:-pulse}
+myname="mpv-once-$RANDOM-$PPID"
+
 [[ -n "$NOSCORE" ]] && NOPROMPT=1 || NOPROMPT=
 
 # [[ -e $pipe ]] || mkfifo $pipe
@@ -32,7 +34,12 @@ STR=(on off)
 
 shopt -s nullglob
 
-tmux rename-window "mpv-once" 2> /dev/null
+setname() {
+  tmux rename-session $myname #2> /dev/null
+  echo $myname > $tmp/tmux-name
+}
+
+setname
 
 function finish {
   history -w $tmp/readline-history
@@ -124,7 +131,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
     direct=
   fi
 
-  tmux rename-window "mpv-once" 2> /dev/null
+  setname
   (( ix ++ ))
   n="__nothing"
   listen_time=0
