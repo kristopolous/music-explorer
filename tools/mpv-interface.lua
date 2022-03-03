@@ -78,7 +78,7 @@ end
 --
 --  1       - error
 --  2       - purge
---  3 .. 5  - score
+--  13 .. 15  - score
 --  6       - skip
 --  7       - quit and reprompt
 --
@@ -113,6 +113,6 @@ end)
 
 for i=2,5 do
   mp.add_key_binding(tostring(i), 'pl-' .. i, function() 
-    mp.command('quit ' .. i)
+    mp.command('quit ' .. (10 + i))
   end)
 end
