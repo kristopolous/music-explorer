@@ -158,7 +158,8 @@ album_purge() {
   local path="$2"
   
   if [[ -z "$NOUNDO" ]]; then
-    _mkdir -p $UNDODIR/"$path"
+    _mkdir $UNDODIR/"$path"
+
     mv "$path"/* $UNDODIR/"$path"
   else
     debug "Bypassing undo and deleting"
