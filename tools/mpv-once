@@ -34,6 +34,7 @@ STR=(on off)
 shopt -s nullglob
 
 setname() {
+  [[ -n "$WINDOWID" ]] && xprop -id "$WINDOWID" -set WM_NAME "$myname"
   tmux rename-session $myname #2> /dev/null
   echo $myname > $tmp/tmux-name
 }
