@@ -1,7 +1,7 @@
 #!/usr/bin/env nodejs
 
 const net = require('net');
-const client = net.createConnection('/tmp/mpvsocket')
+const client = net.createConnection('/tmp/mpvonce/mpvsocket')
 const quitList = ['quit', 'pause', 'playback-restart', 'unpause'];
 var cb = false;
 var command = process.argv[2];

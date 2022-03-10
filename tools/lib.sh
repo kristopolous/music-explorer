@@ -1,16 +1,19 @@
 #!/bin/bash
 
+tmp=/tmp/mpvonce
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+BACKUPDIR=$HOME/.mpvonce
+UNDODIR=$tmp/undo
 NONET=${NONET:=}
 NOSCAN=${NOSCAN:=}
-NOBACKUP=${NOBACKUP:=}
+NOUNDO=${NOUNDO:=}
 NOPL=${NOPL:=}
 DEBUG=${DEBUG:=}
 PLAYLIST=playlist.m3u
 PLAYLIST_DBG=
 YTDL=yt-dlp
 PAGE=page.html
-STOPFILE=/tmp/mpvstop
+STOPFILE=$tmp/mpvstop
 FORMAT="-f mp3-128"
 SLEEP_MIN=1
 SLEEP_MAX=4
@@ -19,11 +22,13 @@ SLEEP_OPTS="--max-sleep-interval $SLEEP_MAX --min-sleep-interval $SLEEP_MIN"
 
 # some simple things first.
 _rm ()  { [[ -e "$1" ]] && rm "$1"; }
+_mkdir(){ [[ -e "$1" ]] || mkdir -p "$1"; }
 _tabs() { tabs 2,+4,+2,+10; }
 _stub() { echo "$1" | tr '/' ':'; }
 info()  { echo -e "\t$1"; }
 debug() { [[ -n "$DEBUG" ]] && echo -e "\t$1"; }
 purge() { album_purge "CLI" "$1"; }
+getvar() { echo ${!1}; }
 
 function hr {
   echo
@@ -52,10 +57,16 @@ function headline {
   fi
 }
 
-
-function status {
+status() {
   [[ -n "$2" ]] && echo
   echo -e "\t\t$1"
+}
+
+backup() {
+  _mkdir $BACKUPDIR
+  backupname=$(date +%Y%m%d).tbz
+  tar cjf $BACKUPDIR/$backupname .dl_history .listen_all .listen_done
+  debug "Backing up to $BACKUPDIR/$backupname"
 }
 
 album_art() {
@@ -146,11 +157,12 @@ album_purge() {
   local info="$1"
   local path="$2"
   
-  if [[ -z "$NOBACKUP" ]]; then
-    [[ -e /tmp/"$path" ]] || mkdir -p /tmp/"$path"
-    mv "$path"/* /tmp/"$path"
+  if [[ -z "$NOUNDO" ]]; then
+    _mkdir $UNDODIR/"$path"
+
+    mv "$path"/* $UNDODIR/"$path"
   else
-    debug "Bypassing backup and deleting"
+    debug "Bypassing undo and deleting"
     rm "$path"/*
   fi
 

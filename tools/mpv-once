@@ -2,16 +2,17 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . $DIR/lib.sh
 
-tmp=/tmp/mpvonce
 player=mpv
-player_opts_orig='--no-cache --no-audio-display --msg-level=cplayer=no --term-playing-msg=\n${media-title} --script='"$DIR"'/mpv-interface.lua --input-ipc-server=/tmp/mpvsocket'
+player_opts_orig='--no-cache --no-audio-display --msg-level=cplayer=no --term-playing-msg=\n${media-title} --script='"$DIR"'/mpv-interface.lua --input-ipc-server='"$tmp"'/mpvsocket'
 player_opts_dbg="--msg-level=all=debug"
 player_opts=$player_opts_orig
 display=0
-pipe=/tmp/mpv-pipe
+pipe=$tmp/mpv-pipe
 auto=
 start_time=0:45
 ao=${ao:-pulse}
+myname="mpv-once-$RANDOM-$PPID"
+
 [[ -n "$NOSCORE" ]] && NOPROMPT=1 || NOPROMPT=
 
 # [[ -e $pipe ]] || mkfifo $pipe
@@ -32,7 +33,13 @@ STR=(on off)
 
 shopt -s nullglob
 
-tmux rename-window "mpv-once" 2> /dev/null
+setname() {
+  [[ -n "$WINDOWID" ]] && xprop -id "$WINDOWID" -set WM_NAME "$myname"
+  tmux rename-session $myname #2> /dev/null
+  echo $myname > $tmp/tmux-name
+}
+
+setname
 
 function finish {
   history -w $tmp/readline-history
@@ -70,14 +77,18 @@ function load_tracks() {
 
 function record_listen() {
   if [[ "$n" != "__nothing" ]]; then 
-    cp .listen_done /tmp/.listen_done-$(date +%Y%m%d%H%M%S)
+    {
+      cp .listen_done $tmp/.listen_done-$(date +%Y%m%d%H%M%S)
 
-    # Remove any previous record of this
-    st=$( echo "$i" | tr '//' '.' )
-    sed -i "/$st/d" .listen_done
+      # Remove any previous record of this
+      st=$( echo "$i" | tr '//' '.' )
+      sed -i "/$st/d" .listen_done
 
-    # Also record how many audio files we saw at the time
-    echo "$i $n ($_stats) $(date +%Y%m%d)" >> .listen_done
+      # Also record how many audio files we saw at the time
+      echo "$i $n ($_stats) $(date +%Y%m%d)" >> .listen_done
+
+      backup 
+    } &
   fi
 }
 
@@ -124,7 +135,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
     direct=
   fi
 
-  tmux rename-window "mpv-once" 2> /dev/null
+  setname
   (( ix ++ ))
   n="__nothing"
   listen_time=0
@@ -216,8 +227,10 @@ while [[ ${#all[@]} -gt 0 ]]; do
                 n=p
                 skipprompt=1 
                 ;;
-              [3-5])
-                n=$player_exit
+              [13-15])
+                # 4 is what mpv does on ctrl+c
+                # so we add 10 to avoid the collision
+                n=$(player_exit - 10)
                 skipprompt=1 
                 ;;
               6)
@@ -358,7 +371,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
           prompt  - Toggle prompt       [${STR[${NOPROMPT:-0}]}]
           debug   - Toggle debug        [${STR[${DEBUG:-1}]}]
           scan    - Toggle rescan       [${STR[${NOSCAN:-1}]}]
-          backup  - Toggle purge backup [${STR[${NOBACKUP:-0}]}]
+          backup  - Toggle purge backup [${STR[${NOUNDO:-0}]}]
 
           list    - List things in filter
 
@@ -369,8 +382,8 @@ while [[ ${#all[@]} -gt 0 ]]; do
         } | sed 's/^\s*/\t\t/g';
 
         elif [[ "$n" == 'backup' ]]; then
-          [[ -z "$NOBACKUP" ]] && NOBACKUP=1 || NOBACKUP=
-          status "Backup ${STR[${NOBACKUP:-0}]}"
+          [[ -z "$NOUNDO" ]] && NOUNDO=1 || NOUNDO=
+          status "Backup ${STR[${NOUNDO:-0}]}"
 
         elif [[ "$n" == 'scan' ]]; then
           [[ -z "$NOSCAN" ]] && NOSCAN=1 || NOSCAN=
