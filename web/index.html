@@ -11,7 +11,8 @@ body {
   text-align: center; 
   color: white
 }
-#controls a, button {border:0;background:#1f1f1f;width: 100%;font-size:2rem; padding: .75rem 0; margin: 0 ;color: white }
+  
+#controls a, input, button {border:0;background:#1f1f1f;width: 100%;font-size:2rem; padding: .75rem 0; margin: 0 ;color: white }
 #controls a {
   display:inline-block;
   margin: .5rem 0;
@@ -21,6 +22,11 @@ body {
 }
 #controls div > :nth-child(3) {
   margin-right: .5rem;
+}
+input {
+  width: calc(80% - 1rem);
+  padding: 1rem;
+  margin-bottom: 1rem;
 }
 h2,h1 {
   margin: 0.15rem;
@@ -41,6 +47,7 @@ h2 {
 <audio autoplay=true controls style=filter:invert(92%);position:relative;width:340px;top:-123px />
 </div>
 <div id=controls>
+  <input id='search'/>
   <div>
     <button onclick=d(-1)>&#x23ee;</button><br/>
     <a onclick=d(-100)>-100</a>
@@ -55,7 +62,9 @@ h2 {
 <script>
 var el, 
   label, 
+  search,
   rel,
+  qstr = '',
   pl = [], 
   offset = parseInt(window.location.hash.slice(1) || localStorage['off'] || Math.round(Math.random()*1e8));
 
@@ -89,7 +98,11 @@ function play_url(str) {
 
 }
 
-function d(what) {
+function d(what, absolute) {
+  if(absolute) {
+    offset = 0;
+  } 
+
   offset += what;
   localStorage['off'] = offset;
   window.location.hash = offset;
@@ -102,11 +115,11 @@ function getit(off) {
   if(pl[_off]) {
     return play_url(pl[_off]);
   }
-  fetch(`get_playlist.php?off=${off}`)
+  fetch(`get_playlist.php?off=${off}&q=${qstr}`)
     .then(response => response.json())
     .then(data => {
-      for(ix=0; ix < data.length; ix++){
-        pl[_off + ix] = data[ix];
+      for(ix=0; ix < data.res.length; ix++){
+        pl[_off + ix] = data.res[ix];
       }
       pl[_off + ix] = false;
 
@@ -118,6 +131,16 @@ window.onload = () => {
   el = document.querySelector('audio');
   label = document.querySelector('#label');
   rel = document.querySelector('#rel');
+  search = document.querySelector('#search');
+
+  search.onkeydown = (e) => { 
+    if(e.code === 'Enter') {
+      pl = [];
+      qstr = search.value;
+      d(0, true);
+    }
+  }
+
   el.onended = () => {
     d(1);
     Notification.requestPermission().then(p => {
