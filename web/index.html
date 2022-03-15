@@ -42,12 +42,11 @@ h2 {
 <main style=max-width:480px;display:inline-block>
 <h1 id=label></h1>
 <h2 id=rel></h2>
-<iframe style='border:8px solid #202020;width:350px;height:398px'></iframe>
+<iframe style='border:8px solid #202020;width:305px;height:340px'></iframe>
 <div style=margin-bottom:.5rem;height:0;overflow:visible>
-<audio autoplay=true controls style=filter:invert(92%);position:relative;width:340px;top:-123px />
+<audio autoplay=true controls style=filter:invert(92%);position:relative;width:290px;top:-105px />
 </div>
 <div id=controls>
-  <input id='search'/>
   <div>
     <button onclick=d(-1)>&#x23ee;</button><br/>
     <a onclick=d(-100)>-100</a>
@@ -58,6 +57,7 @@ h2 {
     <a onclick=d(5)>5</a>
     <a onclick=d(100)>100</a>
   </div>
+  <input id='search'/>
 </div>
 <script>
 var el, 
@@ -134,7 +134,8 @@ window.onload = () => {
   search = document.querySelector('#search');
 
   search.onkeydown = (e) => { 
-    if(e.code === 'Enter') {
+    console.log(e);
+    if([e.key, e.code].includes('Enter')) {
       pl = [];
       qstr = search.value;
       d(0, true);
