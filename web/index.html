@@ -24,6 +24,7 @@ body {
   margin-right: .5rem;
 }
 input {
+  font-size: 1rem;
   width: calc(80% - 1rem);
   padding: 1rem;
   margin-bottom: 1rem;
@@ -40,24 +41,24 @@ h2 {
 }
 </style>
 <main style=max-width:480px;display:inline-block>
+  <input id='search'/>
 <h1 id=label></h1>
 <h2 id=rel></h2>
-<iframe style='border:8px solid #202020;width:305px;height:340px'></iframe>
+<iframe style='border:8px solid #202020;width:305px;height:355px'></iframe>
 <div style=margin-bottom:.5rem;height:0;overflow:visible>
-<audio autoplay=true controls style=filter:invert(92%);position:relative;width:290px;top:-105px />
+<audio autoplay=true controls style=filter:invert(92%);position:relative;width:295px;top:-120px />
 </div>
 <div id=controls>
   <div>
-    <button onclick=d(-1)>&#x23ee;</button><br/>
+    <button onclick=d(-1)>&#9664;</button><br/>
     <a onclick=d(-100)>-100</a>
     <a onclick=d(-5)>-5</a>
   </div>
   <div>
-    <button onclick=d(1)>&#x23ed;</button><br/>
+    <button onclick=d(1)>&#9654;</button><br/>
     <a onclick=d(5)>5</a>
     <a onclick=d(100)>100</a>
   </div>
-  <input id='search'/>
 </div>
 <script>
 var el, 
