@@ -302,8 +302,13 @@ _info () {
   [[ -n "$2$3" ]] && path=$(dirname "$2/$3")
 
   {
+    dldate=$(stat -c %w "$path/$PAGE")
+    if [[ $dldate == '-' ]]; then
+      dldate=$(stat -c %y "$path/$PAGE")
+    fi
+
     info "Released\t$(date --date="$reldate" -I)"
-    info "Downloaded\t$(stat -c %w "$path/$PAGE" | cut -d ' ' -f 1 )"
+    info "Downloaded\t$(echo $dldate | cut -d ' ' -f 1 )"
 
     [[ $url =~ 'album' ]] && matcher='track-title' || matcher='trackTitle'
 
