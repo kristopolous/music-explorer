@@ -116,13 +116,13 @@ recent() {
   # The great 2049 problem.
   # It will not be global environmental collapse.
   # NO! It will be this bash line.
-  first=$(grep -m 1 "20[2-4][0-9]" .listen_done)
-  first_date=${first##* }
-  days=$(( ($(date +%s) - $(date --date=$first_date +%s)) / 86400 ))
+  local first=$(grep -m 1 "20[2-4][0-9]" .listen_done)
+  local first_date=${first##* }
+  local days=$(( ($(date +%s) - $(date --date=$first_date +%s)) / 86400 ))
 
   grep "20[2-4][0-9]" .listen_done | awk ' { print $NF } ' | sort | uniq -c
-  ttl=$(wc -l .listen_all | awk ' { print $1 }').0
-  done=$(wc -l .listen_done | awk ' { print $1 }').0
+  local ttl=$(wc -l .listen_all | awk ' { print $1 }').0
+  local done=$(wc -l .listen_done | awk ' { print $1 }').0
   wc -l .listen*
 
   perl << END
@@ -279,9 +279,7 @@ get_playlist() {
 
   pl_check "$path"
 
-  if [[ -n "$failed" ]]; then 
-    status "Look in $PLAYLIST_DBG\n"
-  fi
+  [[ -n "$failed" ]] && status "Look in $PLAYLIST_DBG\n"
 }
 
 _info_section()  {
@@ -355,6 +353,159 @@ _ytdl () {
   check_for_stop
 }
 
+_repl() {
+  while [[ -z "$NOPROMPT" && -z "$skipprompt" ]]; do 
+    read -p "[[1m$i[0m] " -e n
+    history -s "$n"
+
+    [[ $n == 'i' ]] && _info "$i"
+
+    if [[ ${n:0:1} == 'g' ]]; then
+      direct=${n:2}
+      n="s"
+      hr
+      break
+      
+    elif [[ ${n:0:2} == 'ao' ]]; then
+      ao=${n:3}
+      status "Setting audio out to '$ao'"
+      [[ -e $DIR/prefs.sh ]] && sed -Ei 's/ao=.*/ao='$ao'/g' $DIR/prefs.sh
+
+    elif [[ ${n:0:2} == 'b ' ]]; then
+      start_time=${n:2}
+      status "Setting start time to $start_time"
+
+    elif [[ "$n" == 'l' ]]; then
+      if [[ -s "$m3u" ]]; then
+        headline 1 "playlist" 
+        cat $m3u | sed 's/^/\t\t/'
+      fi
+
+      headline 1 "files"
+      ls -l "$i" | sed 's/^/\t\t/'
+      echo
+    fi
+
+    if [[ $n == '?' ]]; then
+      headline 1 "Keyboard commands" 
+      { cat <<- ENDL
+      ?       - This help page
+      3,4,5   - Rate
+      p       - Purge (delete)
+      dl      - Download the files
+      dlm     - Download manually
+      dlp     - Download just the playlist
+      g       - Go to a path
+      i       - Info on the release
+      l       - List the files
+      o       - Xdg-open the URL
+      r       - Repeat
+      r nopl  - Repeat (ignore playlist)
+      s       - Skip 
+      x       - Exit
+
+      ao      - Set audio out   [$ao]
+      b       - Set start time  [$start_time]
+      filter  - Set filter      [$filter]
+
+      pl      - Toggle playlist     [${STR[${NOPL:-0}]}]
+      net     - Toggle network      [${STR[${NONET:-0}]}]
+      score   - Toggle scoring      [${STR[${NOSCORE:-0}]}]
+      prompt  - Toggle prompt       [${STR[${NOPROMPT:-0}]}]
+      debug   - Toggle debug        [${STR[${DEBUG:-1}]}]
+      scan    - Toggle rescan       [${STR[${NOSCAN:-1}]}]
+      backup  - Toggle purge backup [${STR[${NOUNDO:-0}]}]
+
+      list    - List things in filter
+
+      !       - Do a \$SHELL at the file directory
+      source  - Reload lib
+
+ENDL
+    } | sed 's/^\s*/\t\t/g';
+
+    elif [[ "$n" == 'backup' ]]; then
+      [[ -z "$NOUNDO" ]] && NOUNDO=1 || NOUNDO=
+      status "Backup ${STR[${NOUNDO:-0}]}"
+
+    elif [[ "$n" == 'scan' ]]; then
+      [[ -z "$NOSCAN" ]] && NOSCAN=1 || NOSCAN=
+      status "Rescanning ${STR[${NOSCAN:-0}]}"
+
+    elif [[ "$n" == 'score' ]]; then
+      [[ -z "$NOSCORE" ]] && NOSCORE=1 || NOSCORE=
+      status "Scoring ${STR[${NOSCORE:-0}]}"
+
+    elif [[ "$n" == 'net' ]]; then
+      [[ -z "$NONET" ]] && NONET=1 || NONET=
+      status "Network ${STR[${NONET:-0}]}"
+
+    elif [[ "$n" == 'prompt' ]]; then
+      [[ -z "$NOPROMPT" ]] && NOPROMPT=1 || NOPROMPT=
+      status "Prompt ${STR[${NOPROMPT:-0}]}"
+
+    elif [[ "$n" == 'pl' ]]; then
+      [[ -z "$NOPL" ]] && NOPL=1 || NOPL=
+      status "Playlist ${STR[${NOPL:-0}]}"
+
+    elif [[ "$n" == 'debug' ]]; then
+      if [[ -z "$DEBUG" ]]; then 
+        DEBUG=0 
+        echo $PWD
+        player_opts="$player_opts_orig $player_opts_dbg"
+        set -x
+      else
+        DEBUG=
+        player_opts=$player_opts_orig
+        set +x
+      fi
+      status "Debug ${STR[${DEBUG:-1}]}"
+
+    elif [[ "$n" == 'o' ]]; then
+      open_page "$url"
+
+    elif [[ "$n" == 'list' ]]; then
+      echo
+      echo ${all[@]} | tr ' ' '\n' | sed 's/^\s*/\t/g' | sort
+      echo
+
+    elif [[ ${n:0:6} == 'filter' ]]; then
+      set_filter ${n:7}
+      # this can be turned back on by quitting with a capital Q
+      echo $filter
+      load_tracks 1
+      n=s
+      break
+
+    elif [[ "$n" == 'source' ]]; then
+      . $DIR/lib.sh
+
+    elif [[ "$n" == '!' ]]; then 
+      (
+        cd "$i"
+        $SHELL
+      )
+    elif [[ $n == 'dlp' ]]; then 
+      (
+        status "Downloading playlist"
+        get_playlist "$url" "$i"
+      )
+    elif [[ $n == 'dl' ]]; then 
+      get_mp3s "$url" "$i"
+
+    elif [[ $n == 'dlm' ]]; then 
+      manual_pull "$url" "$i"
+
+    elif [[ "$n" == 'r nopl' ]]; then
+      status "Ignoring playlist"
+      nopl=1
+      # We treat this like a regular replay
+      n=r
+    fi
+    [[ "$n" =~ ^(x|r|s|[1-5]|p)$ ]] && break
+  done
+}
+
 manual_pull() {
   local path="$2"
   local base=$( echo $1 | awk -F[/:] '{print $4}' )
@@ -379,6 +530,8 @@ get_mp3s() {
 }
 
 details() {
+  # Details of a path
+  
   for pid in $(pgrep -f "^mpv "); do
     current=$(lsof -F n -p $pid | grep -E mp3\$ | cut -c 2-)
     track=$(basename "$current")
@@ -420,8 +573,7 @@ get_videos() {
   label=$1
   video_domain="https://bandcamp.23video.com"
   scrape_domain=${1}.bandcamp.com
-  if [[ -e $1/domain ]]
-  then
+  if [[ -e $1/domain ]]; then
     scrape_domain=$(< $1/domain)
   fi
 

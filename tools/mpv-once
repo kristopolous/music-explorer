@@ -14,7 +14,6 @@ ao=${ao:-pulse}
 myname="mpv-once-$RANDOM-$PPID"
 
 [[ -n "$NOSCORE" ]] && NOPROMPT=1 || NOPROMPT=
-
 # [[ -e $pipe ]] || mkfifo $pipe
 
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
@@ -27,7 +26,7 @@ history -r $tmp/readline-history
 
 # We're going to restore it to this.
 start_name=$( tmux display-message -p '#W' )
-start_dir=$(pwd)
+start_dir=$( pwd )
 
 STR=(on off)
 
@@ -76,18 +75,30 @@ function load_tracks() {
 }
 
 function record_listen() {
+  local lock="$tmp/backup-lock"
   if [[ "$n" != "__nothing" ]]; then 
     {
-      cp .listen_done $tmp/.listen_done-$(date +%Y%m%d%H%M%S)
+      cp $start_dir/.listen_done $tmp/.listen_done-$(date +%Y%m%d%H%M%S)
 
       # Remove any previous record of this
       st=$( echo "$i" | tr '//' '.' )
-      sed -i "/$st/d" .listen_done
+      sed -i "/$st/d" $start_dir/.listen_done
 
       # Also record how many audio files we saw at the time
-      echo "$i $n ($_stats) $(date +%Y%m%d)" >> .listen_done
+      echo "$i $n ($_stats) $(date +%Y%m%d)" >> $start_dir/.listen_done
 
-      backup 
+      # If we do this too frequently it's pretty broken
+      # But we also have to be smart enough to not block us out
+      if [[ -e "$lock" ]]; then
+        local age=$(( $( date +%s ) - $(stat -c %Y "$lock") ))
+        (( age > 86400 )) && rm $lock
+      fi
+
+      if [[ ! -e "$lock" ]]; then
+        touch "$lock"
+        backup 
+        rm "$lock"
+      fi
     } &
   fi
 }
@@ -138,14 +149,13 @@ while [[ ${#all[@]} -gt 0 ]]; do
   setname
   (( ix ++ ))
   n="__nothing"
+  f_count=0
   listen_time=0
 
   if [[ ! -d "$i" ]]; then
     grep -m 1 $i .listen_done > /dev/null
     # This means it's in the done but not the all, which is fine.
-    if [[ $? -eq 0 ]]; then
-      continue
-    fi 
+    [[ $? -eq 0 ]] && continue
 
     status "Gone - $i"
     n="__purge"
@@ -153,7 +163,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
     continue
   fi
 
-  ls "$i"/*.mp3 "$i"/*.aiff > /dev/null 2>&1
+  ls "$i"/*.{mp3,aiff,wav} > /dev/null 2>&1
   if [[ $? == "0" || -e "$i/$PLAYLIST" ]]; then
 
     attempts=0
@@ -173,7 +183,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
       status "$start_dir/$i"
       #printf "\n%11s - %s\n%11s - %s\n" "$ix / $size" "$start_dir/$i" "" "$url"
 
-      list="$i/*.mp3 $i/*.aiff"
+      list="$i/*.{mp3,aiff,wav}"
       m3u="$i/$PLAYLIST"
       fileList=( $list )
 
@@ -187,7 +197,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
       
       if [[ -e "$i"/no ]]; then
         status "Why am I here? it's marked as no"
-        n="__nothing"
+        n='p'
         break
       fi
 
@@ -201,7 +211,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
         while [[ 0 ]]; do
 
           before=$( date +%s )
-          age=$(( $before - $(stat -c %Y "$m3u") ))
+          age=$(( before - $(stat -c %Y "$m3u") ))
 
           if [[ -z "$playlistIsRemote" || $age -lt $DAY ]]; then
             
@@ -313,160 +323,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
       fi
 
-      #[[ -n "$NOSCORE" ]] && hr
-
-      while [[ -z "$NOPROMPT" && -z "$skipprompt" ]]; do 
-        read -p "[[1m$i[0m] " -e n
-        history -s "$n"
-
-        if [[ $n == 'i' ]]; then 
-          _info "$i"
-        fi
-
-        if [[ ${n:0:1} == 'g' ]]; then
-          direct=${n:2}
-          n="s"
-          hr
-          break
-          
-        elif [[ ${n:0:2} == 'ao' ]]; then
-          ao=${n:3}
-          status "Setting audio out to '$ao'"
-          [[ -e $DIR/prefs.sh ]] && sed -Ei 's/ao=.*/ao='$ao'/g' $DIR/prefs.sh
-
-        elif [[ ${n:0:2} == 'b ' ]]; then
-          start_time=${n:2}
-          status "Setting start time to $start_time"
-
-        elif [[ "$n" == 'l' ]]; then
-          if [[ -s "$m3u" ]]; then
-            headline 1 "playlist" 
-            cat $m3u | sed 's/^/\t\t/'
-          fi
-
-          headline 1 "files"
-          ls -l "$i" | sed 's/^/\t\t/'
-          echo
-        fi
-
-        if [[ $n == '?' ]]; then
-          headline 1 "Keyboard commands" 
-          { cat <<- ENDL
-          ?       - This help page
-          3,4,5   - Rate
-          p       - Purge (delete)
-          dl      - Download the files
-          dlm     - Download manually
-          dlp     - Download just the playlist
-          g       - Go to a path
-          i       - Info on the release
-          l       - List the files
-          o       - Xdg-open the URL
-          r       - Repeat
-          r nopl  - Repeat (ignore playlist)
-          s       - Skip 
-          x       - Exit
-
-          ao      - Set audio out   [$ao]
-          b       - Set start time  [$start_time]
-          filter  - Set filter      [$filter]
-
-          pl      - Toggle playlist     [${STR[${NOPL:-0}]}]
-          net     - Toggle network      [${STR[${NONET:-0}]}]
-          score   - Toggle scoring      [${STR[${NOSCORE:-0}]}]
-          prompt  - Toggle prompt       [${STR[${NOPROMPT:-0}]}]
-          debug   - Toggle debug        [${STR[${DEBUG:-1}]}]
-          scan    - Toggle rescan       [${STR[${NOSCAN:-1}]}]
-          backup  - Toggle purge backup [${STR[${NOUNDO:-0}]}]
-
-          list    - List things in filter
-
-          !       - Do a \$SHELL at the file directory
-          source  - Reload lib
-
-	ENDL
-        } | sed 's/^\s*/\t\t/g';
-
-        elif [[ "$n" == 'backup' ]]; then
-          [[ -z "$NOUNDO" ]] && NOUNDO=1 || NOUNDO=
-          status "Backup ${STR[${NOUNDO:-0}]}"
-
-        elif [[ "$n" == 'scan' ]]; then
-          [[ -z "$NOSCAN" ]] && NOSCAN=1 || NOSCAN=
-          status "Rescanning ${STR[${NOSCAN:-0}]}"
-
-        elif [[ "$n" == 'score' ]]; then
-          [[ -z "$NOSCORE" ]] && NOSCORE=1 || NOSCORE=
-          status "Scoring ${STR[${NOSCORE:-0}]}"
-
-        elif [[ "$n" == 'net' ]]; then
-          [[ -z "$NONET" ]] && NONET=1 || NONET=
-          status "Network ${STR[${NONET:-0}]}"
-
-        elif [[ "$n" == 'prompt' ]]; then
-          [[ -z "$NOPROMPT" ]] && NOPROMPT=1 || NOPROMPT=
-          status "Prompt ${STR[${NOPROMPT:-0}]}"
-
-        elif [[ "$n" == 'pl' ]]; then
-          [[ -z "$NOPL" ]] && NOPL=1 || NOPL=
-          status "Playlist ${STR[${NOPL:-0}]}"
-
-        elif [[ "$n" == 'debug' ]]; then
-          if [[ -z "$DEBUG" ]]; then 
-            DEBUG=0 
-            echo $PWD
-            player_opts="$player_opts_orig $player_opts_dbg"
-            set -x
-          else
-            DEBUG=
-            player_opts=$player_opts_orig
-            set +x
-          fi
-          status "Debug ${STR[${DEBUG:-1}]}"
-
-        elif [[ "$n" == 'o' ]]; then
-          open_page "$url"
-
-        elif [[ "$n" == 'list' ]]; then
-          echo
-          echo ${all[@]} | tr ' ' '\n' | sed 's/^\s*/\t/g' | sort
-          echo
-
-        elif [[ ${n:0:6} == 'filter' ]]; then
-          set_filter ${n:7}
-          # this can be turned back on by quitting with a capital Q
-          echo $filter
-          load_tracks 1
-          n=s
-          break
-
-        elif [[ "$n" == 'source' ]]; then
-          . $DIR/lib.sh
-
-        elif [[ "$n" == '!' ]]; then 
-          (
-            cd "$i"
-            $SHELL
-          )
-        elif [[ $n == 'dlp' ]]; then 
-          (
-            status "Downloading playlist"
-            get_playlist "$url" "$i"
-          )
-        elif [[ $n == 'dl' ]]; then 
-          get_mp3s "$url" "$i"
-
-        elif [[ $n == 'dlm' ]]; then 
-          manual_pull "$url" "$i"
- 
-        elif [[ "$n" == 'r nopl' ]]; then
-          status "Ignoring playlist"
-          nopl=1
-          # We treat this like a regular replay
-          n=r
-        fi
-        [[ "$n" =~ ^(x|r|s|[1-5]|p)$ ]] && break
-      done
+      _repl
 
       [[ $n == 'x' ]] && finish
       [[ $n == 'r' ]] || break
