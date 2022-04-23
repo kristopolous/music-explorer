@@ -13,6 +13,11 @@ start_time=0:45
 ao=${ao:-pulse}
 myname="mpv-once-$RANDOM-$PPID"
 
+# We're going to restore it to this.
+start_name=$( tmux display-message -p '#W' )
+start_dir=$( pwd )
+STR=(on off)
+
 [[ -n "$NOSCORE" ]] && NOPROMPT=1 || NOPROMPT=
 # [[ -e $pipe ]] || mkfifo $pipe
 
@@ -22,18 +27,8 @@ myname="mpv-once-$RANDOM-$PPID"
 
 [[ -d $tmp ]] || mkdir $tmp
 
-history -r $tmp/readline-history
-
-# We're going to restore it to this.
-start_name=$( tmux display-message -p '#W' )
-start_dir=$( pwd )
-
-STR=(on off)
-
-shopt -s nullglob
-
 setname() {
-  [[ -n "$WINDOWID" ]] && xprop -id "$WINDOWID" -set WM_NAME "$myname"
+  [[ -n "$WINDOWID" ]] && xprop -id "$WINDOWID" -set WM_NAME "$myname" > /dev/null 2>&1
   tmux rename-session $myname #2> /dev/null
   echo $myname > $tmp/tmux-name
 }
@@ -46,6 +41,8 @@ function finish {
   exit
 }
 
+history -r $tmp/readline-history
+shopt -s nullglob
 trap finish EXIT
 
 # This allows remote control
@@ -111,14 +108,11 @@ function playit() {
     $*
 }
 
-if [[ -f "$1" ]]; then
-  set_filter $(< $1)
-else
-  set_filter $*
-fi
+[[ -f "$1" ]] && set_filter $(< $1) || set_filter $*
+
 scan
 
-touch .listen_done
+touch $start_dir/.listen_done
 
 load_tracks 1
 
@@ -139,8 +133,6 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
   i=${all[0]}
 
-  #date +%s.%N
-
   if [[ -n "$direct" ]]; then
     i=$direct
     direct=
@@ -153,7 +145,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
   listen_time=0
 
   if [[ ! -d "$i" ]]; then
-    grep -m 1 $i .listen_done > /dev/null
+    grep -m 1 $i $start_dir/.listen_done > /dev/null
     # This means it's in the done but not the all, which is fine.
     [[ $? -eq 0 ]] && continue
 
@@ -183,9 +175,8 @@ while [[ ${#all[@]} -gt 0 ]]; do
       status "$start_dir/$i"
       #printf "\n%11s - %s\n%11s - %s\n" "$ix / $size" "$start_dir/$i" "" "$url"
 
-      list="$i/*.{mp3,aiff,wav}"
       m3u="$i/$PLAYLIST"
-      fileList=( $list )
+      fileList=( "$i"/*.{mp3,aiff,wav} )
 
       if [[ -e "$m3u" ]]; then
         ttl=$( grep -c $PLAYLIST "$m3u" )
@@ -323,7 +314,14 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
       fi
 
-      _repl
+      while [[ 0 ]]; do
+        _repl
+        if [[ "$n" == 'source' ]]; then
+          . $DIR/lib.sh
+        else
+          break
+        fi
+      done
 
       [[ $n == 'x' ]] && finish
       [[ $n == 'r' ]] || break

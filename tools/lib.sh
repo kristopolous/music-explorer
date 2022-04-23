@@ -97,18 +97,14 @@ unlistened() {
   local filter=${1:-.}
   [[ $filter == '.' ]] && cmd=cat || cmd="grep -hE $filter" 
   if [[ -n "$NOSCORE" ]]; then
-    $cmd .listen_all | cut -d ' ' -f 1 | shuf
+    $cmd $start_dir/.listen_all | cut -d ' ' -f 1 | shuf
   else
-    $cmd .listen_all .listen_done | cut -d ' ' -f 1 | sort | uniq -u | shuf
+    $cmd $start_dir/.listen_all $start_dir/.listen_done | cut -d ' ' -f 1 | sort | uniq -u | shuf
   fi
 }
 
 scan() {
-  if [[ -z "$NOSCAN" ]]; then
-    echo */* | tr ' ' '\n' > .listen_all
-  else
-    debug "Skipping scan"
-  fi
+  [[ -z "$NOSCAN" ]] && echo */* | tr ' ' '\n' > $start_dir/.listen_all || debug "Skipping scan"
 }
 
 recent() {
@@ -170,11 +166,10 @@ album_purge() {
 }
 
 unpurge() {
-  local path="$1"
-  _rm "$path"/no 
-  [[ -e /tmp/"$path" ]] && mv /tmp/"$path"/* "$path"
+  _rm "$1"/no 
+  [[ -e $UNDODIR/"$1" ]] && mv $UNDODIR/"$1"/* "$1"
+  sed -i "/${1/\//.}/d" $start_dir/.listen_done
 }
-
 
 resolve() {
   if [[ -e "$1/domain" ]]; then
@@ -213,9 +208,9 @@ pl_fallback() {
 #
 get_page() {
   if [[ -s "$1/$PAGE" ]]; then
-    curl -Ls $(resolve "$1") > "/tmp/$PAGE"
-    if [[ $( stat -c %s "$1/$PAGE" ) -lt $( stat -c %s "/tmp/$PAGE" ) ]]; then
-      mv "/tmp/$PAGE" "$1/$PAGE"
+    curl -Ls $(resolve "$1") > "$tmp/$PAGE"
+    if [[ $( stat -c %s "$1/$PAGE" ) -lt $( stat -c %s "$tmp/$PAGE" ) ]]; then
+      mv "$tmp/$PAGE" "$1/$PAGE"
     fi
   else 
     echo $1
@@ -236,7 +231,7 @@ open_page() {
 }
 
 get_playlist() {
-  PLAYLIST_DBG=/tmp/playlist-interim:$(_stub "$2"):$(date +%s)
+  PLAYLIST_DBG=$tmp/playlist-interim:$(_stub "$2"):$(date +%s)
   local failed=
   local tomatch=
   local matched=
@@ -301,9 +296,7 @@ _info () {
 
   {
     dldate=$(stat -c %w "$path/$PAGE")
-    if [[ $dldate == '-' ]]; then
-      dldate=$(stat -c %y "$path/$PAGE")
-    fi
+    [[ $dldate == '-' ]] && dldate=$(stat -c %y "$path/$PAGE")
 
     info "Released\t$(date --date="$reldate" -I)"
     info "Downloaded\t$(echo $dldate | cut -d ' ' -f 1 )"
@@ -360,38 +353,13 @@ _repl() {
 
     [[ $n == 'i' ]] && _info "$i"
 
-    if [[ ${n:0:1} == 'g' ]]; then
-      direct=${n:2}
-      n="s"
-      hr
-      break
-      
-    elif [[ ${n:0:2} == 'ao' ]]; then
-      ao=${n:3}
-      status "Setting audio out to '$ao'"
-      [[ -e $DIR/prefs.sh ]] && sed -Ei 's/ao=.*/ao='$ao'/g' $DIR/prefs.sh
-
-    elif [[ ${n:0:2} == 'b ' ]]; then
-      start_time=${n:2}
-      status "Setting start time to $start_time"
-
-    elif [[ "$n" == 'l' ]]; then
-      if [[ -s "$m3u" ]]; then
-        headline 1 "playlist" 
-        cat $m3u | sed 's/^/\t\t/'
-      fi
-
-      headline 1 "files"
-      ls -l "$i" | sed 's/^/\t\t/'
-      echo
-    fi
-
     if [[ $n == '?' ]]; then
       headline 1 "Keyboard commands" 
       { cat <<- ENDL
       ?       - This help page
       3,4,5   - Rate
       p       - Purge (delete)
+      un      - Unpurge
       dl      - Download the files
       dlm     - Download manually
       dlp     - Download just the playlist
@@ -424,6 +392,35 @@ _repl() {
 ENDL
     } | sed 's/^\s*/\t\t/g';
 
+
+    elif [[ ${n:0:1} == 'g' ]]; then
+      direct=${n:2}
+      n="s"
+      hr
+      break
+    elif [[ ${n:0:2} == 'un' ]]; then
+      path=${n:3}
+      status "Unpurging $path"
+      unpurge $path
+      
+    elif [[ ${n:0:2} == 'ao' ]]; then
+      ao=${n:3}
+      status "Setting audio out to '$ao'"
+      [[ -e $DIR/prefs.sh ]] && sed -Ei 's/ao=.*/ao='$ao'/g' $DIR/prefs.sh
+
+    elif [[ ${n:0:2} == 'b ' ]]; then
+      start_time=${n:2}
+      status "Setting start time to $start_time"
+
+    elif [[ "$n" == 'l' ]]; then
+      if [[ -s "$m3u" ]]; then
+        headline 1 "playlist" 
+        cat $m3u | sed 's/^/\t\t/'
+      fi
+
+      headline 1 "files"
+      ls -l "$i" | sed 's/^/\t\t/'
+      echo
     elif [[ "$n" == 'backup' ]]; then
       [[ -z "$NOUNDO" ]] && NOUNDO=1 || NOUNDO=
       status "Backup ${STR[${NOUNDO:-0}]}"
@@ -477,8 +474,9 @@ ENDL
       n=s
       break
 
+    # This is done in mpv-once so that this can reload.
     elif [[ "$n" == 'source' ]]; then
-      . $DIR/lib.sh
+      break
 
     elif [[ "$n" == '!' ]]; then 
       (
