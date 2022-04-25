@@ -482,6 +482,7 @@ ENDL
       (
         cd "$i"
         $SHELL
+        reset
       )
     elif [[ $n == 'dlp' ]]; then 
       (
