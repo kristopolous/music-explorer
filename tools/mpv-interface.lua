@@ -55,13 +55,18 @@ function openpage_handler()
 end
 
 function getinfo_handler()
-  parts = string_split(mp.get_property('path'), '/')
+  fullpath = mp.get_property('path')
+  fullpath = fullpath:gsub('/%./', "/")
+  parts = string_split(fullpath, '/')
   partial = parts[#parts - 2] .. '/' .. parts[#parts - 1] 
-  os.execute('mpv-lib _info "' .. table.concat({
+  cmd ='mpv-lib _info "' .. table.concat({
     partial, 
     mp.get_property('working-directory'),
     mp.get_property('path')
-  }, '" "') .. '"')
+  }, '" "') .. '"'
+
+  -- print( mp.get_property('path'), cmd ) 
+  os.execute( cmd )
   print( mp.get_property_native('media-title') )
 end
 
