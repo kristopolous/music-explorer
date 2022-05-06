@@ -5,51 +5,30 @@
 #   http://man.openbsd.org/OpenBSD-current/man1/tmux.1#KEY_BINDINGS
 #
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cmdbase=$DIR/
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 
-amixer_prefix='amixer -D pulse sset Master'
-amixer_step=4%
-pactl_source=$(pactl list sinks | grep -B 1 RUNNING | grep -E "^S" | cut -d "#" -f 2 | tail -1)
-#pactl_prefix='pactl set-sink-volume $(pactl list sinks | grep -C 4 MPOW | grep -E "^S" | cut -d "#" -f 2)'
-pactl_prefix="pactl set-sink-volume $pactl_source"
+key=$1
+pactl_prefix="pactl set-sink-volume $(pactl list sinks short | grep RUNNING | head -1 | cut -f 1 )"
 pactl_step=2000
 
 docmd() {
-  if [[ -n "$cmd" ]]; then
-    if [[ -n "$host" && "$host" != "localhost" ]]; then
-      timeout 5s ssh $host $cmd
-    else
-      set -x
-      $cmd
-    fi
-    exit
-  fi
+  echo -e $(date +%s) "$key->($control)\n\t$1" >> /tmp/mpvonce/keycode
+  [[ -n "$host" && "$host" != "localhost" ]] && timeout 5s ssh $host $1 || $1
+  exit
 }
 
 if [[ $1 == 'd' ]]; then
-  tmp=$(mktemp)
-  ssh $host "~/bin/mpv-details" > $tmp
-  xmessage -timeout 14 -file $tmp
-  rm $tmp
+  ( docmd "mpv-lib details" ) | xmessage -timeout 14 -file -
   exit
-elif [[ $1 == '9' ]]; then
-  cmd="$pactl_prefix -$pactl_step"  # && $amixer_prefix $amixer_step-"
-elif [[ $1 == '0' ]]; then
-  cmd="$pactl_prefix +$pactl_step"  # && $amixer_prefix $amixer_step+"
 fi
-docmd
+
+[[ $1 == '9' ]] && docmd "$pactl_prefix -$pactl_step" 
+[[ $1 == '0' ]] && docmd "$pactl_prefix +$pactl_step" 
 
 declare -A mapping=( [q]='quit' [up]='forward 60' [down]='back 60' [left]='back' [right]='forward' [p]='p ENTER' [return]='ENTER' [space]='pauseplay' [comma]='prev' [period]='next' [s]='s ENTER' [r]='r ENTER' )
+
 [[ -z "$1" ]] && printf "%s\n" "${!mapping[@]}" "${mapping[@]}" | pr -2t && exit 0
 [[ ${mapping[$1]+_} ]] && control=${mapping[$1]} || control=$1
+[[ "$control" =~ (.*60|forward|prev|quit|back|next|pauseplay) ]] && docmd "$DIR/ipc-do.js $control"
 
-cmd="tmux send-keys -t $(cat /tmp/mpvonce/tmux-name) $control"
-case $control in
-  *60|forward|prev|quit|back|next|pauseplay)
-    cmd="${cmdbase}ipc-do.js $control"
-    ;;
-esac
-echo -e $(date +%s) "$1->($control)\n\t$cmd" >> /tmp/keycode
-docmd 
-
+docmd "tmux send-keys -t $(cat /tmp/mpvonce/tmux-name) $control"
