@@ -133,6 +133,7 @@ END
 _get_urls() {
   $YTDL $SLEEP_OPTS \
     --get-duration --get-filename -g $FORMAT -- "$1" \
+    | tee $tmp/${2//\//:} \
     | awk -f $DIR/ytdl2m3u.awk > "$2"
 }
 
