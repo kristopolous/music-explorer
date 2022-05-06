@@ -29,6 +29,7 @@ info()  { echo -e "\t$1"; }
 debug() { [[ -n "$DEBUG" ]] && echo -e "\t$1"; }
 purge() { album_purge "CLI" "$1"; }
 getvar() { echo ${!1}; }
+quit() { echo "$1"; exit; }
 
 function hr {
   echo
@@ -38,17 +39,14 @@ function hr {
 }
 
 check_for_stop() {
-  if [[ -e $STOPFILE ]]; then
-    echo "Stopping because $STOPFILE exists"
-    exit
-  fi
+  [[ -e $STOPFILE ]] && quit "Stopping because $STOPFILE exists"
 }
 
 announce() {
   [[ -n "$announce" ]] && echo "$*" | aosd_cat -p 2  -n "Noto Sans Condensed ExtraBold 150" -R white -f 1000 -u 15000 -o 2000 -x -20 -y 20 -d 50 -r 190 -b 216 -S black -e 2 -B black -w 3600 -b 200&
 }
 
-function headline {
+headline() {
   [[ $1 == "3" ]] && echo -e "\n\t$2"
   [[ $1 == "2" ]] && echo -e "\n\t\033[1m$2\033[0m" 
   if [[ $1 == "1" ]]; then
@@ -352,8 +350,6 @@ _repl() {
     read -p "[[1m$i[0m] " -e n
     history -s "$n"
 
-    [[ $n == 'i' ]] && _info "$i"
-
     if [[ $n == '?' ]]; then
       headline 1 "Keyboard commands" 
       { cat <<- ENDL
@@ -383,7 +379,7 @@ _repl() {
       prompt  - Toggle prompt       [${STR[${NOPROMPT:-0}]}]
       debug   - Toggle debug        [${STR[${DEBUG:-1}]}]
       scan    - Toggle rescan       [${STR[${NOSCAN:-1}]}]
-      backup  - Toggle purge backup [${STR[${NOUNDO:-0}]}]
+      undo  - Toggle purge backup [${STR[${NOUNDO:-0}]}]
 
       list    - List things in filter
 
@@ -422,29 +418,10 @@ ENDL
       headline 1 "files"
       ls -l "$i" | sed 's/^/\t\t/'
       echo
-    elif [[ "$n" == 'backup' ]]; then
-      [[ -z "$NOUNDO" ]] && NOUNDO=1 || NOUNDO=
-      status "Backup ${STR[${NOUNDO:-0}]}"
-
-    elif [[ "$n" == 'scan' ]]; then
-      [[ -z "$NOSCAN" ]] && NOSCAN=1 || NOSCAN=
-      status "Rescanning ${STR[${NOSCAN:-0}]}"
-
-    elif [[ "$n" == 'score' ]]; then
-      [[ -z "$NOSCORE" ]] && NOSCORE=1 || NOSCORE=
-      status "Scoring ${STR[${NOSCORE:-0}]}"
-
-    elif [[ "$n" == 'net' ]]; then
-      [[ -z "$NONET" ]] && NONET=1 || NONET=
-      status "Network ${STR[${NONET:-0}]}"
-
-    elif [[ "$n" == 'prompt' ]]; then
-      [[ -z "$NOPROMPT" ]] && NOPROMPT=1 || NOPROMPT=
-      status "Prompt ${STR[${NOPROMPT:-0}]}"
-
-    elif [[ "$n" == 'pl' ]]; then
-      [[ -z "$NOPL" ]] && NOPL=1 || NOPL=
-      status "Playlist ${STR[${NOPL:-0}]}"
+    elif [[ "$n" =~ (undo|scan|score|net|prompt|pl) ]]; then 
+      flag=NO${n^^}
+      [[ -z "${!flag}" ]] && eval "$flag=1" || eval "$flag="
+      status "${n^} ${STR[${!flag:-0}]}"
 
     elif [[ "$n" == 'debug' ]]; then
       if [[ -z "$DEBUG" ]]; then 
@@ -459,8 +436,6 @@ ENDL
       fi
       status "Debug ${STR[${DEBUG:-1}]}"
 
-    elif [[ "$n" == 'o' ]]; then
-      open_page "$url"
 
     elif [[ "$n" == 'list' ]]; then
       echo
@@ -475,9 +450,6 @@ ENDL
       n=s
       break
 
-    # This is done in mpv-once so that this can reload.
-    elif [[ "$n" == 'source' ]]; then
-      break
 
     elif [[ "$n" == '!' ]]; then 
       (
@@ -490,17 +462,18 @@ ENDL
         status "Downloading playlist"
         get_playlist "$url" "$i"
       )
-    elif [[ $n == 'dl' ]]; then 
-      get_mp3s "$url" "$i"
-
-    elif [[ $n == 'dlm' ]]; then 
-      manual_pull "$url" "$i"
 
     elif [[ "$n" == 'r nopl' ]]; then
       status "Ignoring playlist"
       nopl=1
       # We treat this like a regular replay
       n=r
+    else
+      [[ "$n" == 'i' ]]       && _info "$i"
+      [[ "$n" == 'dl' ]]      && get_mp3s "$url" "$i"
+      [[ "$n" == 'dlm' ]]     &&  manual_pull "$url" "$i"
+      [[ "$n" == 'source' ]]  && break
+      [[ "$n" == 'o' ]]       && open_page "$url"
     fi
     [[ "$n" =~ ^(x|r|s|[1-5]|p)$ ]] && break
   done
