@@ -1,3 +1,2 @@
-#!/bin/sh
 player=mpv
 ao=pulse
