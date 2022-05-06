@@ -237,7 +237,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
               [13-15])
                 # 4 is what mpv does on ctrl+c
                 # so we add 10 to avoid the collision
-                n=$(player_exit - 10)
+                n=$(( player_exit - 10 ))
                 skipprompt=1 
                 ;;
               6)
