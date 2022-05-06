@@ -28,18 +28,10 @@ _stub() { echo "$1" | tr '/' ':'; }
 info()  { echo -e "\t$1"; }
 debug() { [[ -n "$DEBUG" ]] && echo -e "\t$1"; }
 purge() { album_purge "CLI" "$1"; }
-getvar() { echo ${!1}; }
-quit() { echo "$1"; exit; }
+hr()    { echo; printf '\xe2\x80\x95%.0s' $( seq 1 $(tput cols) ); echo; }
+quit()  { echo "$1"; exit; }
+scan()  { [[ -z "$NOSCAN" ]] && echo */* | tr ' ' '\n' > $start_dir/.listen_all || debug "Skipping scan"; }
 check_for_stop() { [[ -e $STOPFILE ]] && quit "Stopping because $STOPFILE exists"; }
-scan() { [[ -z "$NOSCAN" ]] && echo */* | tr ' ' '\n' > $start_dir/.listen_all || debug "Skipping scan"; }
-
-
-function hr {
-  echo
-  local len=$(tput cols)
-  printf '\xe2\x80\x95%.0s' $( seq 1 $len )
-  echo
-}
 
 announce() {
   [[ -n "$announce" ]] && echo "$*" | aosd_cat -p 2  -n "Noto Sans Condensed ExtraBold 150" -R white -f 1000 -u 15000 -o 2000 -x -20 -y 20 -d 50 -r 190 -b 216 -S black -e 2 -B black -w 3600 -b 200&
@@ -88,7 +80,6 @@ check_url() {
     echo $real_url
   fi
 }
-
 
 unlistened() {
   local filter=${1:-.}
