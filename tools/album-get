@@ -73,7 +73,7 @@ while [[ $# -gt 0 ]]; do
   fi
   shift
 
-  [[ -e $base ]] || mkdir $base
+  _mkdir $base
 
   base_name=$base
   if [[ -e $base/domain ]]; then
@@ -191,12 +191,7 @@ while [[ $# -gt 0 ]]; do
 
       # sometimes people are posting wav files ... really, that's crazy
       if [[ -n "$FULLALBUM" ]]; then 
-        if [[ -n "$manual_pull_flag" ]]; then
-          manual_pull "$url" "$place"
-
-        else
-          get_mp3s "$url" "$place"
-        fi
+        [[ -n "$manual_pull_flag" ]] && manual_pull "$url" "$place" || get_mp3s "$url" "$place"
       else
         get_urls "$url" "$place"
       fi
