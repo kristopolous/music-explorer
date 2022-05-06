@@ -493,8 +493,6 @@ get_mp3s() {
 }
 
 details() {
-  # Details of a path
-  
   for pid in $(pgrep -f "^mpv "); do
     current=$(lsof -F n -p $pid | grep -E mp3\$ | cut -c 2-)
     track=$(basename "$current")
@@ -513,10 +511,7 @@ details() {
       release_url=https://${label}.bandcamp.com/album/$release
     fi
 
-    echo $release_url
-    echo
-    echo $label // $release
-    echo ${track/-[0-9]*.mp3/}
+    echo -e "$release_url\n\n$label // $release\n${track/-[0-9]*.mp3/}"
     id3v2 -R "$current" | grep -E '^\w{4}\:'  | grep -vE '(APIC|TPE2|COMM)'
     echo "----- ($pid) ------"
   done
