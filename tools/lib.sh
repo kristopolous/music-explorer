@@ -30,16 +30,15 @@ debug() { [[ -n "$DEBUG" ]] && echo -e "\t$1"; }
 purge() { album_purge "CLI" "$1"; }
 getvar() { echo ${!1}; }
 quit() { echo "$1"; exit; }
+check_for_stop() { [[ -e $STOPFILE ]] && quit "Stopping because $STOPFILE exists"; }
+scan() { [[ -z "$NOSCAN" ]] && echo */* | tr ' ' '\n' > $start_dir/.listen_all || debug "Skipping scan"; }
+
 
 function hr {
   echo
   local len=$(tput cols)
   printf '\xe2\x80\x95%.0s' $( seq 1 $len )
   echo
-}
-
-check_for_stop() {
-  [[ -e $STOPFILE ]] && quit "Stopping because $STOPFILE exists"
 }
 
 announce() {
@@ -99,10 +98,6 @@ unlistened() {
   else
     $cmd $start_dir/.listen_all $start_dir/.listen_done | cut -d ' ' -f 1 | sort | uniq -u | shuf
   fi
-}
-
-scan() {
-  [[ -z "$NOSCAN" ]] && echo */* | tr ' ' '\n' > $start_dir/.listen_all || debug "Skipping scan"
 }
 
 recent() {
@@ -379,7 +374,7 @@ _repl() {
       prompt  - Toggle prompt       [${STR[${NOPROMPT:-0}]}]
       debug   - Toggle debug        [${STR[${DEBUG:-1}]}]
       scan    - Toggle rescan       [${STR[${NOSCAN:-1}]}]
-      undo  - Toggle purge backup [${STR[${NOUNDO:-0}]}]
+      undo    - Toggle purge backup [${STR[${NOUNDO:-0}]}]
 
       list    - List things in filter
 
@@ -419,8 +414,9 @@ ENDL
       ls -l "$i" | sed 's/^/\t\t/'
       echo
     elif [[ "$n" =~ (undo|scan|score|net|prompt|pl) ]]; then 
+      local base=1
       flag=NO${n^^}
-      [[ -z "${!flag}" ]] && eval "$flag=1" || eval "$flag="
+      eval $flag'=${base:$'$flag}
       status "${n^} ${STR[${!flag:-0}]}"
 
     elif [[ "$n" == 'debug' ]]; then
@@ -436,12 +432,6 @@ ENDL
       fi
       status "Debug ${STR[${DEBUG:-1}]}"
 
-
-    elif [[ "$n" == 'list' ]]; then
-      echo
-      echo ${all[@]} | tr ' ' '\n' | sed 's/^\s*/\t/g' | sort
-      echo
-
     elif [[ ${n:0:6} == 'filter' ]]; then
       set_filter ${n:7}
       # this can be turned back on by quitting with a capital Q
@@ -449,7 +439,6 @@ ENDL
       load_tracks 1
       n=s
       break
-
 
     elif [[ "$n" == '!' ]]; then 
       (
@@ -469,9 +458,10 @@ ENDL
       # We treat this like a regular replay
       n=r
     else
+      [[ "$n" == 'list' ]]    && echo ${all[@]} | tr ' ' '\n' | sed 's/^\s*/\t/g' | sort
       [[ "$n" == 'i' ]]       && _info "$i"
       [[ "$n" == 'dl' ]]      && get_mp3s "$url" "$i"
-      [[ "$n" == 'dlm' ]]     &&  manual_pull "$url" "$i"
+      [[ "$n" == 'dlm' ]]     && manual_pull "$url" "$i"
       [[ "$n" == 'source' ]]  && break
       [[ "$n" == 'o' ]]       && open_page "$url"
     fi
