@@ -28,9 +28,11 @@ STR=(on off)
 _mkdir $tmp
 
 setname() {
-  [[ -n "$WINDOWID" ]] && xprop -id "$WINDOWID" -set WM_NAME "$myname" > /dev/null 2>&1
-  tmux rename-session $myname #2> /dev/null
-  echo $myname > $tmp/tmux-name
+  {
+    [[ -n "$WINDOWID" ]] && xprop -id "$WINDOWID" -set WM_NAME "$myname" > /dev/null 2>&1
+    tmux rename-session $myname #2> /dev/null
+    echo $myname > $tmp/tmux-name
+  } &
 }
 
 setname
@@ -170,7 +172,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
       #printf "\n%11s - %s\n%11s - %s\n" "$ix / $size" "$start_dir/$i" "" "$url"
 
       m3u="$i/$PLAYLIST"
-      fileList=( "$i"/*.{mp3,aiff,wav} )
+      fileList=( "$i"/*.{mp3,ogg,m4a,flac,aiff,wav} )
 
       if [[ -e "$m3u" ]]; then
         ttl=$( grep -c $PLAYLIST "$m3u" )
@@ -182,7 +184,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
       
       if [[ -e "$i"/no ]]; then
         status "Why am I here? it's marked as no"
-        n='p'
+        n=p
         break
       fi
 
@@ -270,11 +272,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
         before=$( date +%s )
           
-        $player --ao=$ao $player_opts \
-          --term-playing-msg=" \${playlist-pos-1}\t\${media-title}" \
-          --term-status-msg="\t\t\${audio-pts} - \${duration}\n" \
-          --start=$start_time \
-          "$i"/*.mp3
+        playit "$i"/*.{mp3,ogg,m4a,flac,aiff,wav} 
 
         (( listen_time += $(date +%s) - before ))
 
@@ -283,14 +281,14 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
         headline 1 "No files"
         ls -ltr "$i"  |  sed 's/^/\t\t/'
-        n='p'
+        n=p
         hr
         break
 
       else
         if [[ -n "$LOCAL" ]]; then
           status "No local files, skipping"
-          n="s"
+          n=s
           hr
           break
         fi
@@ -307,6 +305,8 @@ while [[ ${#all[@]} -gt 0 ]]; do
         fi
 
       fi
+
+      [[ "$n" != "__nothing" ]] && break
 
       while [[ 0 ]]; do
         _repl
@@ -329,10 +329,10 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
     elif [[ $n == 's' ]]; then
       status "Skipping"
-      n="__nothing"
+      n=__nothing
 
     else
-      n="__rating_$n"
+      n=__rating_$n
     fi
     [[ -n "$skipprompt" ]] && hr
   fi
