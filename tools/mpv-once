@@ -226,10 +226,6 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
             ## See the lua script for how this is invoked, (as of this writing it's capital Q)
             case $player_exit in 
-              2)
-                n=p
-                skipprompt=1 
-                ;;
               [13-15])
                 # 4 is what mpv does on ctrl+c
                 # so we add 10 to avoid the collision
@@ -244,8 +240,12 @@ while [[ ${#all[@]} -gt 0 ]]; do
                 NOPROMPT=
                 skipprompt=
                 ;;
+              8)
+                n=p
+                skipprompt=1 
+                ;;
 
-              0);;
+              [0-4]);;
 
               *)
                 echo "Exited with $player_exit!"

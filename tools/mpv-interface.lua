@@ -78,14 +78,15 @@ function record_volume()
   io.write(vol)
   io.close(f)
 end
+
 --
 -- exit codes
 --
---  1       - error
---  2       - purge
+--  0-4       - reserved for mpv
+--  6         - skip
+--  7         - quit and reprompt
+--  8         - purge
 --  13 .. 15  - score
---  6       - skip
---  7       - quit and reprompt
 --
 -- known as player_exit in mpv-once
 --
@@ -107,7 +108,7 @@ mp.add_key_binding('S', 'skip', function()
   mp.command('quit 6')
 end)
 mp.add_key_binding('P', 'purge', function()
-  mp.command('quit 2')
+  mp.command('quit 8')
 end)
 
 mp.add_key_binding('e', 'env', function() 
