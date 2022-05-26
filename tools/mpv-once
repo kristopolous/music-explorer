@@ -136,7 +136,6 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
   setname
   (( ix ++ ))
-  n="__nothing"
   f_count=0
   listen_time=0
 
@@ -156,6 +155,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
     attempts=0
     while [[ 0 ]]; do
+      n="__nothing"
       _tabs
 
       if [[ -e "$i/domain" ]]; then
@@ -244,6 +244,13 @@ while [[ ${#all[@]} -gt 0 ]]; do
                 NOPROMPT=
                 skipprompt=
                 ;;
+
+              0);;
+
+              *)
+                echo "Exited with $player_exit!"
+                exit
+                ;;
             esac
 
             (( listen_time += $(date +%s) - before ))
@@ -310,11 +317,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
       while [[ 0 ]]; do
         _repl
-        if [[ "$n" == 'source' ]]; then
-          . $DIR/lib.sh
-        else
-          break
-        fi
+        [[ "$n" == 'source' ]] && source $DIR/lib.sh || break
       done
 
       [[ $n == 'x' ]] && finish
