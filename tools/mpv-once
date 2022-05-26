@@ -97,6 +97,8 @@ function record_listen() {
 }
 
 function playit() {
+  [[ $# == 0 ]] && return -10
+
   $player --ao=$ao $player_opts \
     --term-playing-msg=" \${playlist-pos-1}\t\${media-title}" \
     --term-status-msg="\t\t\${audio-pts} - \${duration}\n" \
@@ -150,8 +152,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
     continue
   fi
 
-  ls "$i"/*.{mp3,aiff,wav} > /dev/null 2>&1
-  if [[ $? == "0" || -e "$i/$PLAYLIST" ]]; then
+  if [[ -e "$i/$PLAYLIST" || -n "$(ls "$i"/*.{mp3,aiff,wav} 2>/dev/null)" ]]; then
 
     attempts=0
     while [[ 0 ]]; do
@@ -172,7 +173,6 @@ while [[ ${#all[@]} -gt 0 ]]; do
       #printf "\n%11s - %s\n%11s - %s\n" "$ix / $size" "$start_dir/$i" "" "$url"
 
       m3u="$i/$PLAYLIST"
-      fileList=( "$i"/*.{mp3,ogg,m4a,flac,aiff,wav} )
 
       if [[ -e "$m3u" ]]; then
         ttl=$( grep -c $PLAYLIST "$m3u" )
@@ -203,6 +203,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
           if [[ -z "$playlistIsRemote" || $age -lt $DAY ]]; then
             
             t_count=$(cat "$m3u" | wc -l)
+            fileList=( "$i"/*.{mp3,ogg,m4a,flac,aiff,wav} )
             f_count=${#fileList[@]}
 
             if [[ $f_count != $t_count ]]; then
@@ -275,15 +276,6 @@ while [[ ${#all[@]} -gt 0 ]]; do
           fi
           break
         done
-      elif (( ${#fileList[@]} )); then
-
-        before=$( date +%s )
-          
-        playit "$i"/*.{mp3,ogg,m4a,flac,aiff,wav} 
-
-        (( listen_time += $(date +%s) - before ))
-
-        headline 3 "Time: $listen_time"
       elif [[ -e "$i"/no-files ]]; then
 
         headline 1 "No files"
@@ -291,24 +283,36 @@ while [[ ${#all[@]} -gt 0 ]]; do
         n=p
         hr
         break
+      else 
 
-      else
-        if [[ -n "$LOCAL" ]]; then
-          status "No local files, skipping"
-          n=s
-          hr
-          break
-        fi
+        before=$( date +%s )
+          
+        # In order to minimize the number of these calls we make
+        # to decrease network iops, we check the arity of the function
+        # to see if these files exist
+        playit "$i"/*.{mp3,ogg,m4a,flac,aiff,wav} 
 
-        # only do a single download/play loop attempt
-        if [[ -z "$auto" ]]; then
-          status "I'll try to download things again" 
-          get_mp3s "$url" "$i"
-          auto=1
-          continue
-
+        if [[ $? != -10 ]]; then
+          (( listen_time += $(date +%s) - before ))
+          headline 3 "Time: $listen_time"
         else
-          status "Not trying that again!"
+          if [[ -n "$LOCAL" ]]; then
+            status "No local files, skipping"
+            n=s
+            hr
+            break
+          fi
+
+          # only do a single download/play loop attempt
+          if [[ -z "$auto" ]]; then
+            status "I'll try to download things again" 
+            get_mp3s "$url" "$i"
+            auto=1
+            continue
+
+          else
+            status "Not trying that again!"
+          fi
         fi
 
       fi
