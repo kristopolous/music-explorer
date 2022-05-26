@@ -152,7 +152,9 @@ while [[ ${#all[@]} -gt 0 ]]; do
     continue
   fi
 
-  if [[ -e "$i/$PLAYLIST" || -n "$(ls "$i"/*.{mp3,aiff,wav} 2>/dev/null)" ]]; then
+  m3u="$i/$PLAYLIST"
+  [[ -s "$m3u" ]] && hasm3u=1 || hasm3u=
+  if [[ "$hasm3u" || -n "$(ls "$i"/*.{mp3,ogg,m4a,flac,aiff,wav} 2>/dev/null)" ]]; then
 
     attempts=0
     while [[ 0 ]]; do
@@ -172,28 +174,28 @@ while [[ ${#all[@]} -gt 0 ]]; do
       status "$start_dir/$i"
       #printf "\n%11s - %s\n%11s - %s\n" "$ix / $size" "$start_dir/$i" "" "$url"
 
-      m3u="$i/$PLAYLIST"
-
-      if [[ -e "$m3u" ]]; then
-        ttl=$( grep -c $PLAYLIST "$m3u" )
-        if [[ $ttl != 0 ]]; then
-          status "Bogus m3u. Deleting"
-          rm "$m3u"
-        fi
-      fi
-      
       if [[ -e "$i"/no ]]; then
         status "Why am I here? it's marked as no"
         n=p
         break
       fi
 
-      if [[ ! -e "$m3u" && ! -e "$i"/no-files && -z "$NOPL" ]]; then
+
+      #if [[ "$hasm3u" ]]; then
+      #  ttl=$( grep -c $PLAYLIST "$m3u" )
+      #  if [[ $ttl != 0 ]]; then
+      #    status "Bogus m3u. Deleting"
+      #    rm "$m3u"
+      #    hasm3u=
+      #  fi
+      #fi
+
+      if [[ ! "$hasm3u" && ! -e "$i"/no-files && -z "$NOPL" ]]; then
         status "Getting $m3u" nl
         get_playlist "$url" "$i"
       fi
 
-      if [[ -s "$m3u" && -z "$nopl" ]]; then
+      if [[ "$hasm3u" && -z "$nopl" ]]; then
         playlistIsRemote=$(grep -i http $m3u)
         while [[ 0 ]]; do
 
@@ -210,7 +212,6 @@ while [[ ${#all[@]} -gt 0 ]]; do
               headline 1 "Playlist has $t_count, there's $f_count here. Ignoring playlist"
               if [[ $f_count > $t_count ]]; then
                 pl_fallback "$i"
-                t_count=$(cat "$m3u" | wc -l)
               else
                 echo "Check this one."
               fi

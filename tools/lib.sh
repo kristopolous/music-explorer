@@ -36,7 +36,6 @@ check_for_stop() { [[ -e $STOPFILE ]] && quit "Stopping because $STOPFILE exists
 announce() {
   [[ -n "$announce" ]] && echo "$*" | aosd_cat -p 2  -n "Noto Sans Condensed ExtraBold 150" -R white -f 1000 -u 15000 -o 2000 -x -20 -y 20 -d 50 -r 190 -b 216 -S black -e 2 -B black -w 3600 -b 200&
 }
-
 headline() {
   [[ $1 == "3" ]] && echo -e "\n\t$2"
   [[ $1 == "2" ]] && echo -e "\n\t\033[1m$2\033[0m" 
@@ -115,6 +114,7 @@ END
 }
 
 _get_urls() {
+  echo $DIR/ytdl2m3u.awk;
   $YTDL $SLEEP_OPTS \
     --get-duration --get-filename -g $FORMAT -- "$1" \
     | tee $tmp/${2//\//:} \
@@ -180,7 +180,7 @@ pl_fallback() {
   ( 
     shopt -u nullglob
     cd "$1"
-    ls -1 -- *.mp3 > $PLAYLIST 2> /dev/null
+    ls -1 -- *.{mp3,ogg,m4a,flac,aiff,wav} > $PLAYLIST 2> /dev/null
     shopt -s nullglob
   )
 }
@@ -289,7 +289,7 @@ _info () {
     [[ $url =~ 'album' ]] && matcher='track-title' || matcher='trackTitle'
 
     _info_section "Tracks"      "$(cat "$path/$PAGE" | tr '\n' ' ' | grep -Po '((?<='$matcher'">).*?(?=<))' | sed -E 's/^\s*//g' | awk ' { print FNR". "$0 } ')"
-    _info_section "Files"       "$(cd "$path"; ls -l *mp3)" 
+    _info_section "Files"       "$(cd "$path"; ls -l *.{mp3,ogg,m4a,flac,aiff,wav})" 
     _info_section "PLS entries" "$(cat "$path/playlist.m3u")"
 
     headline 2  $url
