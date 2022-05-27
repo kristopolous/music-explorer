@@ -122,17 +122,11 @@ direct=
 
 timeit() {
   this_ts=$(date +%s.%N)
-  #echo $(echo "$this_ts - $start;$this_ts - $last_ts" | bc -l | tr '\n' ' ')" $*"
+  echo $(echo "$this_ts - $start;$this_ts - $last_ts" | bc -l | tr '\n' ' ')" $*"
   last_ts=$this_ts
 }
 
 iop() {
-  timeit "before wait"
-  { 
-    [[ -n "$COPROC_PID" ]] && kill -9 $COPROC_PID; 
-    wait $COPROC_PID;
-  } 2> /dev/null
-  timeit "after wait"
 
   coproc { 
     if [[ -z "$1" ]] ; then
@@ -249,6 +243,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
             read -r -d "$delim" -u ${COPROC[0]} t_count
             read -r -d "$delim" -u ${COPROC[0]} ff
             f_count=$(wc -l <<< $ff)
+            [[ -n "$COPROC_PID" ]] && kill $COPROC_PID; 
             timeit "coproc"
 
             if [[ $f_count != $t_count ]]; then
