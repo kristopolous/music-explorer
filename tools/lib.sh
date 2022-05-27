@@ -8,6 +8,11 @@ NONET=${NONET:=}
 NOSCAN=${NOSCAN:=}
 NOUNDO=${NOUNDO:=}
 NOPL=${NOPL:=}
+
+# We can optimize things if we assume there's no such things as a playlist that
+# points to URLS that expire
+REMOTEPL=
+
 DEBUG=${DEBUG:=}
 PLAYLIST=playlist.m3u
 PLAYLIST_DBG=

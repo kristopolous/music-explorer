@@ -17,6 +17,7 @@ myname="mpv-once-$RANDOM-$PPID"
 start_name=$( tmux display-message -p '#W' )
 start_dir=$( pwd )
 STR=(on off)
+delim=$(echo -e "\t")
 
 [[ -n "$NOSCORE" ]] && NOPROMPT=1 || NOPROMPT=
 # [[ -e $pipe ]] || mkfifo $pipe
@@ -118,19 +119,52 @@ load_tracks 1
 ix=0 
 direct=
 
-while [[ ${#all[@]} -gt 0 ]]; do
+timeit() {
+  this_ts=$(date +%s.%N)
+  #echo $(echo "$this_ts - $start;$this_ts - $last_ts" | bc -l | tr '\n' ' ')" $*"
+  last_ts=$this_ts
+}
+
+iop() {
+  timeit "before wait"
+  { 
+    [[ -n "$COPROC_PID" ]] && kill -9 $COPROC_PID; 
+    wait $COPROC_PID;
+  } 2> /dev/null
+  timeit "after wait"
+
+  coproc { 
+    if [[ -z "$1" ]] ; then
+      cat "$i"/domain 2> /dev/null;
+      echo -e "\t"; 
+    fi
+
+    { cat "$m3u" | wc -l; } 2> /dev/null;
+    echo -e "\t"; 
+
+    ls -1 "$i"/*.{mp3,ogg,m4a,flac,aiff,wav}; 
+    echo -e "\t"; 
+
+    sleep 10; 
+  }
+}
+
+start=$(date +%s.%N)
+last_ts=$start
+while [[ ${#all[@]} -gt $ix ]]; do
   # This approach permits for new content to come in and multiple
   # to be running without issue.
-  #
-  # However When scoring is off there is no mechanism to make the playlist
-  # shrink
-  if [[ -z "$NOSCORE" && -z "$NOSCAN" ]]; then 
-    load_tracks 
-  else
-    all=("${all[@]:1}")
-  fi
+  timeit "start loop"
+  [[ -z "$NOSCORE" && -z "$NOSCAN" ]] && load_tracks 
 
-  i=${all[0]}
+  # This can potentially skip things in with a reload
+  # but it's fine ... 
+  i=${all[$ix]}
+  m3u="$i/$PLAYLIST"
+
+  iop
+
+  m3u="$i/$PLAYLIST"
 
   if [[ -n "$direct" ]]; then
     i=$direct
@@ -142,34 +176,56 @@ while [[ ${#all[@]} -gt 0 ]]; do
   f_count=0
   listen_time=0
 
-  if [[ ! -d "$i" ]]; then
-    grep -m 1 $i $start_dir/.listen_done > /dev/null
-    # This means it's in the done but not the all, which is fine.
-    [[ $? -eq 0 ]] && continue
+  timeit "before record"
+  # We assume the directory exists unless this fails 
+  # then we question that assumption
+  if [[ -s "$m3u" ]]; then
+    hasm3u=1
+  else
+    hasm3u=
+    if [[ ! -d "$i" ]]; then
+      grep -m 1 $i $start_dir/.listen_done > /dev/null
+      # This means it's in the done but not the all, which is fine.
+      [[ $? -eq 0 ]] && continue
 
-    status "Gone - $i"
-    n="__purge"
-    record_listen
-    continue
+      status "Gone - $i"
+      n="__purge"
+      record_listen
+      continue
+    fi
   fi
+  timeit "after record"
 
-  m3u="$i/$PLAYLIST"
-  [[ -s "$m3u" ]] && hasm3u=1 || hasm3u=
   if [[ "$hasm3u" || -n "$(ls "$i"/*.{mp3,ogg,m4a,flac,aiff,wav} 2>/dev/null)" ]]; then
 
     attempts=0
+    cycles=0
     while [[ 0 ]]; do
+      [[ $cycles -gt 0 ]] && iop
+
+      (( cycles ++ ))
       n="__nothing"
       _tabs
 
-      if [[ -e "$i/domain" ]]; then
-        url=$(< "$i/domain" )
-      else
+      timeit "display"
+
+      # we're going to replace this with something more exotic to
+      # reduce the iops
+      #
+      # if [[ -e "$i/domain" ]]; then
+      #   url=$(< "$i/domain" )
+      #
+      read -r -d "$delim" -u ${COPROC[0]} url
+      timeit "domain-read"
+
+      # This block is uncommon
+      if [[ -z "$url" ]]; then
         label=$( dirname "$i" )
         [[ -e $label/domain ]] && domain=$(< $label/domain ) || domain=${label}.bandcamp.com
         release=$( basename "$i" )
         url="https://$domain/album/$release"
       fi
+      timeit "block-exec"
 
       headline 2 "$ix\t$url"
       status "$start_dir/$i"
@@ -194,21 +250,25 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
         status "Getting $m3u" nl
         get_playlist "$url" "$i"
+        hasm3u=1
       fi
 
       if [[ "$hasm3u" && -z "$nopl" ]]; then
-        playlistIsRemote=$(grep -i http $m3u)
+        [[ -n "$REMOTEPL" ]] && playlistIsRemote=$(grep -i http $m3u)
         while [[ 0 ]]; do
 
           if [[ -z "$playlistIsRemote" || $(( $(date +%s) - $(stat -c %Y "$m3u") )) -lt $DAY ]]; then
             
-            t_count=$(cat "$m3u" | wc -l)
-            fileList=( "$i"/*.{mp3,ogg,m4a,flac,aiff,wav} )
-            f_count=${#fileList[@]}
+            timeit "counter"
+            read -r -d "$delim" -u ${COPROC[0]} t_count
+            read -r -d "$delim" -u ${COPROC[0]} ff
+            f_count=$(wc -l <<< $ff)
+            timeit "coproc"
 
             if [[ $f_count != $t_count ]]; then
               headline 1 "Playlist has $t_count, there's $f_count here. Ignoring playlist"
               [[ $f_count > $t_count ]] && pl_fallback "$i" || echo "Check this one."
+              t_count=$f_count
             fi
 
             if [[ $t_count != 1 ]]; then 
@@ -217,6 +277,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
               [[ "$url" =~ "/track" ]] && headline 1 "single" || headline 1 "1 track"
             fi
 
+            timeit "player"
             playit "$m3u"
             player_exit=$?
 
@@ -266,6 +327,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
 
             get_urls "$url" "$i"
             (( attempts ++ ))
+            iop 1
             continue
           fi
           break
@@ -319,6 +381,7 @@ while [[ ${#all[@]} -gt 0 ]]; do
       [[ $n == 'x' ]] && finish
       [[ $n == 'r' ]] || break
     done
+    start=$(date +%s.%N)
 
     _stats="time:$listen_time:$f_count"
 
