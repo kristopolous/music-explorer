@@ -17,6 +17,7 @@ myname="mpv-once-$RANDOM-$PPID"
 start_name=$( tmux display-message -p '#W' )
 start_dir=$( pwd )
 STR=(on off)
+unset echo
 delim=$(echo -e "\t")
 
 [[ -n "$NOSCORE" ]] && NOPROMPT=1 || NOPROMPT=
@@ -209,12 +210,6 @@ while [[ ${#all[@]} -gt $ix ]]; do
 
       timeit "display"
 
-      # we're going to replace this with something more exotic to
-      # reduce the iops
-      #
-      # if [[ -e "$i/domain" ]]; then
-      #   url=$(< "$i/domain" )
-      #
       read -r -d "$delim" -u ${COPROC[0]} url
       timeit "domain-read"
 
@@ -230,15 +225,6 @@ while [[ ${#all[@]} -gt $ix ]]; do
       headline 2 "$ix\t$url"
       status "$start_dir/$i"
       #printf "\n%11s - %s\n%11s - %s\n" "$ix / $size" "$start_dir/$i" "" "$url"
-
-      #if [[ "$hasm3u" ]]; then
-      #  ttl=$( grep -c $PLAYLIST "$m3u" )
-      #  if [[ $ttl != 0 ]]; then
-      #    status "Bogus m3u. Deleting"
-      #    rm "$m3u"
-      #    hasm3u=
-      #  fi
-      #fi
 
       if [[ ! "$hasm3u" && ! -e "$i"/no-files && -z "$NOPL" ]]; then
 
