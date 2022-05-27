@@ -130,12 +130,12 @@ iop() {
 
   coproc { 
     if [[ -z "$1" ]] ; then
+      { cat "$m3u" | wc -l; } 2> /dev/null;
+      echo -e "\t"; 
+
       cat "$i"/domain 2> /dev/null;
       echo -e "\t"; 
     fi
-
-    { cat "$m3u" | wc -l; } 2> /dev/null;
-    echo -e "\t"; 
 
     ls -1 "$i"/*.{mp3,ogg,m4a,flac,aiff,wav}; 
     echo -e "\t"; 
@@ -172,9 +172,11 @@ while [[ ${#all[@]} -gt $ix ]]; do
   listen_time=0
 
   timeit "before record"
+  read -r -d "$delim" -u ${COPROC[0]} t_count
+
   # We assume the directory exists unless this fails 
   # then we question that assumption
-  if [[ -s "$m3u" ]]; then
+  if [[ $t_count -gt 0 ]]; then
     hasm3u=1
   else
     hasm3u=
@@ -218,12 +220,12 @@ while [[ ${#all[@]} -gt $ix ]]; do
 
       headline 2 "$ix\t$url"
       status "$start_dir/$i"
-      #printf "\n%11s - %s\n%11s - %s\n" "$ix / $size" "$start_dir/$i" "" "$url"
 
       if [[ ! "$hasm3u" && ! -e "$i"/no-files && -z "$NOPL" ]]; then
 
         if [[ -e "$i"/no ]]; then
           status "Why am I here? it's marked as no"
+          [[ -n "$COPROC_PID" ]] && kill $COPROC_PID; 
           n=p
           break
         fi
@@ -240,7 +242,6 @@ while [[ ${#all[@]} -gt $ix ]]; do
           if [[ -z "$playlistIsRemote" || $(( $(date +%s) - $(stat -c %Y "$m3u") )) -lt $DAY ]]; then
             
             timeit "counter"
-            read -r -d "$delim" -u ${COPROC[0]} t_count
             read -r -d "$delim" -u ${COPROC[0]} ff
             f_count=$(wc -l <<< $ff)
             [[ -n "$COPROC_PID" ]] && kill $COPROC_PID; 
