@@ -8,7 +8,6 @@ $mt = function($m) { return $m; };
 if($search == '%rand') {
   $mt_off = 100 * floor(time() / (60 * 60 * 24));
   $mt = function($m) use ($ttl, $mt_off){ 
-    global $ttl;
     mt_srand($m + $mt_off);
     return mt_rand(0, $ttl);
   };
