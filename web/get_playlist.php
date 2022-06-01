@@ -5,9 +5,10 @@ $parts = file('playlist.txt', FILE_IGNORE_NEW_LINES);
 $ttl = 0;
 $mt = function($m) { return $m; };
 
-if($search == '%rand') {
-  $mt_off = 100 * floor(time() / (60 * 60 * 24));
+if($search === '.rand') {
+  $mt_off = 1e6 * floor(time() / (60 * 60 * 24));
   $mt = function($m) use ($ttl, $mt_off){ 
+    global $ttl;
     mt_srand($m + $mt_off);
     return mt_rand(0, $ttl);
   };
