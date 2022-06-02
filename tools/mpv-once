@@ -15,7 +15,6 @@ myname="mpv-once-$RANDOM-$PPID"
 
 # We're going to restore it to this.
 start_name=$( tmux display-message -p '#W' )
-start_dir=$( pwd )
 STR=(on off)
 unset echo
 delim=$(echo -e "\t")

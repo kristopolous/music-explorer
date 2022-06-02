@@ -24,6 +24,7 @@ SLEEP_MIN=1
 SLEEP_MAX=4
 SLEEP_OPTS="--max-sleep-interval $SLEEP_MAX --min-sleep-interval $SLEEP_MIN"
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
+start_dir=$( pwd )
 
 # some simple things first.
 _rm ()  { [[ -e "$1" ]] && rm "$1"; }
