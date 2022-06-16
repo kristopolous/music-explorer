@@ -30,3 +30,5 @@ release distance:
   a & b have credits on the same release / total credits of a release
 
 
+The objective is given a collection of artists suggest labels or other artists
+based on these metrics
