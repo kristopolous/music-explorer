@@ -16,14 +16,13 @@ REMOTEPL=
 DEBUG=${DEBUG:=}
 PLAYLIST=playlist.m3u
 PLAYLIST_DBG=
-YTDL=yt-dlp
+YTDL=${YTDL:=yt-dlp}
 PAGE=page.html
 STOPFILE=$tmp/mpvstop
 FORMAT="-f mp3-128"
 SLEEP_MIN=1
 SLEEP_MAX=4
 SLEEP_OPTS="--max-sleep-interval $SLEEP_MAX --min-sleep-interval $SLEEP_MIN"
-[[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 start_dir=$( pwd )
 
 # some simple things first.
@@ -38,6 +37,8 @@ hr()    { echo; printf '\xe2\x80\x95%.0s' $( seq 1 $(tput cols) ); echo; }
 quit()  { echo "$1"; exit; }
 scan()  { [[ -z "$NOSCAN" ]] && echo */* | tr ' ' '\n' > $start_dir/.listen_all || debug "Skipping scan"; }
 check_for_stop() { [[ -e $STOPFILE ]] && quit "Stopping because $STOPFILE exists"; }
+
+[[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh || debug "Can't find $DIR/prefs.sh"
 
 announce() {
   [[ -n "$announce" ]] && echo "$*" | aosd_cat -p 2  -n "Noto Sans Condensed ExtraBold 150" -R white -f 1000 -u 15000 -o 2000 -x -20 -y 20 -d 50 -r 190 -b 216 -S black -e 2 -B black -w 3600 -b 200&
