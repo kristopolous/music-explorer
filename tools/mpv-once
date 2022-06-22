@@ -129,7 +129,7 @@ iop() {
 
   coproc { 
     if [[ -z "$1" ]] ; then
-      { cat "$m3u" | wc -l; } 2> /dev/null;
+      { wc -l < "$m3u"; } 2> /dev/null;
       echo -e "\t"; 
 
       cat "$i"/domain 2> /dev/null;
