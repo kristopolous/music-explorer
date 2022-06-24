@@ -121,7 +121,7 @@ direct=
 
 timeit() {
   this_ts=$(date +%s.%N)
-  echo $(echo "$this_ts - $start;$this_ts - $last_ts" | bc -l | tr '\n' ' ')" $*"
+  #echo $(echo "$this_ts - $start;$this_ts - $last_ts" | bc -l | tr '\n' ' ')" $*"
   last_ts=$this_ts
 }
 
@@ -129,7 +129,7 @@ iop() {
 
   coproc { 
     if [[ -z "$1" ]] ; then
-      { cat "$m3u" | wc -l; } 2> /dev/null;
+      { wc -l < "$m3u"; } 2> /dev/null;
       echo -e "\t"; 
 
       cat "$i"/domain 2> /dev/null;
@@ -196,8 +196,9 @@ while [[ ${#all[@]} -gt $ix ]]; do
 
     attempts=0
     cycles=0
+    url=
     while [[ 0 ]]; do
-      [[ $cycles -gt 0 ]] && iop
+      [[ $cycles -gt 0 ]] && iop 1
 
       (( cycles ++ ))
       n="__nothing"
@@ -205,8 +206,10 @@ while [[ ${#all[@]} -gt $ix ]]; do
 
       timeit "display"
 
-      read -r -d "$delim" -u ${COPROC[0]} url
-      timeit "domain-read"
+      if [[ -z "$url" ]]; then
+        read -r -d "$delim" -u ${COPROC[0]} url
+        timeit "domain-read"
+      fi
 
       # This block is uncommon
       if [[ -z "$url" ]]; then
@@ -224,7 +227,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
 
         if [[ -e "$i"/no ]]; then
           status "Why am I here? it's marked as no"
-          [[ -n "$COPROC_PID" ]] && kill $COPROC_PID; 
+          [[ -n "$COPROC_PID" ]] && kill $COPROC_PID 
           n=p
           break
         fi

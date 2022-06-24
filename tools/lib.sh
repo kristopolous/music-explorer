@@ -107,8 +107,8 @@ recent() {
   local days=$(( ($(date +%s) - $(date --date=$first_date +%s)) / 86400 ))
 
   grep "20[2-4][0-9]" .listen_done | awk ' { print $NF } ' | sort | uniq -c
-  local ttl=$(wc -l .listen_all | awk ' { print $1 }').0
-  local done=$(wc -l .listen_done | awk ' { print $1 }').0
+  local ttl=$(wc -l < .listen_all).0
+  local done=$(wc -l < .listen_done).0
   wc -l .listen*
 
   perl << END
