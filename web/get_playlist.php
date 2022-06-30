@@ -6,7 +6,7 @@ $ttl = 0;
 $mt = function($m) { return $m; };
 
 if($search === '.rand') {
-  $mt_off = 1e6 * floor(time() / (60 * 60 * 24));
+  $mt_off = 100000 * floor(time() / (60 * 60 * 24));
   $mt = function($m) use ($ttl, $mt_off){ 
     global $ttl;
     mt_srand($m + $mt_off);
@@ -16,21 +16,30 @@ if($search === '.rand') {
 } else if($search) {
   $parts = array_values(preg_grep("/$search/i", $parts));
 }
-if(isset($_GET['off'])) {
-  $off = $_GET['off'] % count($parts);
-}
-$ttl = count($parts);
-$start = 0;
-$ret = [
-  'ttl' => $ttl,
-  'q' => $search,
-  'res' => [],
-  'off' => $off
-];
-for($ix = $off; $start < 10; $start++) {
-  $ix_off = $mt($ix);
-  $ret['res'][] = $parts[$ix_off];
-  $ix = ($ix + 1) % $ttl;
+if(count($parts) === 0) {
+  $ret = [
+    'ttl' => $ttl,
+    'q' => $search,
+    'res' => [],
+    'off' => $off
+  ];
+} else {
+  if(isset($_GET['off'])) {
+    $off = $_GET['off'] % count($parts);
+  }
+  $ttl = count($parts);
+  $start = 0;
+  $ret = [
+    'ttl' => $ttl,
+    'q' => $search,
+    'res' => [],
+    'off' => $off
+  ];
+  for($ix = $off; $start < 10; $start++) {
+    $ix_off = $mt($ix);
+    $ret['res'][] = $parts[$ix_off];
+    $ix = ($ix + 1) % $ttl;
+  }
 }
 
 

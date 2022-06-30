@@ -79,19 +79,16 @@ h2 {
   overflow:hidden;
   width:321px;display:inline-block
 }
-iframe
-{
-  border:8px solid #202020;
-  width:305px;
-  height:355px
-}
 #rel {
 }
+iframe
+{border:8px solid #202020;width:305px;height:355px}
 </style>
 <main style=max-width:480px;display:inline-block>
   <input id='search'/>
   <div id=title><h2 id=label></h2><h2 id=rel></h2>
 </div>
+
 <iframe></iframe>
 <div style=margin-bottom:.5rem;height:0;overflow:visible>
 <audio autoplay=true controls style=filter:invert(92%);position:relative;width:295px;top:-120px />
@@ -108,14 +105,20 @@ iframe
     <a onclick=d(100)>100</a>
   </div>
 </div>
+<span id=ttl></span>
 <script>
 var el, 
-  label, 
   search,
-  rel,
-  qstr = '',
+  ttl_dom,
+  rel_link = document.createElement('a'),
+  label_link = document.createElement('a'),
+  qstr = window.location.hash.split('/')[1] || '',
   pl = [], 
   offset = parseInt(window.location.hash.slice(1) || localStorage['off'] || Math.round(Math.random()*1e8));
+
+if(isNaN(offset)) {
+  offset = 0;
+}
 
 function path_to_url(str) {
   return 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1];
@@ -127,8 +130,9 @@ function play_url(str) {
     r = str.split(/\//)[5],
     src = path_to_url(str);
 
-    label.innerHTML = l.replace(/-/g, ' ');
-  rel.innerHTML = r.replace(/-/g,' ');
+    label_link.innerHTML = l.replace(/-/g, ' ');
+  r = r.replace(/-/g,' ');
+  rel_link.innerHTML = r;
   document.querySelector('iframe').src = src;
 
   // this is the url to play.
@@ -154,7 +158,7 @@ function d(what, absolute) {
 
   offset += what;
   localStorage['off'] = offset;
-  window.location.hash = offset;
+  window.location.hash = [offset,qstr].join('/');
   getit(offset);
   el.focus();
 }
@@ -171,23 +175,37 @@ function getit(off) {
         pl[_off + ix] = data.res[ix];
       }
       pl[_off + ix] = false;
+      ttl_dom.innerHTML = data.ttl;
 
       play_url(pl[_off]);
     });
 }
 
+function dosearch(str) {
+  pl = [];
+  search.value = str;
+  qstr = str.replace(/ /g, '.');
+  d(0, true);
+}
+
 window.onload = () => {
   el = document.querySelector('audio');
-  label = document.querySelector('#label');
-  rel = document.querySelector('#rel');
   search = document.querySelector('#search');
+  ttl_dom = document.querySelector('#ttl');
+  search.value = qstr;
+  document.querySelector('#rel').appendChild(rel_link);
+  document.querySelector('#label').appendChild(label_link);
+  label_link.onclick = function() {
+    dosearch(label_link.innerHTML);
+  }
+  rel_link.onclick = function() {
+    dosearch(rel_link.innerHTML);
+  }
 
   search.onkeydown = (e) => { 
     console.log(e);
     if([e.key, e.code].includes('Enter')) {
-      pl = [];
-      qstr = search.value;
-      d(0, true);
+      dosearch(search.value);
     }
   }
 
