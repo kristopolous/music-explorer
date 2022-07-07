@@ -3,6 +3,7 @@ $off = 0;
 $search = isset($_GET['q']) ? $_GET['q'] : false;
 $parts = file('playlist.txt', FILE_IGNORE_NEW_LINES);
 $ttl = 0;
+$skip = $_GET['skip'] ?? false;
 $mt = function($m) { return $m; };
 
 if($search === '.rand') {
@@ -16,7 +17,9 @@ if($search === '.rand') {
 } else if($search) {
   $parts = array_values(preg_grep("/$search/i", $parts));
 }
-if(count($parts) === 0) {
+$ttl = count($parts);
+
+if($ttl === 0) {
   $ret = [
     'ttl' => $ttl,
     'q' => $search,
@@ -25,9 +28,37 @@ if(count($parts) === 0) {
   ];
 } else {
   if(isset($_GET['off'])) {
-    $off = $_GET['off'] % count($parts);
+    $off = $_GET['off'] % $ttl;
   }
-  $ttl = count($parts);
+  if($skip) {
+    if(!$off) {
+      $off = 0;
+    }
+    $ix = $off;
+    $dir = ($skip[0] != '-') * 2 - 1;
+
+    $what = substr($skip, 1);
+    $base = explode('/',$parts[$off]);
+    $base_len = count($base);
+    $release = $base[$base_len-2];
+    $label = $base[$base_len-3];
+    $start = $off;
+
+    do {
+      $ix = ($ix + $dir) % $ttl;
+      $comp = explode('/',$parts[$ix]);
+      $comp_len = count($comp);
+
+      if(  ($what == 'release' && $comp[$comp_len-2] !== $release)  
+        || ($what == 'label' && $comp[$comp_len-3] !== $label) 
+        ) { 
+        break;
+      }
+    } while ($ix != $off);
+
+    $off = $ix;
+  }
+
   $start = 0;
   $ret = [
     'ttl' => $ttl,

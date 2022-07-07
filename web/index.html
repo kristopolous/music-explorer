@@ -18,6 +18,14 @@ body {
   width:calc(.48 * 321px);
   font-size:0
 }
+a {
+  cursor: pointer;
+ }
+
+a:hover,button:hover {
+  opacity: 0.7;
+  transform: scale(1.1);
+}
 
 #lhs { 
   margin-right: calc(.01 * 321px);
@@ -96,20 +104,22 @@ iframe
 <div id=controls>
   <div id='lhs'>
     <button onclick=d(-1)>&#9664;</button><br/>
-    <a onclick=d(-100)>-100</a>
-    <a onclick=d(-5)>-5</a>
+    <a onclick=d(0,{skip:'-label'})>&lt; label</a>
+    <a onclick=d(0,{skip:'-release'})>&#x23EE; &#x1f4bf;</a>
   </div>
   <div id='rhs'>
     <button onclick=d(1)>&#9654;</button><br/>
-    <a onclick=d(5)>5</a>
-    <a onclick=d(100)>100</a>
+    <a onclick=d(0,{skip:'+release'})>&#x1f4bf; &#x23ED;</a>
+    <a onclick=d(0,{skip:'+label'})>label &gt;</a>
   </div>
 </div>
-<span id=ttl></span>
+<span id=ttl></span> <a onclick=dosearch(".rand")>&#x1f937;</a>
 <script>
 var el, 
   search,
   ttl_dom,
+  label = false,
+  release = false,
   rel_link = document.createElement('a'),
   label_link = document.createElement('a'),
   qstr = window.location.hash.split('/')[1] || '',
@@ -151,31 +161,47 @@ function play_url(str) {
 
 }
 
-function d(what, absolute) {
-  if(absolute) {
+function d(what, opts = {}) {
+  if(opts.absolute) {
     offset = 0;
   } 
 
   offset += what;
   localStorage['off'] = offset;
   window.location.hash = [offset,qstr].join('/');
-  getit(offset);
+  getit(offset,opts);
   el.focus();
 }
 
-function getit(off) {
+function getit(off,opts={}) {
   let _off = off % 1e6, ix;
-  if(pl[_off]) {
+  if(!opts.skip && pl[_off]) {
     return play_url(pl[_off]);
   }
-  fetch(`get_playlist.php?off=${off}&q=${qstr}`)
+  let url = `get_playlist_sql.php?off=${off}&q=${qstr}`
+  // skip 
+  //    +/- label
+  //    +/- release
+  //
+  if(opts.skip) {
+    url += `&skip=${opts.skip}`;
+  }
+ 
+  fetch(url)
     .then(response => response.json())
     .then(data => {
+      _off = data.off;
       for(ix=0; ix < data.res.length; ix++){
         pl[_off + ix] = data.res[ix];
       }
       pl[_off + ix] = false;
       ttl_dom.innerHTML = data.ttl;
+      
+      window.location.hash = [data.off,qstr].join('/');
+      if(_off !== offset) {
+        offset = _off;
+        window.location.hash = [offset,qstr].join('/');
+      }
 
       play_url(pl[_off]);
     });
@@ -185,7 +211,7 @@ function dosearch(str) {
   pl = [];
   search.value = str;
   qstr = str.replace(/ /g, '.');
-  d(0, true);
+  d(0, {absolute:true});
 }
 
 window.onload = () => {
