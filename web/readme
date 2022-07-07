@@ -1,0 +1,1 @@
+sudo apt install sqlite3-pcre sqlite3 php php-sqlite3
