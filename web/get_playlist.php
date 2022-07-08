@@ -106,8 +106,8 @@ function navigate($label, $release, $direction, $final = false) {
     'label' => $label,
     'release' => $release,
     'tracks' => $trackList,
-    '+label' => navigate($label, $release, "+label", true)[0],
-    '+release' => navigate($label, $release, "+release", true)[0]
+    '+label' => navigate($label, $release, "+label", true),
+    '+release' => navigate($label, $release, "+release", true)
   ];
 }
 
