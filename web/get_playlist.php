@@ -1,6 +1,5 @@
 <?php
 $sql = new PDO('sqlite:playlist.db', false, false, [PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
-$start = microtime(true);
 
 function get($qstr, $params = [], $type = false) {
   global $sql;
