@@ -5,6 +5,7 @@ var _el,
   _album = {},
   _trackId = 0,
   _trackComp = {},
+  _loop = true,
   _relDOM = document.createElement('a'),
   _labelDOM = document.createElement('a'),
   _searchDOM,
@@ -22,7 +23,7 @@ function play_url(track) {
   document.querySelector('iframe').src = src;
   _labelDOM.innerHTML = track.label.replace(/-/g, ' ');
   _relDOM.innerHTML = track.release.replace(/-/g,' ');
-  _trackDOM.innerHTML = `(${_trackId + 1}/${_album.length})`;
+  _trackDOM.innerHTML = `${_trackId + 1}/${_album.length}`;
 
   localStorage['_label'] = _label = track.label;
   localStorage['_release'] = _release = track.release;
@@ -34,10 +35,11 @@ function play_url(track) {
     .then(response => response.text())
     .then(data => {
       _el.src = data;
+      document.title = _el.title = track.track.replace(/\-\d*.mp3/, '');
       _el.play();
 
       Object.values(_next).forEach( 
-        track => fetch('url2mp3.php?u=' + path_to_url(track.path)) 
+        track => fetch('url2mp3.php?u=' + path_to_url(track.path || track[0].path)) 
       );
       _next = {};
 
@@ -53,6 +55,13 @@ function nextTrack() {
 
   _next['+track'] = _album[_trackComp['+track']];
   _next['-track'] = _album[_trackComp['-track']];
+
+  if(_loop === false) {
+    if(_trackComp['+track'] === 0){
+      delete _trackComp['+track'];
+      delete _next['+track'];
+    }
+  }
 }
 
 function d(skip) {
@@ -62,6 +71,12 @@ function d(skip) {
     }
     play_url(_pl[_next[skip].id]);
   } else {
+    if(_loop === false) {
+      if(skip === '+track') {
+        skip = '+release';
+      }
+    }
+
     fetch("get_playlist.php?" + [
         `q=${_qstr}`,
         `skip=${skip}`,
@@ -78,8 +93,7 @@ function d(skip) {
         };
         nextTrack();
 
-        [].concat(data.tracks,Object.values(_next))
-          .forEach( track => _pl[track.id] = track );
+        Object.values(data).flat(2).forEach( track => _pl[track.id] = track );
 
         play_url(_pl[data.tracks[0].id]);
       });
@@ -104,6 +118,10 @@ window.onload = () => {
 
   document.querySelector('#rel').appendChild(_relDOM);
   document.querySelector('#label').appendChild(_labelDOM);
+  _trackDOM.onclick = function() {
+    _loop = !_loop;
+    _trackDOM.className = (_loop ? 'loop' : '');
+  }
   _labelDOM.onclick = function() {
     dosearch(_labelDOM.innerHTML);
   }
@@ -128,4 +146,5 @@ window.onload = () => {
     });
   }
   d("+track");
+  _loop = false;
 }
