@@ -6,7 +6,7 @@
 
 <main>
   <input id='search'/>
-  <div id=title><h2 id=label></h2><h2 id=rel></h2>
+  <div id=title><h2 id=label></h2><h2 id=rel></h2><h2 id=track></h2>
 </div>
 
 <iframe></iframe>
@@ -15,16 +15,15 @@
 </div>
 <div id=controls>
   <div id=lhs>
-    <button onclick=d(-1)>&#9664;</button><br/>
-    <a onclick=d(0,{skip:'-label'})>&lt; label</a>
-    <a onclick=d(0,{skip:'-release'})>&#x23EE; &#x1f4bf;</a>
+    <button onclick=d('-track')>&#9664;</button><br/>
+    <a onclick=d('-label')>&lt; label</a>
+    <a onclick=d('-release')>&lt; &#x2609;</a>
   </div>
   <div id=rhs>
-    <button onclick=d(1)>&#9654;</button><br/>
-    <a onclick=d(0,{skip:'+release'})>&#x1f4bf; &#x23ED;</a>
-    <a onclick=d(0,{skip:'+label'})>label &gt;</a>
+    <button onclick=d('+track')>&#9654;</button><br/>
+    <a onclick=d('+release')>&#x2609; &gt;</a>
+    <a onclick=d('+label')>label &gt;</a>
   </div>
 </div>
-<span id=ttl></span> <a onclick=dosearch(".rand")>&#x1f937;</a>
 
-<script src=scripts.js />
+<script src=scripts.js></script>

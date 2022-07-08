@@ -104,17 +104,16 @@ function navigate($label, $release, $direction, $final = false) {
     return $trackList;
   }
   return [
-    'trackList' => $trackList,
-    '+label' => navigate($label, $release, "+label", true),
-    '+release' => navigate($label, $release, "+release", true)
+    'label' => $label,
+    'release' => $release,
+    'tracks' => $trackList,
+    '+label' => navigate($label, $release, "+label", true)[0],
+    '+release' => navigate($label, $release, "+release", true)[0]
   ];
 }
 
-echo json_encode([
-  'res' => navigate(
-    $_GET['label'] ?? false,
-    $_GET['release'] ?? false,
-    $_GET['skip'] ?? "+track"
-  ),
-  'time' => microtime(true) - $start
-]);
+echo json_encode(navigate(
+  $_GET['label'] ?? false,
+  $_GET['release'] ?? false,
+  $_GET['skip'] ?? "+track"
+));

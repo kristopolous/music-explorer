@@ -1,125 +1,126 @@
-var el, 
-  search,
-  ttl_dom,
-  label = false,
-  release = false,
-  rel_link = document.createElement('a'),
-  label_link = document.createElement('a'),
-  qstr = window.location.hash.split('/')[1] || '',
-  pl = [], 
-  offset = parseInt(window.location.hash.slice(1) || localStorage['off'] || Math.round(Math.random()*1e8));
-
-if(isNaN(offset)) {
-  offset = 0;
-}
+var _el, 
+  _label = localStorage['_label'] || '',
+  _release = localStorage['_release'] || '',
+  _next = {},
+  _album = {},
+  _trackId = 0,
+  _trackComp = {},
+  _relDOM = document.createElement('a'),
+  _labelDOM = document.createElement('a'),
+  _searchDOM,
+  _ttlDOM,
+  _trackDOM,
+  _qstr = window.location.hash.split('/')[1] || '',
+  _pl = [];
 
 function path_to_url(str) {
   return 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1];
 }
 
-function play_url(str) {
-  let 
-    l = str.split(/\//)[4],
-    r = str.split(/\//)[5],
-    src = path_to_url(str);
-
-    label_link.innerHTML = l.replace(/-/g, ' ');
-  r = r.replace(/-/g,' ');
-  rel_link.innerHTML = r;
+function play_url(track) {
+  let src = path_to_url(track.path);
   document.querySelector('iframe').src = src;
+  _labelDOM.innerHTML = track.label.replace(/-/g, ' ');
+  _relDOM.innerHTML = track.release.replace(/-/g,' ');
+  _trackDOM.innerHTML = `(${_trackId + 1}/${_album.length})`;
+
+  localStorage['_label'] = _label = track.label;
+  localStorage['_release'] = _release = track.release;
+
+  window.location.hash = [track.id, _qstr].join('/');
 
   // this is the url to play.
-  fetch(`url2mp3.php?path=${str}&u=${src}`)
+  fetch(`url2mp3.php?path=${track.path}&u=${src}`)
     .then(response => response.text())
     .then(data => {
-      el.src = data;
-      el.play();
-      [1, 5, 100].forEach( delta => {
-        if(pl[offset + delta]) {
-          // prefetch next
-          fetch('url2mp3.php?u=' + path_to_url(pl[offset + delta]))
-        }
+      _el.src = data;
+      _el.play();
+
+      Object.values(_next).forEach( 
+        track => fetch('url2mp3.php?u=' + path_to_url(track.path)) 
+      );
+      _next = {};
+
+      nextTrack();
+    });
+}
+
+function nextTrack() {
+  _trackComp = {
+    '+track': (_trackId + 1) % _album.length,
+    '-track': (_album.length + _trackId - 1) % _album.length
+  };
+
+  _next['+track'] = _album[_trackComp['+track']];
+  _next['-track'] = _album[_trackComp['-track']];
+}
+
+function d(skip) {
+  if(_next[skip] && _pl[_next[skip].id]){
+    if(skip in _trackComp){
+      _trackId = _trackComp[skip];
+      console.log(_trackId)
+    }
+    play_url(_pl[_next[skip].id]);
+  } else {
+    fetch("get_playlist_sql.php?" + [
+        `q=${_qstr}`,
+        `skip=${skip}`,
+        `release=${_release}`,
+        `label=${_label}`
+      ].join('&'))
+      .then(response => response.json())
+      .then(data => {
+        _trackId = 0;
+        _album = data.tracks;
+        _next = {
+          '+release': data['+release'],
+          '+label': data['+label'],
+        };
+        nextTrack();
+
+        [].concat(data.tracks,Object.values(_next))
+          .forEach( track => _pl[track.id] = track );
+
+        play_url(_pl[data.tracks[0].id]);
       });
-    });
-
-}
-
-function d(what, opts = {}) {
-  if(opts.absolute) {
-    offset = 0;
-  } 
-
-  offset += what;
-  localStorage['off'] = offset;
-  window.location.hash = [offset,qstr].join('/');
-  getit(offset,opts);
-  el.focus();
-}
-
-function getit(off,opts={}) {
-  let _off = off % 1e6, ix;
-  if(!opts.skip && pl[_off]) {
-    return play_url(pl[_off]);
   }
-  let url = `get_playlist_sql.php?off=${off}&q=${qstr}`
-  // skip 
-  //    +/- label
-  //    +/- release
-  //
-  if(opts.skip) {
-    url += `&skip=${opts.skip}`;
-  }
- 
-  fetch(url)
-    .then(response => response.json())
-    .then(data => {
-      _off = data.off;
-      for(ix=0; ix < data.res.length; ix++){
-        pl[_off + ix] = data.res[ix];
-      }
-      pl[_off + ix] = false;
-      ttl_dom.innerHTML = data.ttl;
-      
-      window.location.hash = [data.off,qstr].join('/');
-      if(_off !== offset) {
-        offset = _off;
-        window.location.hash = [offset,qstr].join('/');
-      }
-
-      play_url(pl[_off]);
-    });
 }
 
 function dosearch(str) {
-  pl = [];
-  search.value = str;
-  qstr = str.replace(/ /g, '.');
-  d(0, {absolute:true});
+  _pl = [];
+  _searchDOM.value = str;
+  _qstr = str.replace(/ /g, '.');
+  _label = '';
+  _release = '';
+  d("+track");
 }
 
 window.onload = () => {
-  el = document.querySelector('audio');
-  search = document.querySelector('#search');
-  ttl_dom = document.querySelector('#ttl');
-  search.value = qstr;
-  document.querySelector('#rel').appendChild(rel_link);
-  document.querySelector('#label').appendChild(label_link);
-  label_link.onclick = function() {
-    dosearch(label_link.innerHTML);
+  _el = document.querySelector('audio');
+  _searchDOM = document.querySelector('#search');
+  _ttlDOM = document.querySelector('#ttl');
+  _trackDOM = document.querySelector('#track');
+  _searchDOM.value = _qstr;
+
+  document.querySelector('#rel').appendChild(_relDOM);
+  document.querySelector('#label').appendChild(_labelDOM);
+  _labelDOM.onclick = function() {
+    dosearch(_labelDOM.innerHTML);
   }
-  rel_link.onclick = function() {
-    dosearch(rel_link.innerHTML);
+  _relDOM.onclick = function() {
+    dosearch(_relDOM.innerHTML);
   }
 
-  search.onkeydown = (e) => { 
+  _searchDOM.onkeydown = (e) => { 
     console.log(e);
     if([e.key, e.code].includes('Enter')) {
-      dosearch(search.value);
+      dosearch(_searchDOM.value);
     }
   }
 
-  el.onended = () => {
-    d(1);
+  _el.onended = () => {
+    d("+track");
     Notification.requestPermission().then(p => {
       if (p === "granted") {
         let s = decodeURIComponent(el.src).split('/').reverse();
@@ -128,5 +129,5 @@ window.onload = () => {
       }
     });
   }
-  getit(offset);
+  d("+track");
 }
