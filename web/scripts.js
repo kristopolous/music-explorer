@@ -63,7 +63,7 @@ function d(skip) {
     }
     play_url(_pl[_next[skip].id]);
   } else {
-    fetch("get_playlist_sql.php?" + [
+    fetch("get_playlist.php?" + [
         `q=${_qstr}`,
         `skip=${skip}`,
         `release=${_release}`,
