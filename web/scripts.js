@@ -59,7 +59,6 @@ function d(skip) {
   if(_next[skip] && _pl[_next[skip].id]){
     if(skip in _trackComp){
       _trackId = _trackComp[skip];
-      console.log(_trackId)
     }
     play_url(_pl[_next[skip].id]);
   } else {
