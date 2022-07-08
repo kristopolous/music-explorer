@@ -112,7 +112,6 @@ window.onload = () => {
   }
 
   _searchDOM.onkeydown = (e) => { 
-    console.log(e);
     if([e.key, e.code].includes('Enter')) {
       dosearch(_searchDOM.value);
     }
