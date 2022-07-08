@@ -4,16 +4,15 @@ $sql = new PDO('sqlite:playlist.db', false, false, [PDO::ATTR_DEFAULT_FETCH_MODE
 function get($qstr, $params = [], $type = false) {
   global $sql;
 
-  $where_list = array_map(fn($v) => "$v = :$v", array_keys($params));
+  $where = array_map(fn($v) => "$v = :$v", array_keys($params));
   if(isset($_GET['q'])) {
-    $where_list[] = "path like :q";
+    $where[] = "path like :q";
     $params['q'] = "%${_GET['q']}%";
   }
-  if(!empty($where_list)) { 
-    $qstr .= " where " . implode (' and ', $where_list);
+  if(!empty($where)) { 
+    $qstr .= " where " . implode (' and ', $where);
   }
 
-  //error_log(json_encode(["$qstr $where_str", $params]));
   $prep = $sql->prepare("$qstr");
   $prep->execute($params);
   return $prep->fetchAll($type);
