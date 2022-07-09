@@ -16,7 +16,7 @@ as_csv() {
     id INTEGER PRIMARY KEY,
     label text,
     release text,
-    track text,
+    title text,
     path text);
 .mode csv
 .import /tmp/playlist.csv tracks
@@ -27,4 +27,5 @@ ENDL
 
 }
 
+gen_playlist
 as_csv

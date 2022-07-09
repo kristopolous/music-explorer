@@ -1,18 +1,25 @@
-var _el, 
-  _label = localStorage['_label'] || '',
-  _release = localStorage['_release'] || '',
+var 
+  _el, 
+  _release = {
+    label: localStorage['_label'] || '',
+    title: localStorage['_release'] || ''
+  },
   _next = {},
-  _album = {},
-  _trackId = 0,
-  _trackComp = {},
+  _track,
   _loop = true,
   _relDOM = document.createElement('a'),
   _labelDOM = document.createElement('a'),
   _searchDOM,
   _ttlDOM,
   _trackDOM,
-  _qstr = window.location.hash.split('/')[1] || '',
-  _pl = [];
+  _qstr = window.location.hash.split('/')[1] || '';
+
+const UP = {
+  '-track': '-release',
+  '+track': '+release', 
+  '+release': '+label',
+  '-release': '-label'
+}
 
 function path_to_url(str) {
   return 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1];
@@ -21,12 +28,12 @@ function path_to_url(str) {
 function play_url(track) {
   let src = path_to_url(track.path);
   document.querySelector('iframe').src = src;
-  _labelDOM.innerHTML = track.label.replace(/-/g, ' ');
-  _relDOM.innerHTML = track.release.replace(/-/g,' ');
-  _trackDOM.innerHTML = `${_trackId + 1}/${_album.length}`;
+  _labelDOM.innerHTML = _release.label.replace(/-/g, ' ');
+  _relDOM.innerHTML = _release.title.replace(/-/g,' ');
+  _trackDOM.innerHTML = `${track.id + 1}/${_release.trackList.length}`;
 
-  localStorage['_label'] = _label = track.label;
-  localStorage['_release'] = _release = track.release;
+  localStorage['_label'] = _release.label;
+  localStorage['_release'] = _release.title  
 
   window.location.hash = [track.id, _qstr].join('/');
 
@@ -35,77 +42,60 @@ function play_url(track) {
     .then(response => response.text())
     .then(data => {
       _el.src = data;
-      document.title = _el.title = track.track.replace(/\-\d*.mp3/, '');
+      document.title = _el.title = track.title.replace(/\-\d*.mp3/, '');
       _el.play();
 
-      Object.values(_next).forEach( 
-        track => fetch('url2mp3.php?u=' + path_to_url(track.path || track[0].path)) 
-      );
-      _next = {};
+      Object.values(_next)
+        .forEach( 
+          track => fetch('url2mp3.php?u=' + path_to_url(track.path) )
+        );
 
-      nextTrack();
+      let rel = _release.trackList, ttl = rel.length;
+      _next['+track'] = rel[(      track.id + 1) % ttl];
+      _next['-track'] = rel[(ttl + track.id - 1) % ttl];
+      _track = track;
     });
 }
 
-function nextTrack() {
-  _trackComp = {
-    '+track': (_trackId + 1) % _album.length,
-    '-track': (_album.length + _trackId - 1) % _album.length
-  };
-
-  _next['+track'] = _album[_trackComp['+track']];
-  _next['-track'] = _album[_trackComp['-track']];
-
-  if(_loop === false) {
-    if(_trackComp['+track'] === 0){
-      delete _trackComp['+track'];
-      delete _next['+track'];
-    }
-  }
-}
-
 function d(skip) {
-  if(_next[skip] && _pl[_next[skip].id]){
-    if(skip in _trackComp){
-      _trackId = _trackComp[skip];
+  let next = _next[skip];
+
+  if (next) { 
+    if( !_loop && (
+          (skip == '+track'   && next.id === 0)
+       || (skip == '-track'   && next.id >= _track.id)
+       || (skip == '+release' && next.number == 0) 
+       || (skip == '-release' && next.number >= _release.number)
+      ) 
+    ) {
+      return d(UP[skip]);
     }
-    play_url(_pl[_next[skip].id]);
-  } else {
-    if(_loop === false) {
-      if(skip === '+track') {
-        skip = '+release';
-      }
+
+    // makes sure it's really a track
+    if(next.id) {
+      return play_url(next);
     }
+  } 
 
-    fetch("get_playlist.php?" + [
-        `q=${_qstr}`,
-        `skip=${skip}`,
-        `release=${_release}`,
-        `label=${_label}`
-      ].join('&'))
-      .then(response => response.json())
-      .then(data => {
-        _trackId = 0;
-        _album = data.tracks;
-        _next = {
-          '+release': data['+release'],
-          '+label': data['+label'],
-        };
-        nextTrack();
-
-        Object.values(data).flat(2).forEach( track => _pl[track.id] = track );
-
-        play_url(_pl[data.tracks[0].id]);
-      });
-  }
+  fetch("get_playlist.php?" + [
+      `q=${_qstr}`,
+      `skip=${skip}`,
+      `release=${_release.title}`,
+      `label=${_release.label}`
+    ].join('&'))
+    .then(response => response.json())
+    .then(data => {
+      _release = data.release;
+      delete data.release;
+      _next = data;
+      play_url(_release.trackList[0]);
+    });
 }
 
 function dosearch(str) {
-  _pl = [];
   _searchDOM.value = str;
   _qstr = str.replace(/ /g, '.');
-  _label = '';
-  _release = '';
+  _release = {title:'',label:''};
   d("+track");
 }
 

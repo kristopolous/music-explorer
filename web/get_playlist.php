@@ -4,15 +4,16 @@ $sql = new PDO('sqlite:playlist.db', false, false, [PDO::ATTR_DEFAULT_FETCH_MODE
 function get($qstr, $params = [], $type = false) {
   global $sql;
 
-  $where = array_map(fn($v) => "$v = :$v", array_keys($params));
+  $where_list = array_map(fn($v) => "$v = :$v", array_keys($params));
   if(isset($_GET['q'])) {
-    $where[] = "path like :q";
+    $where_list[] = "path like :q";
     $params['q'] = "%${_GET['q']}%";
   }
-  if(!empty($where)) { 
-    $qstr .= " where " . implode (' and ', $where);
+  if(!empty($where_list)) { 
+    $qstr .= " where " . implode (' and ', $where_list);
   }
 
+  //error_log(json_encode(["$qstr $where_str", $params]));
   $prep = $sql->prepare("$qstr");
   $prep->execute($params);
   return $prep->fetchAll($type);
@@ -22,7 +23,11 @@ $_releaseMap = [];
 function get_tracks($label, $release) {
   global $_releaseMap;
   if(!isset($_releaseMap["$label:$release"])) {
-    $_releaseMap["$label:$release"] = get("select * from tracks", ['label' => $label, 'release' => $release]);
+    $res = get("select title,path from tracks", ['label' => $label, 'release' => $release]);
+    for($ix = 0; $ix < count($res); $ix++) {
+      $res[$ix]['id'] = $ix;
+    }
+    $_releaseMap["$label:$release"] = $res;
   }
   return $_releaseMap["$label:$release"];
 }
@@ -56,6 +61,7 @@ function navigate($label, $release, $direction, $final = false) {
 
   $label_ix = 0;
   $release_ix = 0;
+  $releaseList = [];
 
   $labelList = get_labels();
 
@@ -80,6 +86,7 @@ function navigate($label, $release, $direction, $final = false) {
 
   } else if ($what === 'release') {
     $releaseList = get_releases($label);
+    error_log(json_encode($releaseList));
     $ttl = count($releaseList);
     if(!$ttl) {
       return compact('labelList', 'releaseList');
@@ -93,19 +100,28 @@ function navigate($label, $release, $direction, $final = false) {
     $trackList = get_tracks($label, $release);
   } else {
     if(!$release) {
-      $release = get_releases($label)[0];
+      $releaseList = get_releases($label);
+      $release = $releaseList[0];
     }
     $trackList = get_tracks($label, $release);
   }
 
-  if($final) {
-    return $trackList;
-  }
-  return [
+  $payload = [
     'label' => $label,
-    'release' => $release,
-    'tracks' => $trackList,
+    'title' => $release,
+    'number' => $release_ix, 
+    'count' => count($releaseList) 
+  ];
+  if($final) {
+    $payload['path'] = $trackList[0]['path'];
+    return $payload;
+  }
+  $payload[ 'trackList' ] = $trackList;
+
+  return [
+    'release' => $payload,
     '+label' => navigate($label, $release, "+label", true),
+    '-release' => navigate($label, $release, "-release", true),
     '+release' => navigate($label, $release, "+release", true)
   ];
 }
