@@ -96,8 +96,6 @@ window.onload = () => {
   _el = document.querySelector('audio');
   ['search','track','controls'].forEach(what => _DOM[what] = document.querySelector('#' + what));
 
-  _DOM.search.value = _qstr;
-
   document.querySelector('#rel').appendChild(_DOM.rel);
   document.querySelector('#label').appendChild(_DOM.label);
   _DOM.track.onclick = function() {
@@ -108,6 +106,7 @@ window.onload = () => {
   _DOM.label.onclick = () => dosearch(_DOM.label.innerHTML);
   _DOM.rel.onclick = () => dosearch(_DOM.rel.innerHTML);
 
+  _DOM.search.value = _qstr;
   _DOM.search.onkeydown = (e) => { 
     if([e.key, e.code].includes('Enter')) {
       dosearch(_DOM.search.value);
