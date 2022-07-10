@@ -1,25 +1,19 @@
 var 
+  hash = window.location.hash.slice(1).split('/'),
   _el, 
   _release = {
-    label: localStorage['_label'] || '',
-    title: localStorage['_release'] || ''
+    label: hash[0] || '',
+    title: hash[1] || ''
   },
   _next = {},
   _track,
   _loop = true,
-  _relDOM = document.createElement('a'),
-  _labelDOM = document.createElement('a'),
-  _searchDOM,
-  _ttlDOM,
-  _trackDOM,
-  _qstr = window.location.hash.split('/')[1] || '';
-
-const UP = {
-  '-track': '-release',
-  '+track': '+release', 
-  '+release': '+label',
-  '-release': '-label'
-}
+  _DOM = {
+    rel: document.createElement('a'),
+    label: document.createElement('a'),
+    search: '', track: '', controls: ''
+  },
+  _qstr = hash[3] || '';
 
 function path_to_url(str) {
   return 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1];
@@ -28,14 +22,11 @@ function path_to_url(str) {
 function play_url(track) {
   let src = path_to_url(track.path);
   document.querySelector('iframe').src = src;
-  _labelDOM.innerHTML = _release.label.replace(/-/g, ' ');
-  _relDOM.innerHTML = _release.title.replace(/-/g,' ');
-  _trackDOM.innerHTML = `${track.id + 1}/${_release.trackList.length}`;
+  _DOM.label.innerHTML = _release.label.replace(/-/g, ' ');
+  _DOM.rel.innerHTML = _release.title.replace(/-/g,' ');
+  _DOM.track.innerHTML = `${track.id + 1}/${_release.trackList.length}<br/>${_release.number + 1}/${_release.count}`;
 
-  localStorage['_label'] = _release.label;
-  localStorage['_release'] = _release.title  
-
-  window.location.hash = [track.id, _qstr].join('/');
+  window.location.hash = [_release.label, _release.title, track.id, _qstr].join('/');
 
   // this is the url to play.
   fetch(`url2mp3.php?path=${track.path}&u=${src}`)
@@ -44,6 +35,7 @@ function play_url(track) {
       _el.src = data;
       document.title = _el.title = track.title.replace(/\-\d*.mp3/, '');
       _el.play();
+      _DOM.controls.className = '';
 
       Object.values(_next)
         .forEach( 
@@ -58,6 +50,10 @@ function play_url(track) {
 }
 
 function d(skip) {
+  if(_DOM.controls.className){
+    return;
+  }
+  _DOM.controls.className = 'disabled';
   let next = _next[skip];
 
   if (next) { 
@@ -68,7 +64,7 @@ function d(skip) {
        || (skip == '-release' && next.number >= _release.number)
       ) 
     ) {
-      return d(UP[skip]);
+      return d(skip[0] + (skip[1] === 't' ? 'release' : 'label'));
     }
 
     // makes sure it's really a track
@@ -93,35 +89,32 @@ function d(skip) {
 }
 
 function dosearch(str) {
-  _searchDOM.value = str;
+  _DOM.search.value = str;
   _qstr = str.replace(/ /g, '.');
+  _next = {};
   _release = {title:'',label:''};
   d("+track");
 }
 
 window.onload = () => {
   _el = document.querySelector('audio');
-  _searchDOM = document.querySelector('#search');
-  _ttlDOM = document.querySelector('#ttl');
-  _trackDOM = document.querySelector('#track');
-  _searchDOM.value = _qstr;
+  ['search','track','controls'].forEach(what => _DOM[what] = document.querySelector('#' + what));
 
-  document.querySelector('#rel').appendChild(_relDOM);
-  document.querySelector('#label').appendChild(_labelDOM);
-  _trackDOM.onclick = function() {
+  _DOM.search.value = _qstr;
+
+  document.querySelector('#rel').appendChild(_DOM.rel);
+  document.querySelector('#label').appendChild(_DOM.label);
+  _DOM.track.onclick = function() {
     _loop = !_loop;
-    _trackDOM.className = (_loop ? 'loop' : '');
-  }
-  _labelDOM.onclick = function() {
-    dosearch(_labelDOM.innerHTML);
-  }
-  _relDOM.onclick = function() {
-    dosearch(_relDOM.innerHTML);
+    _DOM.track.className = (_loop ? 'loop' : '');
   }
 
-  _searchDOM.onkeydown = (e) => { 
+  _DOM.label.onclick = () => dosearch(_DOM.label.innerHTML);
+  _DOM.rel.onclick = () => dosearch(_DOM.rel.innerHTML);
+
+  _DOM.search.onkeydown = (e) => { 
     if([e.key, e.code].includes('Enter')) {
-      dosearch(_searchDOM.value);
+      dosearch(_DOM.search.value);
     }
   }
 

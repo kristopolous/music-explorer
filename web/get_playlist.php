@@ -99,9 +99,11 @@ function navigate($label, $release, $direction, $final = false) {
     $release = $releaseList[$release_ix];
     $trackList = get_tracks($label, $release);
   } else {
+    $releaseList = get_releases($label);
     if(!$release) {
-      $releaseList = get_releases($label);
       $release = $releaseList[0];
+    } else {
+      $release_ix = array_search($release, $releaseList);
     }
     $trackList = get_tracks($label, $release);
   }
