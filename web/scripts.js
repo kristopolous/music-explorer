@@ -10,8 +10,7 @@ var
   _loop = true,
   _DOM = {
     rel: document.createElement('a'),
-    label: document.createElement('a'),
-    search: '', track: '', controls: ''
+    label: document.createElement('a')
   },
   _qstr = hash[3] || '';
 
@@ -37,10 +36,7 @@ function play_url(track) {
       _el.play();
       _DOM.controls.className = '';
 
-      Object.values(_next)
-        .forEach( 
-          track => fetch('url2mp3.php?u=' + path_to_url(track.path) )
-        );
+      Object.values(_next).forEach( track => fetch('url2mp3.php?u=' + path_to_url(track.path) ));
 
       let rel = _release.trackList, ttl = rel.length;
       _next['+track'] = rel[(      track.id + 1) % ttl];
