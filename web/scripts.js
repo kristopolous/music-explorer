@@ -24,7 +24,7 @@ function play_url(track) {
   document.querySelector('iframe').src = src;
   _DOM.label.innerHTML = _release.label.replace(/-/g, ' ');
   _DOM.rel.innerHTML = _release.title.replace(/-/g,' ');
-  _DOM.track.innerHTML = `${track.id + 1}/${_release.trackList.length}<br/>${_release.number + 1}/${_release.count}`;
+  _DOM.track.innerHTML = `${track.id + 1}:${_release.trackList.length}<br/>${_release.number + 1}:${_release.count}`;
 
   window.location.hash = [_release.label, _release.title, track.id, _qstr].join('/');
 
@@ -53,7 +53,6 @@ function d(skip) {
   if(_DOM.controls.className){
     return;
   }
-  _DOM.controls.className = 'disabled';
   let next = _next[skip];
 
   if (next) { 
@@ -73,6 +72,7 @@ function d(skip) {
     }
   } 
 
+  _DOM.controls.className = 'disabled';
   fetch("get_playlist.php?" + [
       `q=${_qstr}`,
       `skip=${skip}`,

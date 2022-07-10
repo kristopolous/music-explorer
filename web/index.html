@@ -1,29 +1,32 @@
 <!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="preconnect" href="https://fonts.gstatic.com">
-<link href="https://fonts.googleapis.com/css2?family=BenchNine:wght@300;400;700&display=swap" rel="stylesheet">
+<link rel=preconnect href=https://fonts.gstatic.com>
+<link rel=stylesheet href=https://fonts.googleapis.com/css2?family=BenchNine:wght@300;400;700&display=swap>
 <link rel=stylesheet href=styles.css>
 
 <main>
   <input id='search'/>
-  <div id=title><h2 id=label></h2><h2 id=rel></h2><h2 id=track></h2>
-</div>
-
-<iframe></iframe>
-<div id=audio-wrap>
-  <audio autoplay=true controls />
-</div>
-<div id=controls>
-  <div id=lhs>
-    <button onclick=d('-track')>&#9664;</button><br/>
-    <a onclick=d('-label')>&lt; label</a>
-    <a onclick=d('-release')>&lt; &#x2609;</a>
+  <div id=title>
+    <h2 id=track /><h2 id=label /><h2 id=rel />
   </div>
-  <div id=rhs>
-    <button onclick=d('+track')>&#9654;</button><br/>
-    <a onclick=d('+release')>&#x2609; &gt;</a>
-    <a onclick=d('+label')>label &gt;</a>
+  <div id=iframe-container>
+    <iframe></iframe>
   </div>
-</div>
+  <div id=audio-wrap>
+    <audio autoplay=true controls />
+  </div>
+  <div id=controls>
+    <div id=lhs>
+      <button onclick=d('-track')>&#9664;</button><br/>
+      <a onclick=d('-label')>&lt; label</a>
+      <a onclick=d('-release')>&lt; &#x2609;</a>
+    </div>
+    <div id=rhs>
+      <button onclick=d('+track')>&#9654;</button><br/>
+      <a onclick=d('+release')>&#x2609; &gt;</a>
+      <a onclick=d('+label')>label &gt;</a>
+    </div>
+  </div>
+</main>
 
 <script src=scripts.js></script>
