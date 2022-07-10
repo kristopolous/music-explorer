@@ -15,6 +15,10 @@ body {
   font-size:0
 }
 
+.disabled {
+  opacity: 0.2;
+}
+
 a {
   cursor: pointer;
 }
@@ -30,19 +34,22 @@ a:hover, button:hover {
   margin-left: calc(.01 * 321px);
 }
 #controls a, input, button {
-  color: #ccc;
-  border:0;
-  background:#1f1f1f;
+  color: #ebebeb;
+  background: #201e1e;
+  border: 0;
   width: 100%;
-  font-size:2rem; 
-  padding: .75rem 0; 
+  padding: .5rem 0; 
+  font-size: 1.4rem; 
   margin: 0;
 }
 #controls a {
   display: inline-block;
   margin: .5rem 0;
-  font-size: 1rem; 
   width: calc(50% - .25rem)
+}
+
+#controls * {
+  user-select: none;
 }
 
 #controls a:active, button:active {
@@ -86,20 +93,48 @@ h2 {
 }
 
 #audio-wrap {
-  margin-bottom:.5rem;height:0;overflow:visible
+  margin-bottom:.5rem;
+  height:0;
+  overflow:visible;
 }
-
-audio{
+#track {
+  vertical-align: middle;
+  display:inline-block;
+  padding: 0.15rem 0.25rem;
+  font-size: .6rem;
+  margin-top: -0.5rem;
+  line-height: .5rem;
+  border-radius: 0.5rem;
+  font-family: monospace;
+  user-select: none;
+}
+.loop {
+  background: #ccc;
+  text-shadow: 0 0 1px #1f1f1f;
+  color:#1f1f1f;
+}
+audio {
   filter:invert(92%);
   position:relative;
-  width:295px;
-  top:-120px 
+  background: #f1f3f4;
+  width:290px;
+  top:-133px 
 } 
 
 iframe {
+  width:307px;
+  height:353px;
+  margin-left: -1px;
+  border:0;
+}
+#iframe-container {
   border:8px solid #202020;
+  overflow: hidden;
   width:305px;
-  height:355px
+  height:353px;
+  background: #303030;
+  padding-bottom: 10px;
+  display:inline-block
 }
 
 main {
