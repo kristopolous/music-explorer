@@ -127,7 +127,7 @@ iframe {
   margin-left: -1px;
   border:0;
 }
-#iframe-container {
+#iframe-wrap {
   border:8px solid #202020;
   overflow: hidden;
   width:305px;
