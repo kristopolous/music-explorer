@@ -1,22 +1,19 @@
 var 
   hash = window.location.hash.slice(1).split('/'),
+  _track,
   _el, 
   _release = {
     label: hash[0] || '',
     title: hash[1] || ''
   },
+  _qstr = hash[3] || '',
   _next = {},
-  _track,
   _loop = true,
   _DOM = {
     rel: document.createElement('a'),
     label: document.createElement('a')
   },
-  _qstr = hash[3] || '';
-
-function path_to_url(str) {
-  return 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1];
-}
+  path_to_url = (str) => 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1];
 
 function play_url(track) {
   let src = path_to_url(track.path);
@@ -32,9 +29,9 @@ function play_url(track) {
     .then(response => response.text())
     .then(data => {
       _el.src = data;
-      document.title = _el.title = track.title.replace(/\-\d*.mp3/, '');
       _el.play();
       _DOM.controls.className = '';
+      document.title = _el.title = track.title.replace(/\-\d*.mp3/, '');
 
       Object.values(_next).forEach( track => fetch('url2mp3.php?u=' + path_to_url(track.path) ));
 
@@ -94,17 +91,17 @@ function dosearch(str) {
 
 window.onload = () => {
   _el = document.querySelector('audio');
-  ['search','track','controls'].forEach(what => _DOM[what] = document.querySelector('#' + what));
 
-  document.querySelector('#rel').appendChild(_DOM.rel);
-  document.querySelector('#label').appendChild(_DOM.label);
+  ['search','track','controls'].forEach(what => _DOM[what] = document.querySelector(`#${what}`));
+  ['rel','label'].forEach(what => {
+    document.querySelector(`#${what}`).appendChild(_DOM[what]);
+    _DOM[what].onclick = () => dosearch(_DOM[what].innerHTML);
+  });
+
   _DOM.track.onclick = function() {
     _loop = !_loop;
     _DOM.track.className = (_loop ? 'loop' : '');
   }
-
-  _DOM.label.onclick = () => dosearch(_DOM.label.innerHTML);
-  _DOM.rel.onclick = () => dosearch(_DOM.rel.innerHTML);
 
   _DOM.search.value = _qstr;
   _DOM.search.onkeydown = (e) => { 
