@@ -45,43 +45,43 @@ function play_url(track) {
     });
 }
 
-function d(skip) {
-  if(_DOM.controls.className){
-    return;
+function d(skip, orig) {
+  if(!_DOM.controls.className) {
+    let next = _next[skip];
+
+    if (next) { 
+      if( !_loop && (
+            (skip == '+track'   && next.id === 0)
+         || (skip == '-track'   && next.id >= _track.id)
+         || (skip == '+release' && next.number == 0) 
+         || (skip == '-release' && next.number >= _release.number)
+        ) 
+      ) {
+        return d(skip[0] + (skip[1] === 't' ? 'release' : 'label'), orig || skip);
+      }
+
+      // makes sure it's really a track
+      if(next.id) {
+        return play_url(next);
+      }
+    } 
+
+    _DOM.controls.className = 'disabled';
+    fetch("get_playlist.php?" + [
+        `q=${_qstr}`,
+        `skip=${skip}`,
+        `orig=${orig}`,
+        `release=${_release.title}`,
+        `label=${_release.label}`
+      ].join('&'))
+      .then(response => response.json())
+      .then(data => {
+        _release = data.release;
+        delete data.release;
+        _next = data;
+        play_url(_release.trackList[_release.track_ix]);
+      });
   }
-  let next = _next[skip];
-
-  if (next) { 
-    if( !_loop && (
-          (skip == '+track'   && next.id === 0)
-       || (skip == '-track'   && next.id >= _track.id)
-       || (skip == '+release' && next.number == 0) 
-       || (skip == '-release' && next.number >= _release.number)
-      ) 
-    ) {
-      return d(skip[0] + (skip[1] === 't' ? 'release' : 'label'));
-    }
-
-    // makes sure it's really a track
-    if(next.id) {
-      return play_url(next);
-    }
-  } 
-
-  _DOM.controls.className = 'disabled';
-  fetch("get_playlist.php?" + [
-      `q=${_qstr}`,
-      `skip=${skip}`,
-      `release=${_release.title}`,
-      `label=${_release.label}`
-    ].join('&'))
-    .then(response => response.json())
-    .then(data => {
-      _release = data.release;
-      delete data.release;
-      _next = data;
-      play_url(_release.trackList[0]);
-    });
 }
 
 function dosearch(str) {
@@ -123,6 +123,6 @@ window.onload = () => {
       }
     });
   }
-  d("+track");
+  d(hash[2] || "+track");
   _loop = false;
 }

@@ -13,7 +13,6 @@ function get($qstr, $params = [], $type = false) {
     $qstr .= " where " . implode (' and ', $where_list);
   }
 
-  //error_log(json_encode(["$qstr $where_str", $params]));
   $prep = $sql->prepare("$qstr");
   $prep->execute($params);
   return $prep->fetchAll($type);
@@ -36,7 +35,7 @@ function get_releases($label) {
   global $_releaseMap;
   if(!isset($_releaseMap[$label])) {
     $releaseList = get("select distinct release from tracks", ['label' => $label], PDO::FETCH_COLUMN);
-    mt_srand(floor(time() / (60 * 60 * 24)));
+    mt_srand(floor(time() / (60 * 60 * 6)));
     shuffle($releaseList);
     $_releaseMap[$label] = $releaseList;
   }
@@ -48,7 +47,7 @@ function get_labels() {
   global $_labelList;
   if(!$_labelList) {
     $labelList = get("select distinct label from tracks", [], PDO::FETCH_COLUMN);
-    mt_srand(floor(time() / (60 * 60 * 24)));
+    mt_srand(floor(time() / (60 * 60 * 6)));
     shuffle($labelList);
     $_labelList = $labelList;
   }
@@ -61,6 +60,7 @@ function navigate($label, $release, $direction, $final = false) {
 
   $label_ix = 0;
   $release_ix = 0;
+  $track_ix = 0;
   $releaseList = [];
 
   $labelList = get_labels();
@@ -70,6 +70,7 @@ function navigate($label, $release, $direction, $final = false) {
   }
 
   if($what === 'label') {
+    $isBack = $_GET['orig'] !== '-label' && $dir === -1;
     $ttl = count($labelList);
     if(!$ttl) {
       return compact('labelList');
@@ -81,12 +82,19 @@ function navigate($label, $release, $direction, $final = false) {
 
     $label = $labelList[$label_ix];
     $releaseList = get_releases($label);
-    $release = $releaseList[0];
+
+    if($isBack) {
+      $release_ix = count($releaseList) - 1;
+    } 
+    $release = $releaseList[$release_ix];
     $trackList = get_tracks($label, $release);
+
+    if($isBack) {
+      $track_ix = count($trackList) - 1;
+    } 
 
   } else if ($what === 'release') {
     $releaseList = get_releases($label);
-    error_log(json_encode($releaseList));
     $ttl = count($releaseList);
     if(!$ttl) {
       return compact('labelList', 'releaseList');
@@ -98,6 +106,10 @@ function navigate($label, $release, $direction, $final = false) {
 
     $release = $releaseList[$release_ix];
     $trackList = get_tracks($label, $release);
+
+    if($_GET['orig'] === '-track') {
+      $track_ix = count($trackList) - 1;
+    }
   } else {
     $releaseList = get_releases($label);
     if(!$release) {
@@ -106,6 +118,10 @@ function navigate($label, $release, $direction, $final = false) {
       $release_ix = array_search($release, $releaseList);
     }
     $trackList = get_tracks($label, $release);
+
+    if(is_numeric($direction)) {
+      $track_ix = $direction;
+    }
   }
 
   $payload = [
@@ -119,6 +135,7 @@ function navigate($label, $release, $direction, $final = false) {
     return $payload;
   }
   $payload[ 'trackList' ] = $trackList;
+  $payload[ 'track_ix' ] = $track_ix;
 
   return [
     'release' => $payload,
