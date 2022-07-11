@@ -25,10 +25,12 @@ function play_url(track) {
   window.location.hash = [_release.label, _release.title, track.id, _qstr].join('/');
 
   // this is the url to play.
-  fetch(`url2mp3.php?path=${track.path}&u=${src}`)
+  fetch(`url2mp3.php?path=${encodeURIComponent(track.path)}&u=${src}`)
     .then(response => response.text())
     .then(data => {
-      _el.src = data;
+       let parts = data.split('/');
+       parts[parts.length - 1] = encodeURIComponent(parts[parts.length - 1]);
+      _el.src = parts.join('/') 
       _el.play();
       _DOM.controls.className = '';
       document.title = _el.title = track.title.replace(/\-\d*.mp3/, '');
