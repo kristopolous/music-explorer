@@ -3,6 +3,7 @@ body {
   background: black;
   margin:0;
   text-align: center; 
+  color: #ebebeb;
 }
   
 *:focus {outline: none}
@@ -17,11 +18,13 @@ body {
   opacity: 0.2;
 }
 
-a:hover, button:hover {
-  opacity: 0.7;
+main {
+  max-width:480px;
+  display:inline-block
 }
 
 input {
+  color: #ebebeb;
   font-size: 1rem;
   font-family: 'BenchNine', sans-serif;
   width: 321px;
@@ -30,26 +33,20 @@ input {
   margin-bottom: .5rem;
 }
 
-h2,h1 {
-  margin: 0.15rem;
-  color: #999;
+h2 {
+  margin: 0.15rem 0.15rem 0 0.15rem;
   font-size: 1.50rem;
   line-height: 1.4rem;
-}
-
-h2 { 
-  color: #ccc;
   font-weight: 300;
   display: inline;
-  margin-bottom: 0;
 }
 
 audio {
   filter:invert(92%);
   position:relative;
   background: #f1f3f4;
-  width:290px;
-  top:-127px 
+  width: 290px;
+  top: -126px 
 } 
 
 iframe {
@@ -86,21 +83,18 @@ iframe {
   user-select: none;
 }
 
-#controls a:active, button:active {
-  background: white; 
-  color: #1f1f1f;
+.loop, button:active, #controls a:active {
+  background: #ebebeb;
+  text-shadow: 0 0 1px #1f1f1f;
+  color: #201e1e;
 }
 
 #controls div > :nth-child(3) {
   margin-right: .5rem;
 }
-main {
-  max-width:480px;
-  display:inline-block
-}
 
 #label {
-  color: #edc;
+  color: #ebebeb;
   font-weight: 500;
 }
 
@@ -118,6 +112,7 @@ main {
   height:0;
   overflow:visible;
 }
+
 #track {
   vertical-align: middle;
   display:inline-block;
@@ -129,14 +124,9 @@ main {
   font-family: monospace;
   user-select: none;
 }
-.loop {
-  background: #ccc;
-  text-shadow: 0 0 1px #1f1f1f;
-  color:#1f1f1f;
-}
 
 #iframe-wrap {
-  border:8px solid #202020;
+  border:.5rem solid #201e1e;
   overflow: hidden;
   width:305px;
   height:353px;
