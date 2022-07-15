@@ -39,7 +39,7 @@ function play_url(play) {
       let rel = _my.trackList, ttl = rel.length;
       _next['+track'] = rel[(      play.id + 1) % ttl];
       _next['-track'] = rel[(ttl + play.id - 1) % ttl];
-      _track = track;
+      _track = play;
     });
 }
 
