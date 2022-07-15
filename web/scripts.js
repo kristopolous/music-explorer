@@ -8,20 +8,16 @@ var
   },
   _qstr = hash[3] || '',
   _next = {},
-  _loop = true,
+  _loop,
   _tab = 'track',
-  _DOM = {
-    rel: document.createElement('a'),
-    label: document.createElement('a')
-  },
+  _DOM = {},
   path_to_url = (str) => 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1],
   remote = (append = []) => fetch("get_playlist.php?" + [ `q=${_qstr}`, `release=${_my.release}`, `label=${_my.label}`, ...append ].join('&')).then(response => response.json());
 
 function play_url(play) {
   let src = path_to_url(play.path);
   document.querySelector('iframe').src = src;
-  _DOM.label.innerHTML = _my.label.replace(/-/g, ' ');
-  _DOM.rel.innerHTML = _my.release.replace(/-/g,' ');
+  ['release','label'].forEach(a => _DOM[a].innerHTML = _my[a].replace(/-/g, ' '))
   _DOM.track.innerHTML = `${play.id + 1}:${_my.trackList.length}<br/>${_my.number + 1}:${_my.count}`;
 
   window.location.hash = [_my.label, _my.release, play.id, _qstr].join('/');
@@ -91,7 +87,8 @@ window.onload = () => {
   _el = document.querySelector('audio');
 
   ['top','list','nav','navcontrols','search','track','controls'].forEach(what => _DOM[what] = document.querySelector(`#${what}`));
-  ['rel','label'].forEach(what => {
+  ['release','label'].forEach(what => {
+    _DOM[what] =  document.createElement('a');
     document.querySelector(`#${what}`).appendChild(_DOM[what]);
     _DOM[what].onclick = () => dosearch(_DOM[what].innerHTML);
   });
@@ -110,6 +107,7 @@ window.onload = () => {
       _qstr = encodeURIComponent(_DOM.search.value);
       _DOM.navcontrols.onclick();
     }, 250);
+
     if([e.key, e.code].includes('Enter')) {
       dosearch(_DOM.search.value);
     }
@@ -126,7 +124,6 @@ window.onload = () => {
 
     remote([ `action=${_tab}` ])
       .then(data => {
-        let current;
         _DOM.list.innerHTML = '';
         _DOM.list.append(...data.sort().map((e,ix) => {
             let l = document.createElement('li');
@@ -135,14 +132,13 @@ window.onload = () => {
             l.obj = e;
 
             if(l.innerHTML === _my[_tab]){
-              current = l;
               l.className = 'selected';
             }
             return l;
           })
         );
-        if(current && _DOM.list.scrollTop === 0) {
-          _DOM.list.scrollTo(0, current.offsetTop - 150);
+        if(_DOM.list.scrollTop === 0 && _DOM.list.querySelector('.selected')) {
+          _DOM.list.scrollTo(0, _DOM.list.querySelector('.selected').offsetTop - 150);
         }
       });
   }
@@ -187,7 +183,5 @@ window.onload = () => {
       }
     });
   }
-  d(hash[2] || "+track").then(_DOM.navcontrols.onclick);
-  
-  _loop = false;
+  d(hash[2] || 0).then(_DOM.navcontrols.onclick);
 }
