@@ -14,7 +14,8 @@ var
     rel: document.createElement('a'),
     label: document.createElement('a')
   },
-  path_to_url = (str) => 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1];
+  path_to_url = (str) => 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1],
+  remote = (append = []) => fetch("get_playlist.php?" + [ `q=${_qstr}`, `release=${_my.release}`, `label=${_my.label}`, ...append ].join('&')).then(response => response.json());
 
 function play_url(play) {
   let src = path_to_url(play.path);
@@ -68,14 +69,7 @@ function d(skip, orig) {
     } 
 
     _DOM.controls.className = 'disabled';
-    return fetch("get_playlist.php?" + [
-        `q=${_qstr}`,
-        `action=${skip}`,
-        `orig=${orig}`,
-        `release=${_my.release}`,
-        `label=${_my.label}`
-      ].join('&'))
-      .then(response => response.json())
+    return remote([ `action=${skip}`, `orig=${orig}` ])
       .then(data => {
         _my = data.release;
         delete data.release;
@@ -130,16 +124,10 @@ window.onload = () => {
       what.className = 'selected';
     }
 
-    fetch("get_playlist.php?" + [
-        `q=${_qstr}`,
-        `action=${_tab}`,
-        `release=${_my.release || ''}`,
-        `label=${_my.label || ''}`
-      ].join('&'))
-      .then(response => response.json())
+    remote([ `action=${_tab}` ])
       .then(data => {
-        _DOM.list.innerHTML = '';
         let current;
+        _DOM.list.innerHTML = '';
         _DOM.list.append(...data.sort().map((e,ix) => {
             let l = document.createElement('li');
             l.innerHTML = e.track || e;
@@ -153,26 +141,26 @@ window.onload = () => {
             return l;
           })
         );
-        if(current) {
+        if(current && _DOM.list.scrollTop === 0) {
           _DOM.list.scrollTo(0, current.offsetTop - 150);
         }
       });
   }
+
   _DOM.list.onclick = (e) => {
-    if(e.target.tagName !== 'LI'){
-      return;
-    }
     let ix = 0;
-    if(_tab === 'track') {
-      ix = e.target.ix;
-      _my = e.target.obj;
-    } else {
-      _my[_tab] = e.target.innerHTML;
-      if(_tab === 'label'){
-        _my.release = '';
+    if(e.target.tagName == 'LI'){
+      if(_tab === 'track') {
+        ix = e.target.ix;
+        _my = e.target.obj;
+      } else {
+        _my[_tab] = e.target.innerHTML;
+        if(_tab === 'label'){
+          _my.release = '';
+        }
       }
+      d(ix).then(_DOM.navcontrols.onclick);
     }
-    d(ix).then(_DOM.navcontrols.onclick);
   }
 
   document.body.onclick = e => {
