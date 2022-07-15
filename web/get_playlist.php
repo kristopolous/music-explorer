@@ -4,6 +4,12 @@ $sql = new PDO('sqlite:playlist.db', false, false, [PDO::ATTR_DEFAULT_FETCH_MODE
 function get($qstr, $params = [], $type = false) {
   global $sql;
 
+  foreach( $params as $k => $v ){
+    if(empty($v)) {
+      unset($params[$k]);
+    }
+  }
+
   $where_list = array_map(fn($v) => "$v = :$v", array_keys($params));
   if(isset($_GET['q'])) {
     $where_list[] = "path like :q";
@@ -19,10 +25,10 @@ function get($qstr, $params = [], $type = false) {
 }
 
 $_releaseMap = [];
-function get_tracks($label, $release) {
+function get_tracks($label = '', $release = '') {
   global $_releaseMap;
   if(!isset($_releaseMap["$label:$release"])) {
-    $res = get("select title,path from tracks", ['label' => $label, 'release' => $release]);
+    $res = get("select track, path, label, release from tracks", ['label' => $label, 'release' => $release]);
     for($ix = 0; $ix < count($res); $ix++) {
       $res[$ix]['id'] = $ix;
     }
@@ -54,16 +60,20 @@ function get_labels() {
   return $_labelList;
 }
 
-function navigate($label, $release, $direction, $final = false) {
-  $dir = ($direction[0] != '-') * 2 - 1;
-  $what = substr($direction, 1);
-
+function navigate($label, $release, $action, $final = false) {
   $label_ix = 0;
   $release_ix = 0;
   $track_ix = 0;
   $releaseList = [];
 
   $labelList = get_labels();
+
+  if($action == "label") {
+    return $labelList;
+  }
+
+  $dir = ($action[0] != '-') * 2 - 1;
+  $what = substr($action, 1);
 
   if(!$label) {
     $label = $labelList[0];
@@ -112,21 +122,34 @@ function navigate($label, $release, $direction, $final = false) {
     }
   } else {
     $releaseList = get_releases($label);
+    if($action == "release") {
+      return $releaseList;
+    }
+
     if(!$release) {
       $release = $releaseList[0];
     } else {
       $release_ix = array_search($release, $releaseList);
     }
     $trackList = get_tracks($label, $release);
+    if($action == "track") {
+      if(empty($trackList) && $release) {
+        $trackList = get_tracks($label);
+      }
+      if(empty($trackList) && $label) {
+        $trackList = get_tracks();
+      }
+      return $trackList;
+    }
 
-    if(is_numeric($direction)) {
-      $track_ix = $direction;
+    if(is_numeric($action)) {
+      $track_ix = $action;
     }
   }
 
   $payload = [
     'label' => $label,
-    'title' => $release,
+    'release' => $release,
     'number' => $release_ix, 
     'count' => count($releaseList) 
   ];
@@ -148,5 +171,5 @@ function navigate($label, $release, $direction, $final = false) {
 echo json_encode(navigate(
   $_GET['label'] ?? false,
   $_GET['release'] ?? false,
-  $_GET['skip'] ?? "+track"
+  $_GET['action'] ?? "+track"
 ));

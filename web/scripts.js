@@ -2,30 +2,32 @@ var
   hash = window.location.hash.slice(1).split('/'),
   _track,
   _el, 
-  _release = {
+  _my = {
     label: hash[0] || '',
-    title: hash[1] || ''
+    release: hash[1] || ''
   },
   _qstr = hash[3] || '',
   _next = {},
   _loop = true,
+  _tab = 'track',
   _DOM = {
     rel: document.createElement('a'),
     label: document.createElement('a')
   },
   path_to_url = (str) => 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1];
 
-function play_url(track) {
-  let src = path_to_url(track.path);
+function play_url(play) {
+  let src = path_to_url(play.path);
   document.querySelector('iframe').src = src;
-  _DOM.label.innerHTML = _release.label.replace(/-/g, ' ');
-  _DOM.rel.innerHTML = _release.title.replace(/-/g,' ');
-  _DOM.track.innerHTML = `${track.id + 1}:${_release.trackList.length}<br/>${_release.number + 1}:${_release.count}`;
+  _DOM.label.innerHTML = _my.label.replace(/-/g, ' ');
+  _DOM.rel.innerHTML = _my.release.replace(/-/g,' ');
+  _DOM.track.innerHTML = `${play.id + 1}:${_my.trackList.length}<br/>${_my.number + 1}:${_my.count}`;
 
-  window.location.hash = [_release.label, _release.title, track.id, _qstr].join('/');
+  window.location.hash = [_my.label, _my.release, play.id, _qstr].join('/');
+  _my.track = play.track;
 
   // this is the url to play.
-  fetch(`url2mp3.php?path=${encodeURIComponent(track.path)}&u=${src}`)
+  return fetch(`url2mp3.php?path=${encodeURIComponent(play.path)}&u=${src}`)
     .then(response => response.text())
     .then(data => {
        let parts = data.split('/');
@@ -33,13 +35,13 @@ function play_url(track) {
       _el.src = parts.join('/') 
       _el.play();
       _DOM.controls.className = '';
-      document.title = _el.title = track.title.replace(/\-\d*.mp3/, '');
+      document.title = _el.title = play.track;
 
-      Object.values(_next).forEach( track => fetch('url2mp3.php?u=' + path_to_url(track.path) ));
+      Object.values(_next).forEach( track => fetch('url2mp3.php?u=' + path_to_url(play.path) ));
 
-      let rel = _release.trackList, ttl = rel.length;
-      _next['+track'] = rel[(      track.id + 1) % ttl];
-      _next['-track'] = rel[(ttl + track.id - 1) % ttl];
+      let rel = _my.trackList, ttl = rel.length;
+      _next['+track'] = rel[(      play.id + 1) % ttl];
+      _next['-track'] = rel[(ttl + play.id - 1) % ttl];
       _track = track;
     });
 }
@@ -53,7 +55,7 @@ function d(skip, orig) {
             (skip == '+track'   && next.id === 0)
          || (skip == '-track'   && next.id >= _track.id)
          || (skip == '+release' && next.number == 0) 
-         || (skip == '-release' && next.number >= _release.number)
+         || (skip == '-release' && next.number >= _my.number)
         ) 
       ) {
         return d(skip[0] + (skip[1] === 't' ? 'release' : 'label'), orig || skip);
@@ -66,35 +68,35 @@ function d(skip, orig) {
     } 
 
     _DOM.controls.className = 'disabled';
-    fetch("get_playlist.php?" + [
+    return fetch("get_playlist.php?" + [
         `q=${_qstr}`,
-        `skip=${skip}`,
+        `action=${skip}`,
         `orig=${orig}`,
-        `release=${_release.title}`,
-        `label=${_release.label}`
+        `release=${_my.release}`,
+        `label=${_my.label}`
       ].join('&'))
       .then(response => response.json())
       .then(data => {
-        _release = data.release;
+        _my = data.release;
         delete data.release;
         _next = data;
-        play_url(_release.trackList[_release.track_ix]);
+        return play_url(_my.trackList[_my.track_ix]);
       });
   }
 }
 
 function dosearch(str) {
   _DOM.search.value = str;
-  _qstr = str.replace(/ /g, '.');
+  _qstr =  encodeURIComponent(str);
   _next = {};
-  _release = {title:'',label:''};
+  _my = {release:'',label:''};
   d("+track");
 }
 
 window.onload = () => {
   _el = document.querySelector('audio');
 
-  ['search','track','controls'].forEach(what => _DOM[what] = document.querySelector(`#${what}`));
+  ['top','list','nav','navcontrols','search','track','controls'].forEach(what => _DOM[what] = document.querySelector(`#${what}`));
   ['rel','label'].forEach(what => {
     document.querySelector(`#${what}`).appendChild(_DOM[what]);
     _DOM[what].onclick = () => dosearch(_DOM[what].innerHTML);
@@ -106,11 +108,86 @@ window.onload = () => {
   }
 
   _DOM.search.value = _qstr;
+
+  let s;
   _DOM.search.onkeydown = (e) => { 
+    window.clearTimeout(s);
+    s = window.setTimeout(() =>  {
+      _qstr = encodeURIComponent(_DOM.search.value);
+      _DOM.navcontrols.onclick();
+    }, 250);
     if([e.key, e.code].includes('Enter')) {
       dosearch(_DOM.search.value);
     }
   }
+
+  _DOM.navcontrols.onclick = (e) => {
+    if(e){
+      let what = e.target;
+      _tab = what.innerHTML;
+      
+      what.parentNode.childNodes.forEach(m => m.className = '');
+      what.className = 'selected';
+    }
+
+    fetch("get_playlist.php?" + [
+        `q=${_qstr}`,
+        `action=${_tab}`,
+        `release=${_my.release || ''}`,
+        `label=${_my.label || ''}`
+      ].join('&'))
+      .then(response => response.json())
+      .then(data => {
+        _DOM.list.innerHTML = '';
+        let current;
+        _DOM.list.append(...data.sort().map((e,ix) => {
+            let l = document.createElement('li');
+            l.innerHTML = e.track || e;
+            l.ix = ix;
+            l.obj = e;
+
+            if(l.innerHTML === _my[_tab]){
+              current = l;
+              l.className = 'selected';
+            }
+            return l;
+          })
+        );
+        if(current) {
+          _DOM.list.scrollTo(0, current.offsetTop - 150);
+        }
+      });
+  }
+  _DOM.list.onclick = (e) => {
+    if(e.target.tagName !== 'LI'){
+      return;
+    }
+    let ix = 0;
+    if(_tab === 'track') {
+      ix = e.target.ix;
+      _my = e.target.obj;
+    } else {
+      _my[_tab] = e.target.innerHTML;
+      if(_tab === 'label'){
+        _my.release = '';
+      }
+    }
+    d(ix).then(_DOM.navcontrols.onclick);
+  }
+
+  document.body.onclick = e => {
+    e = e.target;
+    while(e != document.body){
+      if (e === _DOM.search) {
+        _DOM.nav.style.display = 'block';
+      }
+      if(e === _DOM.top) {
+        return;
+      }
+      e = e.parentNode;
+    }
+    _DOM.nav.style.display = 'none';
+  };
 
   _el.onended = () => {
     d("+track");
@@ -122,6 +199,7 @@ window.onload = () => {
       }
     });
   }
-  d(hash[2] || "+track");
+  d(hash[2] || "+track").then(_DOM.navcontrols.onclick);
+  
   _loop = false;
 }

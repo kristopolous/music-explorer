@@ -5,7 +5,18 @@
 <link rel=stylesheet href=styles.css>
 
 <main>
-  <input id=search />
+  <div id=top>
+    <input id=search autocomplete=off />
+    <div id=nav>
+      <div id=navcontrols>
+        <a>label</a>
+        <a>release</a>
+        <a class=selected>track</a>
+      </div>
+      <ul id=list ></ul>
+    </div>
+  </div>
+
   <div id=title>
     <h2 id=track /><h2 id=label /><h2 id=rel />
   </div>

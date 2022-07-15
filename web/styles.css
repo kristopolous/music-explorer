@@ -4,6 +4,8 @@ body {
   margin:0;
   text-align: center; 
   color: #ebebeb;
+  width: 100vw;
+  height: 100vh;
 }
   
 *:focus {outline: none}
@@ -19,6 +21,7 @@ body {
 }
 
 main {
+  margin-top:1rem;
   max-width:480px;
   display:inline-block
 }
@@ -83,7 +86,10 @@ iframe {
   user-select: none;
 }
 
-.loop, button:active, #controls a:active {
+li.selected { 
+  background: #303030;
+}
+.loop, li:hover, button:active, #controls a:active {
   background: #ebebeb;
   text-shadow: 0 0 1px #1f1f1f;
   color: #201e1e;
@@ -132,4 +138,43 @@ iframe {
   height:353px;
   background: #303030;
   padding-bottom: 10px;
+}
+
+#top {
+  position: relative;
+}
+#nav {
+  width: 100%;
+  position:absolute;
+  height: 17.5rem;
+  background: black;
+  z-index: 2;
+  font-size: 0;
+  user-select: none;
+  display: none;
+}
+#navcontrols a {
+  display: inline-block;
+  font-size: 1rem;
+  width: 33%;
+}
+#navcontrols a.selected {
+  box-shadow: 0px -2px 0px 2px #1f1f1f;
+  background: black;
+}
+#list {
+  text-align: left;
+  background: black;
+  font-size: 1.2rem;
+  list-style: none;
+  padding: .5rem;
+  overflow-y: auto;
+  border: 2px solid #1f1f1f;
+  height: 15rem;
+  margin-top: -2px;
+}
+#list li {
+  cursor: pointer;
+  padding: 0 0.5rem;
+  border-bottom: 1px solid #1f1f1f;
 }

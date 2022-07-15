@@ -10,14 +10,22 @@ gen_playlist() {
 
 as_csv() {
   truncate --size 0 playlist.db
-  awk -F '/' ' { print FNR",\""$5"\",\""$6"\",\""$7"\",\""$0"\"" } ' playlist.txt > /tmp/playlist.csv
+  awk -F '/' ' { fuckoff=$0;sub(/-[0-9]*.mp3/, "", $7);print FNR",\""$5"\",\""$6"\",\""$7"\",\""fuckoff"\"" } ' playlist.txt > /tmp/playlist.csv
   sqlite3 playlist.db << ENDL
   create table tracks(
     id INTEGER PRIMARY KEY,
     label text,
     release text,
-    title text,
-    path text);
+    track text,
+    path text,
+    artist text,
+    listen integer default 0,
+    plays integer default 0,
+    up integer default 0,
+    down integer default 0,
+    duration integer default 0,
+    created_at timestamp default current_timestamp,
+    unique(path));
 .mode csv
 .import /tmp/playlist.csv tracks
 create index label_name on tracks(label);
