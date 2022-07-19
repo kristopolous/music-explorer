@@ -9,41 +9,64 @@ var
   _qstr = hash[3] || '',
   _next = {},
   _loop,
+  _db = {},
   _tab = 'track',
+  _if = 0;
   _DOM = {},
   path_to_url = (str) => 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1],
   remote = (append = []) => fetch("get_playlist.php?" + [ `q=${_qstr}`, `release=${_my.release}`, `label=${_my.label}`, ...append ].join('&')).then(response => response.json());
 
+function lookup(play) {
+  if (_db[play.path]) {
+    return new Promise(r => r(_db[play.path]));
+  } 
+  return fetch(`url2mp3.php?path=${encodeURIComponent(play.path)}&u=${path_to_url(play.path)}`)
+    .then(response => response.text())
+    .then(data => {
+      _db[play.path] = data;
+      return data;
+    });
+}
+
 function play_url(play) {
   let src = path_to_url(play.path);
-  document.querySelector('iframe').src = src;
+  let fake = (_track && _track.path === play.path);
+  if(!fake) {
+    _if = !_if;
+    _DOM[`if${+_if}`].src = src;
+    _DOM[`if${+_if}`].className = 'in';
+    _DOM[`if${+ !_if}`].className = 'out';
+    setTimeout(() => {
+      _DOM[`if${+ !_if}`].src = src;
+    }, 1200);
+  }
   ['release','label'].forEach(a => _DOM[a].innerHTML = _my[a].replace(/-/g, ' '))
   _DOM.track.innerHTML = `${play.id + 1}:${_my.trackList.length}<br/>${_my.number + 1}:${_my.count}`;
 
   window.location.hash = [_my.label, _my.release, play.id, _qstr].join('/');
   _my.track = play.track;
 
+  let rel = _my.trackList, ttl = rel.length;
+  _next['+track'] = rel[(      play.id + 1) % ttl];
+  _next['-track'] = rel[(ttl + play.id - 1) % ttl];
+  /// this is the fake detector
+  _track = play;
+
+  Object.values(_next).forEach(lookup);
+
   // this is the url to play.
-  return fetch(`url2mp3.php?path=${encodeURIComponent(play.path)}&u=${src}`)
-    .then(response => response.text())
-    .then(data => {
+  return fake? new Promise(r => r(true)): lookup(play).then(data => {
        let parts = data.split('/');
        parts[parts.length - 1] = encodeURIComponent(parts[parts.length - 1]);
       _el.src = parts.join('/') 
       _el.play();
       _DOM.controls.className = '';
       document.title = _el.title = play.track;
-
-      Object.values(_next).forEach( track => fetch('url2mp3.php?u=' + path_to_url(play.path) ));
-
-      let rel = _my.trackList, ttl = rel.length;
-      _next['+track'] = rel[(      play.id + 1) % ttl];
-      _next['-track'] = rel[(ttl + play.id - 1) % ttl];
-      _track = play;
     });
 }
 
 function d(skip, orig) {
+  console.log('http ----', skip, orig);
   if(!_DOM.controls.className) {
     let next = _next[skip];
 
@@ -58,9 +81,12 @@ function d(skip, orig) {
         return d(skip[0] + (skip[1] === 't' ? 'release' : 'label'), orig || skip);
       }
 
-      // makes sure it's really a track
-      if(next.id) {
-        return play_url(next);
+      if('id' in next) {
+        if(skip[1] === 't') {
+          return play_url(next);
+        } else if(!orig || skip === orig) {
+          play_url(next);
+        }
       }
     } 
 
@@ -76,7 +102,6 @@ function d(skip, orig) {
 }
 
 function dosearch(str) {
-  _DOM.search.value = str;
   _qstr =  encodeURIComponent(str);
   _next = {};
   _my = {release:'',label:''};
@@ -86,12 +111,7 @@ function dosearch(str) {
 window.onload = () => {
   _el = document.querySelector('audio');
 
-  ['top','list','nav','navcontrols','search','track','controls'].forEach(what => _DOM[what] = document.querySelector(`#${what}`));
-  ['release','label'].forEach(what => {
-    _DOM[what] =  document.createElement('a');
-    document.querySelector(`#${what}`).appendChild(_DOM[what]);
-    _DOM[what].onclick = () => dosearch(_DOM[what].innerHTML);
-  });
+  ['if0','if1','label','release','top','list','nav','navcontrols','search','track','controls'].forEach(what => _DOM[what] = document.querySelector(`#${what}`));
 
   _DOM.track.onclick = function() {
     _loop = !_loop;
@@ -164,6 +184,7 @@ window.onload = () => {
     while(e != document.body){
       if (e === _DOM.search) {
         _DOM.nav.style.display = 'block';
+        _DOM.navcontrols.onclick();
       }
       if(e === _DOM.top) {
         return;

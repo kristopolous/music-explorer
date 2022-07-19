@@ -151,14 +151,14 @@ function navigate($label, $release, $action, $final = false) {
     'label' => $label,
     'release' => $release,
     'number' => $release_ix, 
-    'count' => count($releaseList) 
+    'count' => count($releaseList),
+    'track_ix' => $track_ix,
+    'trackList' => $trackList
   ];
   if($final) {
-    $payload['path'] = $trackList[0]['path'];
+    $payload = array_merge($payload, $trackList[$track_ix]);
     return $payload;
   }
-  $payload[ 'trackList' ] = $trackList;
-  $payload[ 'track_ix' ] = $track_ix;
 
   return [
     'release' => $payload,

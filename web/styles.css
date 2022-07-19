@@ -48,15 +48,29 @@ audio {
   position:relative;
   background: #f1f3f4;
   width: 290px;
+  left: -1px;
   top: -126px;
 } 
 
 iframe {
+  top: 0;
+  left: 0;
+  position: absolute;
   width:307px;
   height:353px;
   margin-left: -1px;
   border:0;
+  opacity: 0;
 }
+.in {
+  transition: opacity .4s ease-in .5s;
+  opacity: 1;
+}
+.out {
+  transition: opacity .6s ease-out .6s;
+  opacity: 0
+}
+
 
 #lhs { 
   margin-right: calc(.01 * 321px);
@@ -144,6 +158,7 @@ li.selected {
   height:353px;
   background: #303030;
   padding-bottom: 10px;
+  position: relative;
 }
 
 #top {
