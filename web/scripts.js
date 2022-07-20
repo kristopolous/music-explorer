@@ -1,6 +1,6 @@
 var 
   hash = window.location.hash.slice(1).split('/'),
-  _track,
+  _track = {},
   _el, 
   _my = {
     label: hash[0] || '',
@@ -11,34 +11,35 @@ var
   _loop,
   _db = {},
   _tab = 'track',
-  _if = 0;
+  _if,
   _DOM = {},
-  path_to_url = (str) => 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1],
-  remote = (append = []) => fetch("get_playlist.php?" + [ `q=${_qstr}`, `release=${_my.release}`, `label=${_my.label}`, ...append ].join('&')).then(response => response.json());
-
-function lookup(play) {
-  if (_db[play.path]) {
-    return new Promise(r => r(_db[play.path]));
-  } 
-  return fetch(`url2mp3.php?path=${encodeURIComponent(play.path)}&u=${path_to_url(play.path)}`)
-    .then(response => response.text())
-    .then(data => {
-      _db[play.path] = data;
-      return data;
-    });
-}
+  path_to_url = str => 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1],
+  remote = (append = []) => fetch("get_playlist.php?" + [ `q=${_qstr}`, `release=${_my.release}`, `label=${_my.label}`, ...append ].join('&')).then(response => response.json()),
+  lookup = play => _db[play.path] ?
+    new Promise(r => r(_db[play.path])) :
+    fetch(`url2mp3.php?path=${encodeURIComponent(play.path)}&u=${path_to_url(play.path)}`)
+      .then(response => response.text())
+      .then(data => {
+        _db[play.path] = data;
+        return data;
+      });
 
 function play_url(play) {
-  let src = path_to_url(play.path);
-  let fake = (_track && _track.path === play.path);
+  let src = path_to_url(play.path), ifr,
+    fake = (_track.path === play.path),
+    rel = _my.trackList, ttl = rel.length;
+
   if(!fake) {
-    _if = !_if;
-    _DOM[`if${+_if}`].src = src;
-    _DOM[`if${+_if}`].className = 'in';
-    _DOM[`if${+ !_if}`].className = 'out';
+    ifr = _if ^= 1;
+    Object.assign( _DOM[`if${ifr}`], {className: 'in', src});
+
+    if(_track.release !== play.release) {
+      _DOM[`if${+!ifr}`].className = 'out';
+    }
+
     setTimeout(() => {
-      _DOM[`if${+ !_if}`].src = src;
-    }, 1200);
+      Object.assign( _DOM[`if${+ !ifr}`], {className: 'out', src});
+    }, 1000);
   }
   ['release','label'].forEach(a => _DOM[a].innerHTML = _my[a].replace(/-/g, ' '))
   _DOM.track.innerHTML = `${play.id + 1}:${_my.trackList.length}<br/>${_my.number + 1}:${_my.count}`;
@@ -46,27 +47,24 @@ function play_url(play) {
   window.location.hash = [_my.label, _my.release, play.id, _qstr].join('/');
   _my.track = play.track;
 
-  let rel = _my.trackList, ttl = rel.length;
   _next['+track'] = rel[(      play.id + 1) % ttl];
   _next['-track'] = rel[(ttl + play.id - 1) % ttl];
-  /// this is the fake detector
   _track = play;
 
   Object.values(_next).forEach(lookup);
 
   // this is the url to play.
-  return fake? new Promise(r => r(true)): lookup(play).then(data => {
-       let parts = data.split('/');
-       parts[parts.length - 1] = encodeURIComponent(parts[parts.length - 1]);
-      _el.src = parts.join('/') 
-      _el.play();
-      _DOM.controls.className = '';
-      document.title = _el.title = play.track;
-    });
+  return fake? new Promise(r => r()): lookup(play).then(data => {
+     let parts = data.split('/');
+     parts[parts.length - 1] = encodeURIComponent(parts[parts.length - 1]);
+    _el.src = parts.join('/') 
+    _el.play();
+    _DOM.controls.className = '';
+    document.title = _el.title = play.track;
+  });
 }
 
 function d(skip, orig) {
-  console.log('http ----', skip, orig);
   if(!_DOM.controls.className) {
     let next = _next[skip];
 
@@ -91,7 +89,7 @@ function d(skip, orig) {
     } 
 
     _DOM.controls.className = 'disabled';
-    return remote([ `action=${skip}`, `orig=${orig}` ])
+    return remote([ `action=${skip}`, `orig=${orig || skip}` ])
       .then(data => {
         _my = data.release;
         delete data.release;
@@ -114,7 +112,7 @@ window.onload = () => {
   ['if0','if1','label','release','top','list','nav','navcontrols','search','track','controls'].forEach(what => _DOM[what] = document.querySelector(`#${what}`));
 
   _DOM.track.onclick = function() {
-    _loop = !_loop;
+    _loop ^= 1;
     _DOM.track.className = (_loop ? 'loop' : '');
   }
 
@@ -145,11 +143,8 @@ window.onload = () => {
     remote([ `action=${_tab}` ])
       .then(data => {
         _DOM.list.innerHTML = '';
-        _DOM.list.append(...data.sort().map((e,ix) => {
-            let l = document.createElement('li');
-            l.innerHTML = e.track || e;
-            l.ix = ix;
-            l.obj = e;
+        _DOM.list.append(...data.sort().map((obj,ix) => {
+            let l = Object.assign(document.createElement('li'), {innerHTML: obj.track || obj, obj, ix});
 
             if(l.innerHTML === _my[_tab]){
               l.className = 'selected';
