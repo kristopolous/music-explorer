@@ -1,18 +1,15 @@
 var 
-  hash = window.location.hash.slice(1).split('/'),
   _track = {},
   _el, 
-  _my = {
-    label: hash[0] || '',
-    release: hash[1] || ''
-  },
-  _qstr = hash[3] || '',
+  _my = {},
+  _qstr,
   _next = {},
   _loop,
   _db = {},
   _tab = 'track',
   _if,
   _DOM = {},
+  _lock = {},
   path_to_url = str => 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1],
   remote = (append = []) => fetch("get_playlist.php?" + [ `q=${_qstr}`, `release=${_my.release}`, `label=${_my.label}`, ...append ].join('&')).then(response => response.json()),
   lookup = play => _db[play.path] ?
@@ -24,27 +21,41 @@ var
         return data;
       });
 
+function parsehash() {
+  let hash = window.location.hash.slice(1).split('/');
+  Object.assign(_my, {
+    label: hash[0] || '',
+    release: hash[1] || ''
+  });
+  _qstr = hash[3] || '';
+  return hash[2];
+}
+
 function play_url(play) {
   let src = path_to_url(play.path), ifr,
     fake = (_track.path === play.path),
     rel = _my.trackList, ttl = rel.length;
-
+  
   if(!fake) {
     ifr = _if ^= 1;
-    Object.assign( _DOM[`if${ifr}`], {className: 'in', src});
+    _DOM[`if${ifr}`].className = 'in';
+    _DOM[`if${ifr}`].contentWindow.location.replace(src);
 
     if(_track.release !== play.release) {
       _DOM[`if${+!ifr}`].className = 'out';
     }
 
     setTimeout(() => {
-      Object.assign( _DOM[`if${+ !ifr}`], {className: 'out', src});
+      _DOM[`if${+!ifr}`].className = 'out';
+      _DOM[`if${+!ifr}`].contentWindow.location.replace(src);
+      _lock.hash = 0;
     }, 1000);
+    _lock.hash = 1;
+    window.location.hash = [_my.label, _my.release, play.id, _qstr].join('/');
   }
   ['release','label'].forEach(a => _DOM[a].innerHTML = _my[a].replace(/-/g, ' '))
   _DOM.track.innerHTML = `${play.id + 1}:${_my.trackList.length}<br/>${_my.number + 1}:${_my.count}`;
 
-  window.location.hash = [_my.label, _my.release, play.id, _qstr].join('/');
   _my.track = play.track;
 
   _next['+track'] = rel[(      play.id + 1) % ttl];
@@ -107,6 +118,8 @@ function dosearch(str) {
 }
 
 window.onload = () => {
+  parsehash();
+
   _el = document.querySelector('audio');
 
   ['if0','if1','label','release','top','list','nav','navcontrols','search','track','controls'].forEach(what => _DOM[what] = document.querySelector(`#${what}`));
@@ -199,5 +212,6 @@ window.onload = () => {
       }
     });
   }
-  d(hash[2] || 0).then(_DOM.navcontrols.onclick);
+  d(parsehash() || 0).then(_DOM.navcontrols.onclick);
+  window.addEventListener('hashchange', () => !_lock.hash && d(parsehash()));
 }
