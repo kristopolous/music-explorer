@@ -66,9 +66,10 @@ backup() {
 
 album_art() {
   for i in */*; do
-    [[ ! -d $i ]] && continue
+    [[ ! -d "$i" ]] && continue
 
-    if [[ ! -e $i/no && ! -e $i/album-art.jpg ]] ; then
+    # && ! -e $i/no
+    if [[ ! -e "$i"/album-art.jpg ]] ; then
 
       album=$(resolve $i)
 

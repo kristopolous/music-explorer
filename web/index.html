@@ -1,224 +1,45 @@
 <!DOCTYPE html>
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<link rel="preconnect" href="https://fonts.gstatic.com">
-<link href="https://fonts.googleapis.com/css2?family=BenchNine:wght@300;400;700&display=swap" rel="stylesheet">
-<style>
-body {
-  font-family: 'BenchNine', sans-serif;
-  background: black;
-  margin:0;
-  text-align: center; 
-  color: white
-}
-  
-*:focus {outline: none}
-#controls > div { 
-  text-align: center; 
-  display: inline-block;
-  width:calc(.48 * 321px);
-  font-size:0
-}
+<meta name=viewport content="width=device-width, initial-scale=1.0"/>
+<link rel=preconnect href=https://fonts.gstatic.com>
+<link rel=stylesheet href=https://fonts.googleapis.com/css2?family=BenchNine:wght@300;400;700&display=swap>
+<link rel=stylesheet href=styles.css?1>
 
-#lhs { 
-  margin-right: calc(.01 * 321px);
-}
-#rhs {
-  margin-left: calc(.01 * 321px);
-}
-#controls a, input, button {
-  color: #ccc;
-  border:0;
-  background:#1f1f1f;
-  width: 100%;
-  font-size:2rem; 
-  padding: .75rem 0; 
-  margin: 0;
-}
-#controls a {
-  display: inline-block;
-  margin: .5rem 0;
-  font-size: 1rem; 
-  width: calc(50% - .25rem)
-}
-
-#controls a:active, button:active {
-  background: white; color: #1f1f1f;
-}
-#controls div > :nth-child(3) {
-  margin-right: .5rem;
-}
-input {
-  font-size: 1rem;
-  font-family: 'BenchNine', sans-serif;
-  width: 321px;
-  font-weight: 700;
-  text-indent: .5rem;
-  margin-bottom: .5rem;
-}
-h2,h1 {
-  margin: 0.15rem;
-  color: #999;
-  font-size: 1.50rem;
-  line-height: 1.4rem;
-}
-h2 { 
-  color: #ccc;
-  font-weight: 300;
-  display: inline;
-  margin-bottom: 0;
-}
-#label {
-  color: #edc;
-  font-weight: 500;
-}
-#title {
-  text-align:left;
-  line-height: 1.4rem;
-  margin-bottom:0.5rem;
-  height: 1.4rem;
-  overflow:hidden;
-  width:321px;display:inline-block
-}
-#rel {
-}
-iframe
-{border:8px solid #202020;width:305px;height:355px}
-</style>
-<main style=max-width:480px;display:inline-block>
-  <input id='search'/>
-  <div id=title><h2 id=label></h2><h2 id=rel></h2>
-</div>
-
-<iframe></iframe>
-<div style=margin-bottom:.5rem;height:0;overflow:visible>
-<audio autoplay=true controls style=filter:invert(92%);position:relative;width:295px;top:-120px />
-</div>
-<div id=controls>
-  <div id='lhs'>
-    <button onclick=d(-1)>&#9664;</button><br/>
-    <a onclick=d(-100)>-100</a>
-    <a onclick=d(-5)>-5</a>
+<main>
+  <div id=top>
+    <input id=search autocomplete=off />
+    <div id=nav>
+      <div id=navcontrols>
+        <a>label</a>
+        <a>release</a>
+        <a class=selected>track</a>
+      </div>
+      <ul id=list />
+    </div>
   </div>
-  <div id='rhs'>
-    <button onclick=d(1)>&#9654;</button><br/>
-    <a onclick=d(5)>5</a>
-    <a onclick=d(100)>100</a>
+
+  <div id=title>
+    <h2 id=track /><h2 id=label /><h2 id=release />
   </div>
-</div>
-<span id=ttl></span>
-<script>
-var el, 
-  search,
-  ttl_dom,
-  rel_link = document.createElement('a'),
-  label_link = document.createElement('a'),
-  qstr = window.location.hash.split('/')[1] || '',
-  pl = [], 
-  offset = parseInt(window.location.hash.slice(1) || localStorage['off'] || Math.round(Math.random()*1e8));
+  <div id=iframe-wrap>
+    <iframe id=if0></iframe>
+    <iframe id=if1></iframe>
+    <div id=blockout ></div>
+  </div>
+  <div id=audio-wrap>
+    <audio autoplay=true controls />
+  </div>
+  <div id=controls>
+    <div id=lhs>
+      <button onclick=d('-track')>&#9664;</button><br/>
+      <a onclick=d('-label')>&lt; label</a>
+      <a onclick=d('-release')>&lt; &#x2609;</a>
+    </div>
+    <div id=rhs>
+      <button onclick=d('+track')>&#9654;</button><br/>
+      <a onclick=d('+release')>&#x2609; &gt;</a>
+      <a onclick=d('+label')>label &gt;</a>
+    </div>
+  </div>
+</main>
 
-if(isNaN(offset)) {
-  offset = 0;
-}
-
-function path_to_url(str) {
-  return 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1];
-}
-
-function play_url(str) {
-  let 
-    l = str.split(/\//)[4],
-    r = str.split(/\//)[5],
-    src = path_to_url(str);
-
-    label_link.innerHTML = l.replace(/-/g, ' ');
-  r = r.replace(/-/g,' ');
-  rel_link.innerHTML = r;
-  document.querySelector('iframe').src = src;
-
-  // this is the url to play.
-  fetch(`url2mp3.php?path=${str}&u=${src}`)
-    .then(response => response.text())
-    .then(data => {
-      el.src = data;
-      el.play();
-      [1, 5, 100].forEach( delta => {
-        if(pl[offset + delta]) {
-          // prefetch next
-          fetch('url2mp3.php?u=' + path_to_url(pl[offset + delta]))
-        }
-      });
-    });
-
-}
-
-function d(what, absolute) {
-  if(absolute) {
-    offset = 0;
-  } 
-
-  offset += what;
-  localStorage['off'] = offset;
-  window.location.hash = [offset,qstr].join('/');
-  getit(offset);
-  el.focus();
-}
-
-function getit(off) {
-  let _off = off % 1e6, ix;
-  if(pl[_off]) {
-    return play_url(pl[_off]);
-  }
-  fetch(`get_playlist.php?off=${off}&q=${qstr}`)
-    .then(response => response.json())
-    .then(data => {
-      for(ix=0; ix < data.res.length; ix++){
-        pl[_off + ix] = data.res[ix];
-      }
-      pl[_off + ix] = false;
-      ttl_dom.innerHTML = data.ttl;
-
-      play_url(pl[_off]);
-    });
-}
-
-function dosearch(str) {
-  pl = [];
-  search.value = str;
-  qstr = str.replace(/ /g, '.');
-  d(0, true);
-}
-
-window.onload = () => {
-  el = document.querySelector('audio');
-  search = document.querySelector('#search');
-  ttl_dom = document.querySelector('#ttl');
-  search.value = qstr;
-  document.querySelector('#rel').appendChild(rel_link);
-  document.querySelector('#label').appendChild(label_link);
-  label_link.onclick = function() {
-    dosearch(label_link.innerHTML);
-  }
-  rel_link.onclick = function() {
-    dosearch(rel_link.innerHTML);
-  }
-
-  search.onkeydown = (e) => { 
-    console.log(e);
-    if([e.key, e.code].includes('Enter')) {
-      dosearch(search.value);
-    }
-  }
-
-  el.onended = () => {
-    d(1);
-    Notification.requestPermission().then(p => {
-      if (p === "granted") {
-        let s = decodeURIComponent(el.src).split('/').reverse();
-        new Notification(s[1].replace(/-/g, ' ').toUpperCase(), {
-          body: s[0].replace(/-(\d*).mp3$/,'')});
-      }
-    });
-  }
-  getit(offset);
-}
-</script>
+<script src=scripts.js></script>
