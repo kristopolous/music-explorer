@@ -1,4 +1,6 @@
 
+api.py is the start of this
+
 artists have releases
 releases have labels
 labels have releases
