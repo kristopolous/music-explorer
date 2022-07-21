@@ -6,6 +6,7 @@ import json
 import sys
 import operator
 import re
+import pdb
 
 def cachie(self):
   import requests_cache
@@ -19,7 +20,24 @@ artistMap = {}
 d = discogs_client.Client('ExampleApplication/0.1', user_token=secrets.USER_TOKEN)
 r = redis.Redis(host='localhost', port=6379, db=0)
 
-res = d.search(sys.argv[1], type='release')
+search = sys.argv[1]
+print(search)
+res = d.search(search, type='release')
+
+if len(res) == 0:
+  search  = re.sub('^[0-9\. ]*', '', search)
+  print(search)
+  res = d.search(search, type='release')
+
+def get_artists_for_label(label):
+  artistMap = {}
+  for release in label.releases:
+    artist = release.data.get('artist')
+    if artist not in artistMap:
+      artistMap[artist] = 0
+    artistMap[artist] += 1
+
+  return artistMap
 
 for i in res:
   if type(i) is not discogs_client.models.Release:
@@ -61,6 +79,15 @@ for i in res:
             labelMap[label.name] = {'count': 0, 'urls': label.urls}
           labelMap[label.name]['count'] += 1
           r.set('label:{}'.format(lname), json.dumps(label.urls))
+
+          try:
+            artistMap = get_artists_for_label(label)
+            r.zadd('amap:{}'.format(lname), artistMap)
+          except Exception as e:
+            print("woops", e)
+            continue
+
+
 
 ttl = []
 for name, label in labelMap.items():
