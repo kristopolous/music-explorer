@@ -40,6 +40,7 @@ function play_url(play) {
     ifr = _if ^= 1;
     _DOM[`if${ifr}`].className = 'in';
     _DOM[`if${ifr}`].contentWindow.location.replace(src);
+    console.log(src);
 
     if(_track.release !== play.release) {
       _DOM[`if${+!ifr}`].className = 'out';
@@ -72,7 +73,24 @@ function play_url(play) {
     _el.play();
     _DOM.controls.className = '';
     document.title = _el.title = play.track;
-  });
+
+    let path = play.path.split('/').slice(0,-1).join('/');
+    console.log(`${path}/album-art.jpg`);
+    let [artist, title] = play.track.split(' - ');
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title, artist,
+            album: play.release,
+            artwork: [96,128,192,256,384,512].map(r => { 
+                return {
+                  src: `${path}/album-art.jpg`, 
+                  sizes: `${r}x${r}`,
+                  type: 'image/jpeg'
+                }
+            })
+        });
+        navigator.mediaSession.setActionHandler('nexttrack', () => d('+track'));
+        navigator.mediaSession.setActionHandler('previoustrack', () => d('-track'));
+      });
 }
 
 function d(skip, orig) {
@@ -212,6 +230,7 @@ window.onload = () => {
       }
     });
   }
+
   d(parsehash() || 0).then(_DOM.navcontrols.onclick);
   window.addEventListener('hashchange', () => !_lock.hash && d(parsehash()));
 }
