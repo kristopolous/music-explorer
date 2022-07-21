@@ -62,8 +62,8 @@ function get_labels() {
 
 function navigate($label, $release, $action, $final = false) {
   $label_ix = 0;
-  $release_ix = 0;
   $track_ix = 0;
+  $release_ix = 0;
   $releaseList = [];
 
   $labelList = get_labels();
