@@ -1,10 +1,8 @@
 var 
   _track = {},
-  _el, 
   _my = {},
   _qstr,
   _next = {},
-  _loop,
   _db = {},
   _tab = 'track',
   _if,
@@ -40,15 +38,16 @@ function play_url(play) {
     ifr = _if ^= 1;
     _DOM[`if${ifr}`].className = 'in';
     _DOM[`if${ifr}`].contentWindow.location.replace(src);
-    console.log(src);
 
     if(_track.release !== play.release) {
       _DOM[`if${+!ifr}`].className = 'out';
     }
 
     setTimeout(() => {
-      _DOM[`if${+!ifr}`].className = 'out';
-      _DOM[`if${+!ifr}`].contentWindow.location.replace(src);
+      if(_track.path === play.path) {
+        _DOM[`if${+!ifr}`].className = 'out';
+        _DOM[`if${+!ifr}`].contentWindow.location.replace(src);
+      }
       _lock.hash = 0;
     }, 1000);
     _lock.hash = 1;
@@ -66,31 +65,32 @@ function play_url(play) {
   Object.values(_next).forEach(lookup);
 
   // this is the url to play.
-  return fake? new Promise(r => r()): lookup(play).then(data => {
-     let parts = data.split('/');
-     parts[parts.length - 1] = encodeURIComponent(parts[parts.length - 1]);
-    _el.src = parts.join('/') 
-    _el.play();
-    _DOM.controls.className = '';
-    document.title = _el.title = play.track;
+  return fake? 
+    new Promise(r => r()): 
+    lookup(play).then(data => {
+      let parts = data.split('/');
+       parts[parts.length - 1] = encodeURIComponent(parts[parts.length - 1]);
+      _DOM.player.src = parts.join('/') 
+      _DOM.player.play();
+      _DOM.controls.className = '';
+      document.title = _DOM.player.title = play.track;
 
-    let path = play.path.split('/').slice(0,-1).join('/');
-    console.log(`${path}/album-art.jpg`);
-    let [artist, title] = play.track.split(' - ');
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title, artist,
-            album: play.release,
-            artwork: [96,128,192,256,384,512].map(r => { 
-                return {
-                  src: `${path}/album-art.jpg`, 
-                  sizes: `${r}x${r}`,
-                  type: 'image/jpeg'
-                }
-            })
-        });
-        navigator.mediaSession.setActionHandler('nexttrack', () => d('+track'));
-        navigator.mediaSession.setActionHandler('previoustrack', () => d('-track'));
+      let path = play.path.split('/').slice(0,-1).join('/');
+      let [artist, title] = play.track.split(' - ');
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title, artist,
+        album: play.release,
+        artwork: [96,128,192,256,384,512].map(r => { 
+          return {
+            src: `${path}/album-art.jpg`, 
+            sizes: `${r}x${r}`,
+            type: 'image/jpeg'
+          }
+        })
       });
+      navigator.mediaSession.setActionHandler('nexttrack', () => d('+track'));
+      navigator.mediaSession.setActionHandler('previoustrack', () => d('-track'));
+    });
 }
 
 function d(skip, orig) {
@@ -98,7 +98,7 @@ function d(skip, orig) {
     let next = _next[skip];
 
     if (next) { 
-      if( !_loop && (
+      if( !_lock.loop && (
             (skip == '+track'   && next.id === 0)
          || (skip == '-track'   && next.id >= _track.id)
          || (skip == '+release' && next.number == 0) 
@@ -138,21 +138,20 @@ function dosearch(str) {
 window.onload = () => {
   parsehash();
 
-  _el = document.querySelector('audio');
-
-  ['if0','if1','label','release','top','list','nav','navcontrols','search','track','controls'].forEach(what => _DOM[what] = document.querySelector(`#${what}`));
+  'player if0 if1 label release top list nav navcontrols search track controls'.split(' ').forEach(
+    what => _DOM[what] = document.querySelector(`#${what}`)
+  );
 
   _DOM.track.onclick = function() {
-    _loop ^= 1;
-    _DOM.track.className = (_loop ? 'loop' : '');
+    _lock.loop ^= 1;
+    _DOM.track.className = (_lock.loop ? 'loop' : '');
   }
 
   _DOM.search.value = _qstr;
 
-  let s;
-  _DOM.search.onkeydown = (e) => { 
-    window.clearTimeout(s);
-    s = window.setTimeout(() =>  {
+  _DOM.search.onkeydown = e => { 
+    window.clearTimeout(_lock.search);
+    _lock.search = window.setTimeout(() =>  {
       _qstr = encodeURIComponent(_DOM.search.value);
       _DOM.navcontrols.onclick();
     }, 250);
@@ -162,8 +161,8 @@ window.onload = () => {
     }
   }
 
-  _DOM.navcontrols.onclick = (e) => {
-    if(e){
+  _DOM.navcontrols.onclick = e => {
+    if (e) {
       let what = e.target;
       _tab = what.innerHTML;
       
@@ -189,7 +188,7 @@ window.onload = () => {
       });
   }
 
-  _DOM.list.onclick = (e) => {
+  _DOM.list.onclick = e => {
     let ix = 0;
     if(e.target.tagName == 'LI'){
       if(_tab === 'track') {
@@ -220,7 +219,7 @@ window.onload = () => {
     _DOM.nav.style.display = 'none';
   };
 
-  _el.onended = () => {
+  _DOM.player.onended = () => {
     d("+track");
     Notification.requestPermission().then(p => {
       if (p === "granted") {
