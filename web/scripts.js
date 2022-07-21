@@ -37,8 +37,13 @@ function play_url(play) {
   if(!fake) {
     ifr = _if ^= 1;
     _DOM[`if${ifr}`].className = 'in';
+
+    // this type of iframe reassignmemt prevents the location history
+    // from being populated so the back button still works.
     _DOM[`if${ifr}`].contentWindow.location.replace(src);
 
+    // we delay the transition if it's the same album. 
+    // Otherwise there's this temporary fading effect
     if(_track.release !== play.release) {
       _DOM[`if${+!ifr}`].className = 'out';
     }
@@ -62,23 +67,29 @@ function play_url(play) {
   _next['-track'] = rel[(ttl + play.id - 1) % ttl];
   _track = play;
 
+  // This warms up the backend cache for the next tracks we can navigate to
   Object.values(_next).forEach(lookup);
 
   // this is the url to play.
   return fake? 
     new Promise(r => r()): 
     lookup(play).then(data => {
-      let parts = data.split('/');
-       parts[parts.length - 1] = encodeURIComponent(parts[parts.length - 1]);
-      _DOM.player.src = parts.join('/') 
+      // The file names can be really weird so we escape just that part of the path
+      _DOM.player.src = data.replace(/(?<=\/)[^\/]*$/, encodeURIComponent)
+
+      // being explicit like this seems to stop the media keys
+      // from breaking
       _DOM.player.load();
-      _DOM.player.play();
       _DOM.controls.className = '';
       document.title = play.track;
 
       let [artist, title] = play.track.split(' - ');
       title = title ?? artist;
+      _DOM.player.play();
+
       // There's a weird chrome bug here with doing another new operator.
+      // I think these remediations are just voodoo ... I don't know what
+      // the real bug is.
       Object.assign( navigator.mediaSession.metadata, {
         title, artist,
         album: play.release,
@@ -143,6 +154,11 @@ window.onload = () => {
   );
 
   navigator.mediaSession.metadata = new MediaMetadata();
+  //
+  // 1 tap  = track
+  // 2 taps = release
+  // 3 taps = label
+  //
   [
     ['next','+'],
     ['previous', '-']
@@ -151,11 +167,9 @@ window.onload = () => {
       _lock[sign] = (_lock[sign] || 0) + 1;
       if(!_lock[word]) {
         _lock[word] = setTimeout(() => {
-          let action = sign + ' track release label'.split(' ')[Math.min(_lock[sign], 3)]
-          
-          d(action);
+          d( sign + ' track release label'.split(' ')[Math.min(_lock[sign], 3)] );
           _lock[sign] = _lock[word] = 0;
-        }, 450);
+        }, 400);
       }
     })
   );
@@ -199,6 +213,7 @@ window.onload = () => {
             return l;
           })
         );
+        // scroll to the element but only if the scrollbar is at the top.
         if(_DOM.list.scrollTop === 0 && _DOM.list.querySelector('.selected')) {
           _DOM.list.scrollTo(0, _DOM.list.querySelector('.selected').offsetTop - 150);
         }
