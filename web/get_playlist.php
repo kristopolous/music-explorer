@@ -30,7 +30,7 @@ function get_tracks($label = '', $release = '') {
   if(!isset($_releaseMap["$label:$release"])) {
     $res = get("select track, path, label, release from tracks", ['label' => $label, 'release' => $release]);
     for($ix = 0; $ix < count($res); $ix++) {
-      $res[$ix]['id'] = $ix;
+      $res[$ix]['id'] = empty($release) ? 0 : $ix;
     }
     $_releaseMap["$label:$release"] = $res;
   }
@@ -143,7 +143,7 @@ function navigate($label, $release, $action, $final = false) {
     }
 
     if(is_numeric($action)) {
-      $track_ix = $action;
+      $track_ix = min($action, count($trackList) - 1);
     }
   }
 

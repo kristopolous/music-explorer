@@ -51,7 +51,7 @@ function play_url(play) {
       _lock.hash = 0;
     }, 1000);
     _lock.hash = 1;
-    window.location.hash = [_my.label, _my.release, play.id, _qstr].join('/');
+    window.location.hash = [play.label, play.release, play.id, _qstr].join('/');
   }
   ['release','label'].forEach(a => _DOM[a].innerHTML = _my[a].replace(/-/g, ' '))
   _DOM.track.innerHTML = `${play.id + 1}:${_my.trackList.length}<br/>${_my.number + 1}:${_my.count}`;
@@ -71,25 +71,25 @@ function play_url(play) {
       let parts = data.split('/');
        parts[parts.length - 1] = encodeURIComponent(parts[parts.length - 1]);
       _DOM.player.src = parts.join('/') 
+      _DOM.player.load();
       _DOM.player.play();
       _DOM.controls.className = '';
-      document.title = _DOM.player.title = play.track;
+      document.title = play.track;
 
-      let path = play.path.split('/').slice(0,-1).join('/');
       let [artist, title] = play.track.split(' - ');
-      navigator.mediaSession.metadata = new MediaMetadata({
+      title = title ?? artist;
+      // There's a weird chrome bug here with doing another new operator.
+      Object.assign( navigator.mediaSession.metadata, {
         title, artist,
         album: play.release,
         artwork: [96,128,192,256,384,512].map(r => { 
           return {
-            src: `${path}/album-art.jpg`, 
+            src: play.path.replace(/\/[^\/]*$/,'') + `/album-art.jpg`, 
             sizes: `${r}x${r}`,
             type: 'image/jpeg'
           }
         })
       });
-      navigator.mediaSession.setActionHandler('nexttrack', () => d('+track'));
-      navigator.mediaSession.setActionHandler('previoustrack', () => d('-track'));
     });
 }
 
@@ -142,6 +142,23 @@ window.onload = () => {
     what => _DOM[what] = document.querySelector(`#${what}`)
   );
 
+  navigator.mediaSession.metadata = new MediaMetadata();
+  [
+    ['next','+'],
+    ['previous', '-']
+  ].forEach(([word, sign]) => 
+    navigator.mediaSession.setActionHandler(`${word}track`, () => {
+      _lock[sign] = (_lock[sign] || 0) + 1;
+      if(!_lock[word]) {
+        _lock[word] = setTimeout(() => {
+          let action = sign + ' track release label'.split(' ')[Math.min(_lock[sign], 3)]
+          
+          d(action);
+          _lock[sign] = _lock[word] = 0;
+        }, 450);
+      }
+    })
+  );
   _DOM.track.onclick = function() {
     _lock.loop ^= 1;
     _DOM.track.className = (_lock.loop ? 'loop' : '');
@@ -230,6 +247,6 @@ window.onload = () => {
     });
   }
 
-  d(parsehash() || 0).then(_DOM.navcontrols.onclick);
+  d(parsehash() ?? 0).then(_DOM.navcontrols.onclick);
   window.addEventListener('hashchange', () => !_lock.hash && d(parsehash()));
 }
