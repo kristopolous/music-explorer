@@ -319,6 +319,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
       elif [[ -e "$i"/no-files ]]; then
 
         headline 1 "No files"
+        [[ -n "$COPROC_PID" ]] && kill $COPROC_PID; 
         ls -ltr "$i"  |  sed 's/^/\t\t/'
         n=p
         hr
