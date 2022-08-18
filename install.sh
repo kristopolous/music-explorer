@@ -41,6 +41,6 @@ ENDL
 }
 
 
-#install_bin
+install_bin
 
 install_deps
