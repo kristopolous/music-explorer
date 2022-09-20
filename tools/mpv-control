@@ -6,18 +6,21 @@
 #
 TMP=/tmp/mpvonce
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+MPVCONTROL=mpv-control
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 [[ -e "$TMP" ]] || mkdir "$TMP"
 
-key=$1
-if [[ -z "$host" || "$host" == "localhost" ]]; then
-  pactl_prefix="pactl set-sink-volume $(pactl list sinks short | grep RUNNING | head -1 | cut -f 1 )"
-  pactl_step=2000
+if [[ -n "$HOST" && "$HOST" != "localhost" ]]; then
+  timeout 5s ssh "$HOST" "$MPVCONTROL $1"
+  exit 0
 fi
+
+key=$1
+pactl_prefix="pactl set-sink-volume $(pactl list sinks short | grep RUNNING | head -1 | cut -f 1 )"
+pactl_step=2000
 
 docmd() {
   echo -e $(date +%s) "$key->($control)\n\t$1" >> "$TMP"/keycode
-  [[ -n "$host" && "$host" != "localhost" ]] && timeout 5s ssh $host $1 || $1
   exit
 }
 
