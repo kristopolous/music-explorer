@@ -117,7 +117,6 @@ touch $start_dir/.listen_done
 load_tracks 1
 
 ix=0 
-direct=
 
 timeit() {
   this_ts=$(date +%s.%N)
@@ -151,19 +150,20 @@ while [[ ${#all[@]} -gt $ix ]]; do
   timeit "start loop"
   [[ -z "$NOSCORE" && -z "$NOSCAN" ]] && load_tracks 
 
+
   # This can potentially skip things in with a reload
   # but it's fine ... 
   i=${all[$ix]}
-  m3u="$i/$PLAYLIST"
-
-  iop
-
   m3u="$i/$PLAYLIST"
 
   if [[ -n "$direct" ]]; then
     i=$direct
     direct=
   fi
+
+  iop
+
+  m3u="$i/$PLAYLIST"
 
   setname
   (( ix ++ ))

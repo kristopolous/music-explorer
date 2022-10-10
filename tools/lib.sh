@@ -24,6 +24,7 @@ SLEEP_MIN=1
 SLEEP_MAX=4
 SLEEP_OPTS="--max-sleep-interval $SLEEP_MAX --min-sleep-interval $SLEEP_MIN"
 start_dir=$( pwd )
+direct=
 
 # some simple things first.
 _rm ()  { [[ -e "$1" ]] && rm "$1"; }
@@ -349,6 +350,7 @@ _repl() {
       { cat <<- ENDL
       ?       - This help page
       3,4,5   - Rate
+      e       - Eval
       p       - Purge (delete)
       un      - Unpurge
       dl      - Download the files
@@ -384,6 +386,10 @@ ENDL
     } | sed 's/^\s*/\t\t/g';
 
 
+    elif [[ "${n:0:2}" == 'e ' ]]; then
+      torun=${n:2}
+      status "-> Running $torun"
+      eval "$torun"
     elif [[ ${n:0:1} == 'g' ]]; then
       direct=${n:2}
       n="s"
