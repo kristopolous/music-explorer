@@ -20,7 +20,8 @@ pactl_prefix="pactl set-sink-volume $(pactl list sinks short | grep RUNNING | he
 pactl_step=2000
 
 docmd() {
-  echo -e $(date +%s) "$key->($control)\n\t$1" >> "$TMP"/keycode
+  echo -e $(date +%s) $(whoami) "$key->($control)\n\t$1" >> "$TMP"/keycode
+  $1
   exit
 }
 
