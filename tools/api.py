@@ -12,10 +12,19 @@ def cachie(self):
   import requests_cache
   requests_cache.install_cache()
 
+def expand(what):
+  # I believe there's two properties that
+  # suggest expansion.  There's the object
+  # id and type and then there are resource_urls
+  # that can lead to the expansions.
+  #
+  # perhaps some graph ql is the right 
+  # approach here.
+  #
 discogs_client.fetchers.Fetcher.__init__ = cachie
 
 labelMap = {}
-artistMap = {}
+_artistMap = {}
 
 d = discogs_client.Client('ExampleApplication/0.1', user_token=secrets.USER_TOKEN)
 r = redis.Redis(host='localhost', port=6379, db=0)
@@ -39,6 +48,9 @@ def get_artists_for_label(label):
 
   return artistMap
 
+def artist_crawl(who):
+  global _artistMap
+
 for i in res:
   if type(i) is not discogs_client.models.Release:
     continue
@@ -47,23 +59,27 @@ for i in res:
   for a in [*i.artists, *i.credits]:
     print("{:5}{}".format('', a.name))
     try:
-      if a.name in artistMap:
-        artistMap[a.name] += 1
+      if a.name in _artistMap:
+        _artistMap[a.name] += 1
         continue
 
-      artistMap[a.name] = 1
+      _artistMap[a.name] = 1
       relList = a.releases
 
     except:
       continue
 
     for rel in a.releases:
-      if type(rel) is discogs_client.models.Master:
-        continue
+      #if type(rel) is discogs_client.models.Master:
+      #  continue
 
-      print("{:10}{}".format('', rel.title))
+      """
+      for track in rel.tracklist:
+        print(track.title, track.artists)
+      """
       lname = rel.data.get('label')
       label = r.get('label:{}'.format(lname))
+      print("{:3}{:40} - {:}".format('', rel.title[:40], lname))
 
       if label:
         urls = json.loads(label)
@@ -81,8 +97,8 @@ for i in res:
           r.set('label:{}'.format(lname), json.dumps(label.urls))
 
           try:
-            artistMap = get_artists_for_label(label)
-            r.zadd('amap:{}'.format(lname), artistMap)
+            t_artistMap = get_artists_for_label(label)
+            r.zadd('amap:{}'.format(lname), t_artistMap)
           except Exception as e:
             print("woops", e)
             continue
@@ -96,12 +112,16 @@ for name, label in labelMap.items():
     if 'bandcamp' in url:
       ttl.append([label.get('count'), url, name])
 
+"""
 ttl.sort(key=operator.itemgetter(0))
 
 print("labels")
 for row in ttl:
   print("{:3} {:80} {} ".format(*row))
 
+
 print("\nartists")
-for k,v in artistMap.items():
+for k,v in _artistMap.items():
   print("{:3} {}".format(v, k))
+
+"""

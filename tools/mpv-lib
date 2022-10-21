@@ -8,7 +8,6 @@ if ! declare -f $1 > /dev/null; then
   echo "Woops, $1 is not defined"
   for i in $(declare -F | sed s/'declare -f//g' | sort); do
     echo $i
-    declare -f $i
   done
   exit 1
 fi
