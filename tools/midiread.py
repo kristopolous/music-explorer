@@ -194,6 +194,12 @@ while True:
       if 'local_volume_abs' in todo:
         cmdList.append( 'amixer -c 0 sset Master {}%'.format( int(100 * value / 127)) )
 
+      if 'mic1_vol' in todo:
+        cmdList.append( "pamixer --source 1 --set-volume {}".format( value) )
+
+      if 'mic2_vol' in todo:
+        cmdList.append( "pamixer --source 3 --set-volume {}".format( value) )
+
       if 'pulse_volume_abs' in todo:
         #cmdList.append( 'amixer -D pulse sset Master {}%'.format( int(101 * value / 127)) )
         #if usbDevice:

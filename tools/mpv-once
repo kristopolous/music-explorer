@@ -117,7 +117,6 @@ touch $start_dir/.listen_done
 load_tracks 1
 
 ix=0 
-direct=
 
 timeit() {
   this_ts=$(date +%s.%N)
@@ -151,19 +150,20 @@ while [[ ${#all[@]} -gt $ix ]]; do
   timeit "start loop"
   [[ -z "$NOSCORE" && -z "$NOSCAN" ]] && load_tracks 
 
+
   # This can potentially skip things in with a reload
   # but it's fine ... 
   i=${all[$ix]}
-  m3u="$i/$PLAYLIST"
-
-  iop
-
   m3u="$i/$PLAYLIST"
 
   if [[ -n "$direct" ]]; then
     i=$direct
     direct=
   fi
+
+  iop
+
+  m3u="$i/$PLAYLIST"
 
   setname
   (( ix ++ ))
@@ -319,6 +319,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
       elif [[ -e "$i"/no-files ]]; then
 
         headline 1 "No files"
+        [[ -n "$COPROC_PID" ]] && kill $COPROC_PID; 
         ls -ltr "$i"  |  sed 's/^/\t\t/'
         n=p
         hr
@@ -382,6 +383,10 @@ while [[ ${#all[@]} -gt $ix ]]; do
     fi
     [[ -n "$skipprompt" ]] && hr
   fi
+  # This can fix when mount point hangups and reconnects can occur
+  # and comes at a very little cost otherwise
+  cd $start_dir
+
   # The repeat while ignoring playlist is a one-time
   # flag that has to be set the next time
   nopl=

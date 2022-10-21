@@ -4,8 +4,16 @@
 #   /usr/include/X11/keysymdef.h and
 #   http://man.openbsd.org/OpenBSD-current/man1/tmux.1#KEY_BINDINGS
 #
+TMP=/tmp/mpvonce
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+MPVCONTROL=mpv-control
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
+[[ -e "$TMP" ]] || mkdir "$TMP"
+
+if [[ -n "$HOST" && "$HOST" != "localhost" ]]; then
+  timeout 5s ssh "$HOST" "$MPVCONTROL $1"
+  exit 0
+fi
 
 key=$1
 
@@ -17,8 +25,8 @@ volume() {
 }
 
 docmd() {
-  echo -e $(date +%s) "$key->($control)\n\t$1" >> /tmp/mpvonce/keycode
-  [[ -n "$host" && "$host" != "localhost" ]] && timeout 5s ssh $host $1 || $1
+  echo -e $(date +%s) $(whoami) "$key->($control)\n\t$1" >> "$TMP"/keycode
+  $1
 }
 
 if [[ $1 == 'd' ]]; then
@@ -35,4 +43,4 @@ declare -A mapping=( [q]='quit' [up]='forward 60' [down]='back 60' [left]='back'
 [[ ${mapping[$1]+_} ]] && control=${mapping[$1]} || control=$1
 [[ "$control" =~ (.*60|forward|prev|quit|back|next|pauseplay) ]] && docmd "$DIR/ipc-do.js $control" && exit
 
-docmd "tmux send-keys -t $(cat /tmp/mpvonce/tmux-name) $control"
+docmd "tmux send-keys -t $(cat $TMP/tmux-name) $control"
