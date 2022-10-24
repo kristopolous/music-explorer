@@ -470,6 +470,10 @@ ENDL
       [[ "$n" == 'source' ]]  && break
       [[ "$n" == 'o' ]]       && open_page "$url"
     fi
+    # This can fix when mount point hangups and reconnects can occur
+    # and comes at a very little cost otherwise
+    cd $start_dir
+
     [[ "$n" =~ ^(x|r|s|[1-5]|p)$ ]] && break
   done
 }
