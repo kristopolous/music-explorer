@@ -340,10 +340,26 @@ _ytdl () {
   check_for_stop
 }
 
+_parse() {
+  _fn=$1
+  shift
+  _arg=$1
+}
+
+_url() {
+  local domain
+  local release
+  local label=$( dirname "$1" )
+  [[ -e "$label/domain" ]] && domain=$(< "$label/domain" ) || domain=${label}.bandcamp.com
+  release=$( basename "$1" )
+  echo "https://$domain/album/$release"
+}
+
 _repl() {
   while [[ -z "$NOPROMPT" && -z "$skipprompt" ]]; do 
     read -p "[[1m$i[0m] " -e n
     history -s "$n"
+    _parse $n
 
     if [[ $n == '?' ]]; then
       headline 1 "Keyboard commands" 
@@ -386,37 +402,36 @@ ENDL
     } | sed 's/^\s*/\t\t/g';
 
 
-    elif [[ "${n:0:2}" == 'e ' ]]; then
+    elif [[ "$_fn" == 'e' ]]; then
       torun=${n:2}
       status "-> Running $torun"
       eval "$torun"
-    elif [[ ${n:0:1} == 'g' ]]; then
-      direct=${n:2}
+    elif [[ "$_fn" == 'g' ]]; then
+      # If I go there explicitly then ignore the n
+      direct="$_arg"
       n="s"
       hr
       break
-    elif [[ ${n:0:2} == 'un' ]]; then
-      path=${n:3}
-      status "Unpurging $path"
-      unpurge $path
+    elif [[ "$_fn" == 'un' ]]; then
+      status "Unpurging $_arg"
+      unpurge "$_arg"
       
-    elif [[ ${n:0:2} == 'ao' ]]; then
+    elif [[ "$_fn" == 'ao' ]]; then
       ao=${n:3}
       status "Setting audio out to '$ao'"
       [[ -e $DIR/prefs.sh ]] && sed -Ei 's/ao=.*/ao='$ao'/g' $DIR/prefs.sh
 
-    elif [[ ${n:0:2} == 'b ' ]]; then
-      start_time=${n:2}
-      status "Setting start time to $start_time"
+    elif [[ "$_fn" == "b" ]]; then
+      status "Setting start time to $_arg"
 
-    elif [[ "$n" == 'l' ]]; then
+    elif [[ "$_fn" == 'l' ]]; then
       if [[ -s "$m3u" ]]; then
         headline 1 "playlist" 
         cat $m3u | sed 's/^/\t\t/'
       fi
 
       headline 1 "files"
-      ls -l "$i" | sed 's/^/\t\t/'
+      ls -l "${_arg:-$i}" | sed 's/^/\t\t/'
       echo
     elif [[ "$n" =~ (undo|scan|score|net|prompt|pl) ]]; then 
       local base=1
@@ -437,7 +452,7 @@ ENDL
       fi
       status "Debug ${STR[${DEBUG:-1}]}"
 
-    elif [[ ${n:0:6} == 'filter' ]]; then
+    elif [[ "$_fn" == 'filter' ]]; then
       set_filter ${n:7}
       # this can be turned back on by quitting with a capital Q
       echo $filter
@@ -451,10 +466,11 @@ ENDL
         $SHELL
         reset
       )
-    elif [[ $n == 'dlp' ]]; then 
+    elif [[ "$_fn" == 'dlp' ]]; then 
       (
+        [[ -n "$_arg" ]] && t_url="$(_url "$_arg")" || t_url="$url"
         status "Downloading playlist"
-        get_playlist "$url" "$i"
+        get_playlist "$t_url" "$i"
       )
 
     elif [[ "$n" == 'r nopl' ]]; then
@@ -463,16 +479,17 @@ ENDL
       # We treat this like a regular replay
       n=r
     else
-      [[ "$n" == 'list' ]]    && echo ${all[@]} | tr ' ' '\n' | sed 's/^\s*/\t/g' | sort
-      [[ "$n" == 'i' ]]       && _info "$i"
-      [[ "$n" == 'dl' ]]      && get_mp3s "$url" "$i"
-      [[ "$n" == 'dlm' ]]     && manual_pull "$url" "$i"
-      [[ "$n" == 'source' ]]  && break
-      [[ "$n" == 'o' ]]       && open_page "$url"
+      [[ -n "$_arg" ]]          && t_url="$(_url "$_arg")" || t_url="$url"
+      [[ "$_fn" == 'list' ]]    && echo ${all[@]} | tr ' ' '\n' | sed 's/^\s*/\t/g' | sort
+      [[ "$_fn" == 'i' ]]       && _info "${_arg:-$i}"
+      [[ "$_fn" == 'dl' ]]      && get_mp3s "$t_url" "${_arg:-$i}"
+      [[ "$_fn" == 'dlm' ]]     && manual_pull "$t_url" "${_arg:-$i}"
+      [[ "$_fn" == 'source' ]]  && break
+      [[ "$_fn" == 'o' ]]       && open_page "$t_url"
     fi
     # This can fix when mount point hangups and reconnects can occur
     # and comes at a very little cost otherwise
-    cd $start_dir
+    cd "$start_dir"
 
     [[ "$n" =~ ^(x|r|s|[1-5]|p)$ ]] && break
   done
