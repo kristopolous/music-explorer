@@ -220,8 +220,8 @@ while [[ ${#all[@]} -gt $ix ]]; do
       fi
       timeit "block-exec"
 
-      headline 2 "$ix\t$url"
-      status "$start_dir/$i"
+      headline 2 "$ix\t$i"
+      status "${url:8}"
 
       if [[ ! "$hasm3u" && ! -e "$i"/no-files && -z "$NOPL" ]]; then
 
@@ -250,7 +250,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
             timeit "coproc"
 
             if [[ $f_count != $t_count ]]; then
-              headline 1 "Playlist has $t_count, there's $f_count here. Ignoring playlist"
+              headline 1 "Playlist has $t_count, there's $f_count here. Ignoring playlist (dir: $i)"
               [[ $f_count > $t_count ]] && pl_fallback "$i" || echo "Check this one."
               t_count=$f_count
             fi
