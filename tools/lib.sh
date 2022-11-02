@@ -298,7 +298,8 @@ _info () {
     [[ $url =~ 'album' ]] && matcher='track-title' || matcher='trackTitle'
 
     _info_section "Tracks"      "$(cat "$path/$PAGE" | tr '\n' ' ' | grep -Po '((?<='$matcher'">).*?(?=<))' | sed -E 's/^\s*//g' | awk ' { print FNR". "$0 } ')"
-    _info_section "Files"       "$(cd "$path"; ls -l *.{mp3,ogg,m4a,flac,aiff,wav})" 
+    _info_section "Files"       "$(cd "$path"; ls -l *.{mp3,ogg,m4a,flac,aiff,wav} 2> /dev/null)" 
+    _info_section "URLs"        "$(for x in $path/*.mp3; do _trackpath "$x"; done)"
     _info_section "PLS entries" "$(cat "$path/playlist.m3u")"
 
     headline 2  $url
@@ -353,6 +354,15 @@ _url() {
   [[ -e "$label/domain" ]] && domain=$(< "$label/domain" ) || domain=${label}.bandcamp.com
   release=$( basename "$1" )
   echo "https://$domain/album/$release"
+}
+
+_trackpath() {
+  # first we have to extract the title
+  local path="$@"
+  local base=$(dirname "$path")
+  local fname=$(basename "$path")
+  local title=$(echo "$fname" | sed -E 's/ - (.*)/\/\1/g;s/-[0-9]+.mp3//g;' | cut -d \/ -f 2)
+  <$base/page.html tr '\n' ' ' | grep -Po '(?<=script type="application.ld.json">)(.*?)(?=</scr)'  | jq ".track.itemListElement[] |select(.item.name==\"$title\")|.item[\"@id\"]" | tr -d '"'
 }
 
 _repl() {
