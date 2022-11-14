@@ -1,0 +1,6 @@
+RewriteEngine On
+RewriteBase /
+
+AddType application/x-httpd-php .php
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^rss$ rss.php [L]
