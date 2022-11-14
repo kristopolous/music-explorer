@@ -108,7 +108,7 @@ end
 mp.register_event("log-message", lg)
 mp.register_event("start-file", print_on_start)
 mp.register_event("shutdown", record_volume)
-mp.add_key_binding('s', 'share', share_handler)
+mp.add_key_binding('f', 'share', share_handler)
 mp.add_key_binding('o', 'openpage', openpage_handler)
 mp.add_key_binding('?', 'getinfo', getinfo_handler)
 mp.add_key_binding('Q', 'quit', function() 
