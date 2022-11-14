@@ -293,7 +293,6 @@ cat >> .share_list << END
  $len
 
 END
-  echo "Shared"
 }
 
 
