@@ -59,7 +59,7 @@ function getinfo_handler()
   fullpath = fullpath:gsub('/%./', "/")
   parts = string_split(fullpath, '/')
   partial = parts[#parts - 2] .. '/' .. parts[#parts - 1] 
-  cmd ='mpv-lib _info "' .. table.concat({
+  cmd = 'mpv-lib _info "' .. table.concat({
     partial, 
     mp.get_property('working-directory'),
     mp.get_property('path')
@@ -70,13 +70,23 @@ function getinfo_handler()
   print( mp.get_property_native('media-title') )
 end
 
-
 function record_volume()
   vol = mp.get_property('volume')
   f = io.open( pfx .. "last-volume", "w" )
   io.output(f)
   io.write(vol)
   io.close(f)
+end
+
+function share_handler()
+  print("Sharing ... ")
+  fullpath = mp.get_property('path')
+  fullpath = fullpath:gsub('/%./', "/")
+  cmd = 'mpv-lib _trinfo "' .. table.concat({
+    mp.get_property('working-directory') .. '/' .. fullpath,
+    mp.get_property('duration')
+  }, '" "') .. '"'
+  os.execute( cmd )
 end
 
 --
@@ -98,6 +108,7 @@ end
 mp.register_event("log-message", lg)
 mp.register_event("start-file", print_on_start)
 mp.register_event("shutdown", record_volume)
+mp.add_key_binding('s', 'share', share_handler)
 mp.add_key_binding('o', 'openpage', openpage_handler)
 mp.add_key_binding('?', 'getinfo', getinfo_handler)
 mp.add_key_binding('Q', 'quit', function() 

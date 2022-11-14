@@ -277,6 +277,26 @@ _info_section()  {
   echo "$2"
 }
 
+_trinfo() {
+  local path=$(dirname "$1")
+  local len=$2
+  local url=$(resolve "$path")
+  local art=$(grep -A 4 'tralbumArt' "$path/page.html" | grep popupImage | grep -Po 'https:.*[jp][pn]g')
+  # blank line record seperator
+  # otherwise everything begins with a space
+cat >> .share_list << END 
+ $(date +%s)
+ $1
+ $url
+ $art
+ $(stat -c %s "$1")
+ $len
+
+END
+  echo "Shared"
+}
+
+
 _info () {
   local path="$1"
   local url=$(resolve "$path")
