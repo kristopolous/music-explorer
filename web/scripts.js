@@ -70,17 +70,17 @@ function play_url(play) {
   // This warms up the backend cache for the next tracks we can navigate to
   Object.values(_next).forEach(lookup);
 
+  _DOM.controls.className = '';
   // this is the url to play.
   return fake? 
     new Promise(r => r()): 
     lookup(play).then(data => {
       // The file names can be really weird so we escape just that part of the path
-      _DOM.player.src = data.replace(/(?<=\/)[^\/]*$/, encodeURIComponent)
+      _DOM.player.src = data.replace(/(?<=\/)[^\/]*$/, a => encodeURIComponent(a))
 
       // being explicit like this seems to stop the media keys
       // from breaking
       _DOM.player.load();
-      _DOM.controls.className = '';
       document.title = play.track;
 
       let [artist, title] = play.track.split(' - ');
@@ -139,13 +139,6 @@ function d(skip, orig) {
   }
 }
 
-function dosearch(str) {
-  _qstr =  encodeURIComponent(str);
-  _next = {};
-  _my = {release:'',label:''};
-  d("+track");
-}
-
 window.onload = () => {
   parsehash();
 
@@ -183,13 +176,17 @@ window.onload = () => {
   _DOM.search.onkeydown = e => { 
     window.clearTimeout(_lock.search);
     _lock.search = window.setTimeout(() =>  {
-      _qstr = encodeURIComponent(_DOM.search.value);
-      _DOM.navcontrols.onclick();
+      let newstr = encodeURIComponent(_DOM.search.value);
+      if(newstr !== _qstr) {
+        _qstr = newstr;
+        _DOM.navcontrols.onclick();
+        /*
+        if(_qstr.length === 0) {
+          d(_track.id);
+        }
+        */
+      }
     }, 250);
-
-    if([e.key, e.code].includes('Enter')) {
-      dosearch(_DOM.search.value);
-    }
   }
 
   _DOM.navcontrols.onclick = e => {
