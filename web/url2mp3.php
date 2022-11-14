@@ -15,15 +15,18 @@ if (isset($_GET['path'])) {
 $src = $_GET['u'];
 $key = "pl:$src";
 $content = file_get_contents($src);
-$mp3 = $client->get($key);
+$mp3 = trim($client->get($key));
 if(!$mp3) {
   preg_match('/(share.*data-url=")(https:[^"]*track[^"]*)/', $content, $matches);
   if(!$matches) {
     error_log(json_encode([$_GET['u'], $content] ));
   }
   $url = $matches[count($matches)-1];
-  $mp3 = shell_exec("yt-dlp -g $url");
+  $mp3 = trim(shell_exec("yt-dlp -g $url"));
   $client->set($key, $mp3);
   $client->expire($key, 60 * 60 * 12);
 }
-echo $mp3;
+$mp3 = str_replace('?', '%3f', $mp3);
+$mp3 = str_replace('&', '%26', $mp3);
+echo "/pl/fw.php?u=".$mp3;
+
