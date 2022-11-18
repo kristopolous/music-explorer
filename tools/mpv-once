@@ -135,10 +135,11 @@ iop() {
       echo -e "\t"; 
     fi
 
-    ls -1 "$i"/*.{mp3,ogg,m4a,flac,aiff,wav}; 
+    local flist=( "$i"/*.{mp3,ogg,m4a,flac,aiff,wav} )
+    echo ${#flist[@]}
     echo -e "\t"; 
 
-    sleep 10; 
+    sleep 7; 
   }
 }
 
@@ -172,6 +173,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
 
   timeit "before record"
   read -r -d "$delim" -u ${COPROC[0]} t_count
+  t_count=${t_count:-0}
 
   # We assume the directory exists unless this fails 
   # then we question that assumption
@@ -187,7 +189,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
       status "Gone - $i"
       n="__purge"
       record_listen
-      continue
+      continue;
     fi
   fi
   timeit "after record"
@@ -244,15 +246,19 @@ while [[ ${#all[@]} -gt $ix ]]; do
           if [[ -z "$playlistIsRemote" || $(( $(date +%s) - $(stat -c %Y "$m3u") )) -lt $DAY ]]; then
             
             timeit "counter"
-            read -r -d "$delim" -u ${COPROC[0]} ff
-            f_count=$(wc -l <<< $ff)
-            [[ -n "$COPROC_PID" ]] && kill $COPROC_PID; 
+            read -r -d "$delim" -u ${COPROC[0]} f_count
+            [[ -n "$COPROC_PID" ]] && kill $COPROC_PID
             timeit "coproc"
 
             if [[ $f_count != $t_count ]]; then
               headline 1 "Playlist has $t_count, there's $f_count here. Ignoring playlist (dir: $i)"
               [[ $f_count > $t_count ]] && pl_fallback "$i" || echo "Check this one."
               t_count=$f_count
+              # Because of the above inequality check this would imply
+              # that the t_count is also 0
+            elif [[ $f_count == 0 ]]; then
+              n=p
+              break
             fi
 
             if [[ $t_count != 1 ]]; then 
