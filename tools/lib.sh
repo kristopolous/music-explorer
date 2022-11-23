@@ -382,7 +382,7 @@ tom4a() {
     echo -e "\n\n\n\nEXISTS!!! $out\n\n\n"
   else
     for i in 29 5 2; do
-      ffmpeg -loglevel quiet  -i "$in" -write_xing 0 -id3v2_version 0 -vn -f wav /tmp/out.wav 
+      ffmpeg -nostdin -loglevel quiet  -i "$in" -write_xing 0 -id3v2_version 0 -vn -f wav /tmp/out.wav 
       fdkaac -b 32000 -p $i /tmp/out.wav -o /tmp/out.m4a
       rm /tmp/out.wav
       if [[ -s /tmp/out.m4a ]] ; then
