@@ -375,11 +375,20 @@ _url() {
   echo "https://$domain/album/$release"
 }
 
+toopus() {
+  in="$*"
+  out="${in/.mp3/.opus}"
+  if [[  -s "$out" ]] ; then
+    echo -e "EXISTS!!! $out"
+  else
+    ffmpeg -nostdin -loglevel quiet -i "$in" -write_xing 0 -id3v2_version 0 -vn -c:a libopus -b:a 15000 "$out"
+  fi
+}
 tom4a() {
   in="$*"
   out="${in/.mp3/.m4a}"
   if [[  -s "$out" ]] ; then
-    echo -e "\n\n\n\nEXISTS!!! $out\n\n\n"
+    echo -e "EXISTS!!! $out"
   else
     ffmpeg -nostdin -loglevel quiet  -i "$in" -write_xing 0 -id3v2_version 0 -vn -f wav - | fdkaac -b 32000 -p 29 /dev/stdin -o "$out"
   fi
