@@ -6,13 +6,14 @@ var
   _db = {},
   _tab = 'track',
   _if,
+  _level = 2,
   _DOM = {},
   _lock = {},
   path_to_url = str => 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1],
   remote = (append = []) => fetch("get_playlist.php?" + [ `q=${_qstr}`, `release=${_my.release}`, `label=${_my.label}`, ...append ].join('&')).then(response => response.json()),
   lookup = play => _db[play.path] ?
     new Promise(r => r(_db[play.path])) :
-    fetch(`url2mp3.php?path=${encodeURIComponent(play.path)}&u=${path_to_url(play.path)}`)
+    fetch(`url2mp3.php?q=${_level}&path=${encodeURIComponent(play.path)}&u=${path_to_url(play.path)}`)
       .then(response => response.text())
       .then(data => {
         _db[play.path] = data;
@@ -26,6 +27,8 @@ function parsehash() {
     release: hash[1] || ''
   });
   _qstr = hash[3] || '';
+  _level = hash[4] || 2;
+  document.body.className = "q" + _level;
   return hash[2];
 }
 
@@ -35,28 +38,31 @@ function play_url(play) {
     rel = _my.trackList, ttl = rel.length;
   
   if(!fake) {
-    ifr = _if ^= 1;
-    _DOM[`if${ifr}`].className = 'in';
+    if(_level > 1) {
+      console.log("Doing it!");
+      ifr = _if ^= 1;
+      _DOM[`if${ifr}`].className = 'in';
 
-    // this type of iframe reassignmemt prevents the location history
-    // from being populated so the back button still works.
-    _DOM[`if${ifr}`].contentWindow.location.replace(src);
+      // this type of iframe reassignmemt prevents the location history
+      // from being populated so the back button still works.
+      _DOM[`if${ifr}`].contentWindow.location.replace(src);
 
-    // we delay the transition if it's the same album. 
-    // Otherwise there's this temporary fading effect
-    if(_track.release !== play.release) {
-      _DOM[`if${+!ifr}`].className = 'out';
-    }
-
-    setTimeout(() => {
-      if(_track.path === play.path) {
+      // we delay the transition if it's the same album. 
+      // Otherwise there's this temporary fading effect
+      if(_track.release !== play.release) {
         _DOM[`if${+!ifr}`].className = 'out';
-        _DOM[`if${+!ifr}`].contentWindow.location.replace(src);
       }
-      _lock.hash = 0;
-    }, 1000);
-    _lock.hash = 1;
-    window.location.hash = [play.label, play.release, play.id, _qstr].join('/');
+
+      setTimeout(() => {
+        if(_track.path === play.path) {
+          _DOM[`if${+!ifr}`].className = 'out';
+          _DOM[`if${+!ifr}`].contentWindow.location.replace(src);
+        }
+        _lock.hash = 0;
+      }, 1000);
+      _lock.hash = 1;
+    }
+    window.location.hash = [play.label, play.release, play.id, _qstr, _level].join('/');
   }
   ['release','label'].forEach(a => _DOM[a].innerHTML = _my[a].replace(/-/g, ' '))
   _DOM.track.innerHTML = `${play.id + 1}:${_my.trackList.length}<br/>${_my.number + 1}:${_my.count}`;
@@ -76,7 +82,11 @@ function play_url(play) {
     new Promise(r => r()): 
     lookup(play).then(data => {
       // The file names can be really weird so we escape just that part of the path
-      _DOM.player.src = data.replace(/(?<=\/)[^\/]*$/, a => encodeURIComponent(a))
+      // Safari has issues with their PCRE so we are doing this dumber
+      let parts = data.split('/'), fname = parts.pop();
+      _DOM.player.src = [...parts, encodeURIComponent(fname)].join('/');
+
+      //_DOM.player.src = data.replace(/(?:\/)([^\/]*)$/, a => encodeURIComponent(a))
 
       // being explicit like this seems to stop the media keys
       // from breaking
@@ -90,18 +100,22 @@ function play_url(play) {
       // There's a weird chrome bug here with doing another new operator.
       // I think these remediations are just voodoo ... I don't know what
       // the real bug is.
-      Object.assign( navigator.mediaSession.metadata, {
-        title, artist,
-        album: play.release,
-        artwork: [96,128,192,256,384,512].map(r => { 
-          return {
-            src: play.path.replace(/\/[^\/]*$/,'') + `/album-art.jpg`, 
-            sizes: `${r}x${r}`,
-            type: 'image/jpeg'
-          }
-        })
-      });
-    });
+      if(navigator.mediaSession) {
+        Object.assign( navigator.mediaSession.metadata, {
+            title, artist,
+            album: play.release
+          },
+          _level < 2 ? {} : {
+            artwork: [96,128,192,256,384,512].map(r => { 
+              return {
+                src: play.path.replace(/\/[^\/]*$/,'') + `/album-art.jpg`, 
+                sizes: `${r}x${r}`,
+                type: 'image/jpeg'
+              }
+            })
+        });
+      }
+   });
 }
 
 function d(skip, orig) {
@@ -146,26 +160,28 @@ window.onload = () => {
     what => _DOM[what] = document.querySelector(`#${what}`)
   );
 
-  navigator.mediaSession.metadata = new MediaMetadata();
-  //
-  // 1 tap  = track
-  // 2 taps = release
-  // 3 taps = label
-  //
-  [
-    ['next','+'],
-    ['previous', '-']
-  ].forEach(([word, sign]) => 
-    navigator.mediaSession.setActionHandler(`${word}track`, () => {
-      _lock[sign] = (_lock[sign] || 0) + 1;
-      if(!_lock[word]) {
-        _lock[word] = setTimeout(() => {
-          d( sign + ' track release label'.split(' ')[Math.min(_lock[sign], 3)] );
-          _lock[sign] = _lock[word] = 0;
-        }, 400);
-      }
-    })
-  );
+  if (self.MediaMetadata) {
+    navigator.mediaSession.metadata = new MediaMetadata();
+    //
+    // 1 tap  = track
+    // 2 taps = release
+    // 3 taps = label
+    //
+    [
+      ['next','+'],
+      ['previous', '-']
+    ].forEach(([word, sign]) => 
+      navigator.mediaSession.setActionHandler(`${word}track`, () => {
+        _lock[sign] = (_lock[sign] || 0) + 1;
+        if(!_lock[word]) {
+          _lock[word] = setTimeout(() => {
+            d( sign + ' track release label'.split(' ')[Math.min(_lock[sign], 3)] );
+            _lock[sign] = _lock[word] = 0;
+          }, 400);
+        }
+      })
+    );
+  }
   _DOM.track.onclick = function() {
     _lock.loop ^= 1;
     _DOM.track.className = (_lock.loop ? 'loop' : '');
@@ -178,13 +194,17 @@ window.onload = () => {
     _lock.search = window.setTimeout(() =>  {
       let newstr = encodeURIComponent(_DOM.search.value);
       if(newstr !== _qstr) {
-        _qstr = newstr;
-        _DOM.navcontrols.onclick();
-        /*
-        if(_qstr.length === 0) {
-          d(_track.id);
+        if (_DOM.search.value[0] == ':'){
+          if (_DOM.search.value.length > 1) {
+            _level = parseInt(_DOM.search.value[1], 10);
+            _DOM.search.value = '';
+            _db = {};
+            document.body.className = "q" + _level;
+          }
+        } else {
+          _qstr = newstr;
+          _DOM.navcontrols.onclick();
         }
-        */
       }
     }, 250);
   }
