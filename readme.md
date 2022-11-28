@@ -143,17 +143,17 @@ Don't worry, it'll be easy.
 Here we decide what to do with what we just heard. We can
 
   * r - replay it
-  * pu - purge (move it /tmp and mark it as undesired)
+  * p - purge (move it /tmp and mark it as undesired)
   * s - skip the decision making
   * dl - download it
   * 3-5 - rate it from 3-5
   * q - exit
 
-That wasn't painful, hopefully.
+That wasn't painful, hopefully. There's quite a bit more just use ? to see the various commands.
 
 I'm going to decide to dump my own music, that slouch is awful.
 
-    chrismckenzie/textures-i >> pu
+    chrismckenzie/textures-i >> p
     + base=/sd/mp3/label
     + mkdir -p /tmp/chrismckenzie/astrophilosophy
     + mv '/sd/mp3/label/chrismckenzie/astrophilosophy/chris mckenzie - Astrophilosophy-3196176877.mp3' '/sd/mp3/label/chrismckenzie/astrophilosophy/chris mckenzie - Instrumentals-2161707097.mp3' '/sd/mp3/label/chrismckenzie/astrophilosophy/chris mckenzie - Vocals-589691184.mp3' /sd/mp3/label/chrismckenzie/astrophilosophy/exit-code /tmp/chrismckenzie/astrophilosophy
