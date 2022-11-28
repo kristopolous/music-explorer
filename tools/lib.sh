@@ -14,9 +14,9 @@ NOPL=${NOPL:=}
 REMOTEPL=
 
 DEBUG=${DEBUG:=}
-FMT=mp3
-REMOTE=localhost
-REMOTEBASE=$PWD
+FMT=${FMT:=mp3}
+REMOTE=${REMOTE:=localhost}
+REMOTEBASE=${REMOTEBASE:=$PWD}
 PLAYLIST=playlist.m3u
 PLAYLIST_DBG=
 YTDL=${YTDL:=yt-dlp}
@@ -382,29 +382,34 @@ _url() {
 
 toopus() {
   in="$*"
+
+  if [[ -d "$in" ]]; then
+    for i in "$in"/*.mp3; do
+      toopus "$i" &
+    done
+    wait $(jobs -p)
+    exit
+  fi
+
   out="${in/.mp3/.opus}"
-  if [[  -s "$out" ]] ; then
-    echo -e " --- $out"
-  else
+  if [[ ! -s "$out" ]] ; then
     ffmpeg -nostdin -loglevel quiet -i "$in" -write_xing 0 -id3v2_version 0 -vn -c:a libopus -b:a 15000 "$out"
-    echo "$out"
   fi
 }
-tom4a() {
+
+tom5a() {
   in="$*"
   
   if [[ -d "$in" ]]; then
     for i in "$in"/*.mp3; do
-      tom4a "$i" &
+      tom5a "$i" &
     done
     wait $(jobs -p)
     exit
   fi
 
   out="${in/.mp3/.m5a}"
-  if [[ -s "$out" ]] ; then
-    echo -e " --- $out"
-  else
+  if [[ ! -s "$out" ]] ; then
     ffmpeg -nostdin -loglevel quiet  -i "$in" -write_xing 0 -id3v2_version 0 -vn -f wav - | fdkaac -S -b 32000 -p 29 /dev/stdin -o "$out"
   fi
 }

@@ -10,8 +10,6 @@ There is a web player currently, you can check it out at [https://9ol.es/pl](htt
 
 Eventually this intends to be rewritten using a SQLite backend (instead of the file system as a DB which is the current approach) and url references instead of downloading the assets (as currently happen). 
 
-The system that is installable from this repo is currently based around only bandcamp and has no discovery systems, only a browsing one.
-
 It works by ... downloading entire labels from bandcamp. I know what you're saying "that sounds shady." --- I've actually spent 300% more buying music on bandcamp month over month than I did before because this tool exposes artists to me for me to buy.
 
 The abstractions are like any powerful sets of tools: your personal moral compass is the guide to how you use it.
@@ -145,17 +143,17 @@ Don't worry, it'll be easy.
 Here we decide what to do with what we just heard. We can
 
   * r - replay it
-  * pu - purge (move it /tmp and mark it as undesired)
+  * p - purge (move it /tmp and mark it as undesired)
   * s - skip the decision making
   * dl - download it
   * 3-5 - rate it from 3-5
   * q - exit
 
-That wasn't painful, hopefully.
+That wasn't painful, hopefully. There's quite a bit more just use ? to see the various commands.
 
 I'm going to decide to dump my own music, that slouch is awful.
 
-    chrismckenzie/textures-i >> pu
+    chrismckenzie/textures-i >> p
     + base=/sd/mp3/label
     + mkdir -p /tmp/chrismckenzie/astrophilosophy
     + mv '/sd/mp3/label/chrismckenzie/astrophilosophy/chris mckenzie - Astrophilosophy-3196176877.mp3' '/sd/mp3/label/chrismckenzie/astrophilosophy/chris mckenzie - Instrumentals-2161707097.mp3' '/sd/mp3/label/chrismckenzie/astrophilosophy/chris mckenzie - Vocals-589691184.mp3' /sd/mp3/label/chrismckenzie/astrophilosophy/exit-code /tmp/chrismckenzie/astrophilosophy
@@ -197,3 +195,35 @@ There's a tool included called rating-distrib.py that puts things into a histogr
 From here I can tell that some labels I like more than others and some I actually haven't liked at all. This can help focus my exploration into more fruitful avenues
 
 ... there's a lot more ... I'll write later
+
+### low bandwidth support
+
+The repl supports on-demand converting to HE AAC+ and Opus for instances where you are doing say, ssh remote mounting. So let's pretend you're doing this:
+
+     $ sshfs -o cache=yes -o kernel_cache -o Ciphers=aes192-ctr -v -p 4021 example.com:/raid raid
+     $ cd raid/label
+     $ mpv-once
+
+Normally you'll get the mp3 sent over the wire for you to consume. But what if you're metered? Try this
+
+     $ REMOTE=example.com REMOTEBASE=/raid/label FMT=opus mpv-once
+
+Now before playing the script will ssh to the remote machine and transcode everything to a lower bitrate so the files that go over the wire are smaller.
+The format is as follows:
+
+     Opus -     15000 b/s
+     HE AAC+ -  32000 b/s done via fdkaac (HE-AAC v2 (SBR+PS))  
+
+They don't sound *that awful* and you get at least a 75% drop in bitrate.
+
+-----
+
+The web interface, which is really not documented at all also has this if you search ":0" ":1" and ":2" for opus/heaac/mp3 accordingly. iOS Safari doesn't support
+opus or heaac but linux and android have no problems with it (they were picked because HTML5 audio has support). It *should* fallback to a less effecient format if
+the better one doesn't exist. Unlike with mpv-once you'll have to convert these on your own.
+
+Something like 
+
+   $ sqlite3 playlist.db "select path from tracks" | read path; do mpv-lib toopus $path; mpv-lib tom5a $path; done;
+
+Note the "m**5**a" fake extension here to not collide with any potentially existing m4a files.
