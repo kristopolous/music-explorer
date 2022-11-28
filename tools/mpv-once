@@ -267,16 +267,15 @@ while [[ ${#all[@]} -gt $ix ]]; do
               [[ "$url" =~ "/track" ]] && headline 1 "single" || headline 1 "1 track"
             fi
 
-            timeit "convert"
             # Here's where the conversion magic happens if needed.
             if [[ $FMT != "mp3" ]]; then
-              ssh $REMOTE "source .profile;mpv-lib tom4a $REMOTEBASE/$i"
-              timeit "player"
-              playit <(sed "s/mp3/$FMT/" "$m3u")
-            else
-              timeit "player"
-              playit "$m3u"
+              timeit "convert"
+              ssh $REMOTE "source .{zshrc,profile};mpv-lib to$FMT $REMOTEBASE/$i"
+              sed "s/mp3/$FMT/" "$i"/$PLAYLIST > "$i"/playlist-$FMT.m3u
+              m3u="$i"/playlist-$FMT.m3u
             fi
+            timeit "player"
+            playit "$m3u"
             player_exit=$?
 
             ## See the lua script for how this is invoked, (as of this writing it's capital Q)
