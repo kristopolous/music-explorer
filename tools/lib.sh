@@ -389,11 +389,10 @@ tom4a() {
   in="$*"
   
   if [[ -d "$in" ]]; then
-    echo 'hi'
     for i in "$in"/*.mp3; do
-      echo $i
-      tom4a "$i"
+      tom4a "$i" &
     done
+    wait $(jobs -p)
     exit
   fi
 
