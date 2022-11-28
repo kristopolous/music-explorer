@@ -270,9 +270,9 @@ while [[ ${#all[@]} -gt $ix ]]; do
             timeit "convert"
             # Here's where the conversion magic happens if needed.
             if [[ $FMT != "mp3" ]]; then
-              ssh $REMOTE "mpv-lib tom4a $REMOTEBASE/$i"
+              ssh $REMOTE "source .profile;mpv-lib tom4a $REMOTEBASE/$i"
               timeit "player"
-              playit <(sed "s/mp3/$FMT" "$m3u")
+              playit <(sed "s/mp3/$FMT/" "$m3u")
             else
               timeit "player"
               playit "$m3u"
