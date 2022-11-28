@@ -197,3 +197,35 @@ There's a tool included called rating-distrib.py that puts things into a histogr
 From here I can tell that some labels I like more than others and some I actually haven't liked at all. This can help focus my exploration into more fruitful avenues
 
 ... there's a lot more ... I'll write later
+
+### low bandwidth support
+
+The repl supports on-demand converting to HE AAC+ and Opus for instances where you are doing say, ssh remote mounting. So let's pretend you're doing this:
+
+     $ sshfs -o cache=yes -o kernel_cache -o Ciphers=aes192-ctr -v -p 4021 example.com:/raid raid
+     $ cd raid/label
+     $ mpv-once
+
+Normally you'll get the mp3 sent over the wire for you to consume. But what if you're metered? Try this
+
+     $ REMOTE=example.com REMOTEBASE=/raid/label FMT=opus mpv-once
+
+Now before playing the script will ssh to the remote machine and transcode everything to a lower bitrate so the files that go over the wire are smaller.
+The format is as follows:
+
+     Opus -     15000 b/s
+     HE AAC+ -  32000 b/s done via fdkaac (HE-AAC v2 (SBR+PS))  
+
+They don't sound *that awful* and you get at least a 75% drop in bitrate.
+
+-----
+
+The web interface, which is really not documented at all also has this if you search ":0" ":1" and ":2" for opus/heaac/mp3 accordingly. iOS Safari doesn't support
+opus or heaac but linux and android have no problems with it (they were picked because HTML5 audio has support). It *should* fallback to a less effecient format if
+the better one doesn't exist. Unlike with mpv-once you'll have to convert these on your own.
+
+Something like 
+
+   $ sqlite3 playlist.db "select path from tracks" | read path; do mpv-lib toopus $path; mpv-lib tom5a $path; done;
+
+Note the "m**5**a" fake extension here to not collide with any potentially existing m4a files.
