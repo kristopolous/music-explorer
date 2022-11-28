@@ -8,13 +8,9 @@ Additionally there's music-discovery navigation tools that involve discogs, sear
 
 There is a web player currently, you can check it out at [https://9ol.es/pl](https://9ol.es/pl). 
 
-Eventually this intends to be rewritten using a SQLite backend (instead of the file system as a DB which is the current approach) and url references instead of downloading the assets (as currently happen). 
-
 It works by ... downloading entire labels from bandcamp. I know what you're saying "that sounds shady." --- I've actually spent 300% more buying music on bandcamp month over month than I did before because this tool exposes artists to me for me to buy.
 
 The abstractions are like any powerful sets of tools: your personal moral compass is the guide to how you use it.
-
-Let's go over what's currently included:
 
 ## Getting music
 
