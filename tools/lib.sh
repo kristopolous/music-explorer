@@ -387,11 +387,21 @@ toopus() {
 }
 tom4a() {
   in="$*"
+  
+  if [[ -d "$in" ]]; then
+    echo 'hi'
+    for i in "$in"/*.mp3; do
+      echo $i
+      tom4a "$i"
+    done
+    exit
+  fi
+
   out="${in/.mp3/.m5a}"
-  if [[  -s "$out" ]] ; then
+  if [[ -s "$out" ]] ; then
     echo -e " --- $out"
   else
-    ffmpeg -nostdin -loglevel quiet  -i "$in" -write_xing 0 -id3v2_version 0 -vn -f wav - | fdkaac -b 32000 -p 29 /dev/stdin -o "$out"
+    ffmpeg -nostdin -loglevel quiet  -i "$in" -write_xing 0 -id3v2_version 0 -vn -f wav - | fdkaac -S -b 32000 -p 29 /dev/stdin -o "$out"
   fi
 }
 
