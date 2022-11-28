@@ -1,17 +1,31 @@
 <?php
-require "/usr/share/php/Predis/Autoloader.php";
-Predis\Autoloader::register();
+$qual=intval($_GET['q']);
 
-$client = new Predis\Client();
 if (isset($_GET['path'])) {
   $path = $_GET['path'];
-
+  if($qual < 1) {
+    $smaller = str_replace(".mp3", '.opus', $path);
+    if(file_exists("$smaller")) {
+      echo $smaller;
+      exit;
+    }
+  }
+  if($qual < 2) {
+    $smaller = str_replace(".mp3", '.m5a', $path);
+    if(file_exists("$smaller")) {
+      echo $smaller;
+      exit;
+    }
+  }
   if(file_exists("$path")) {
     echo $path;
     exit;
   }
 }
 
+require "/usr/share/php/Predis/Autoloader.php";
+Predis\Autoloader::register();
+$client = new Predis\Client();
 $src = $_GET['u'];
 $key = "pl:$src";
 $content = file_get_contents($src);

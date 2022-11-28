@@ -45,11 +45,31 @@ foreach($recordList as $record) {
   $audio = "https://9ol.es$path";
 
   $parts = explode('/', $path);
-  $label = ucfirst(preg_replace('/\-/', ' ', $parts[count($parts)-2]));
+  $label = ucwords(preg_replace('/\-/', ' ', $parts[count($parts)-2]));
+  $label = preg_replace_callback("([A-Z][a-z]+\d+|Ep|Cd)", 
+    function($m) { return strtoupper($m[0]); }, $label);
+  // cleaner
+
+  $hit = [];
+  if (strtoupper($title) == $title) {
+    $title = ucwords(strtolower($title));
+  }
+  $parts = explode(' ', $title);
+  $cleaned = $parts[0] . ' ';
+  for($ix = 0; $ix < count($parts) - 1; $ix++) {
+    $key = $parts[$ix] . ' ' . $parts[$ix + 1] . ' ';
+
+    if(!array_key_exists($key, $hit)) {
+      $hit[$key] = 1;
+      $cleaned .= $parts[$ix + 1] . ' ';
+    }
+  }
+
+  $cleaned = trim($cleaned) . " / $label";
 
   ?>
   <item>
-      <title><?= $title ?> / <?= $label ?></title>
+      <title><?= $cleaned ?></title>
       <description><?= $url ?></description>
       <itunes:episodeType>full</itunes:episodeType>
       <itunes:explicit>false</itunes:explicit>
