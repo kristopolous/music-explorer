@@ -151,7 +151,6 @@ while [[ ${#all[@]} -gt $ix ]]; do
   timeit "start loop"
   [[ -z "$NOSCORE" && -z "$NOSCAN" ]] && load_tracks 
 
-
   # This can potentially skip things in with a reload
   # but it's fine ... 
   i=${all[$ix]}
@@ -194,6 +193,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
   fi
   timeit "after record"
 
+  # This looks for existence so we skip the format check for now.
   if [[ "$hasm3u" || -n "$(ls "$i"/*.{mp3,ogg,m4a,flac,aiff,wav} 2>/dev/null)" ]]; then
 
     attempts=0
@@ -267,8 +267,16 @@ while [[ ${#all[@]} -gt $ix ]]; do
               [[ "$url" =~ "/track" ]] && headline 1 "single" || headline 1 "1 track"
             fi
 
-            timeit "player"
-            playit "$m3u"
+            timeit "convert"
+            # Here's where the conversion magic happens if needed.
+            if [[ $FMT != "mp3" ]]; then
+              ssh $REMOTE "mpv-lib tom4a $REMOTEBASE/$i"
+              timeit "player"
+              playit <(sed "s/mp3/$FMT" "$m3u")
+            else
+              timeit "player"
+              playit "$m3u"
+            fi
             player_exit=$?
 
             ## See the lua script for how this is invoked, (as of this writing it's capital Q)
@@ -335,7 +343,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
         # In order to minimize the number of these calls we make
         # to decrease network iops, we check the arity of the function
         # to see if these files exist
-        playit "$i"/*.{mp3,ogg,m4a,flac,aiff,wav} 
+        playit "$i"/*.{$FMT,ogg,m4a,flac,aiff,wav} 
 
         if [[ $? != -10 ]]; then
           (( listen_time += $(date +%s) - before ))

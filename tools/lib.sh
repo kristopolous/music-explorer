@@ -14,6 +14,9 @@ NOPL=${NOPL:=}
 REMOTEPL=
 
 DEBUG=${DEBUG:=}
+FMT=mp3
+REMOTE=localhost
+REMOTEBASE=$PWD
 PLAYLIST=playlist.m3u
 PLAYLIST_DBG=
 YTDL=${YTDL:=yt-dlp}
@@ -189,7 +192,7 @@ pl_fallback() {
   ( 
     shopt -u nullglob
     cd "$1"
-    ls -1 -- *.{mp3,ogg,m4a,flac,aiff,wav} > $PLAYLIST 2> /dev/null
+    ls -1 -- *.{$FMT,ogg,m4a,flac,aiff,wav} > $PLAYLIST 2> /dev/null
     shopt -s nullglob
   )
 }
@@ -243,7 +246,7 @@ get_playlist() {
         sed -E 's/^([^-]*)\s?-?\s?(.*$)/compgen -G "\0"* || compgen -G "\2"*;/' >> $PLAYLIST_DBG
     } 2> /dev/null
   
-    /bin/bash $PLAYLIST_DBG | grep mp3 | sed -E 's/^/.\//g' > "$path/$PLAYLIST"
+    /bin/bash $PLAYLIST_DBG | grep $FMT | sed -E 's/^/.\//g' > "$path/$PLAYLIST"
   else
     info "Network is toggled off. Skipping playlist" 
   fi
@@ -317,8 +320,8 @@ _info () {
     [[ $url =~ 'album' ]] && matcher='track-title' || matcher='trackTitle'
 
     _info_section "Tracks"      "$(cat "$path/$PAGE" | tr '\n' ' ' | grep -Po '((?<='$matcher'">).*?(?=<))' | sed -E 's/^\s*//g' | awk ' { print FNR". "$0 } ')"
-    _info_section "Files"       "$(cd "$path"; ls -l *.{mp3,ogg,m4a,flac,aiff,wav} 2> /dev/null)" 
-    _info_section "URLs"        "$(for x in $path/*.mp3; do _trackpath "$x"; done)"
+    _info_section "Files"       "$(cd "$path"; ls -l *.{$FMT,ogg,m4a,flac,aiff,wav} 2> /dev/null)" 
+    _info_section "URLs"        "$(for x in $path/*.$FMT; do _trackpath "$x"; done)"
     _info_section "PLS entries" "$(cat "$path/playlist.m3u")"
 
     headline 2  $url
@@ -439,9 +442,12 @@ _repl() {
       s       - Skip 
       x       - Exit
 
-      ao      - Set audio out   [$ao]
-      b       - Set start time  [$start_time]
-      filter  - Set filter      [$filter]
+      remote  - Set remote server [$REMOTE]
+      base    - Set remote base   [$REMOTEBASE]
+      fmt     - Set the format    [$FMT]
+      ao      - Set audio out     [$ao]
+      b       - Set start time    [$start_time]
+      filter  - Set filter        [$filter]
 
       pl      - Toggle playlist     [${STR[${NOPL:-0}]}]
       net     - Toggle network      [${STR[${NONET:-0}]}]
@@ -474,6 +480,15 @@ ENDL
       status "Unpurging $_arg"
       unpurge "$_arg"
       
+    elif [[ "$_fn" == "fmt" ]]; then
+      FMT=$_arg
+      status "Format -> $_arg"
+    elif [[ "$_fn" == "remote" ]]; then
+      REMOTE=$_arg
+      status "Server -> $_arg"
+    elif [[ "$_fn" == "base" ]]; then
+      REMOTEBASE="$_arg"
+      status "Base -> $_arg"
     elif [[ "$_fn" == 'ao' ]]; then
       ao=${n:3}
       status "Setting audio out to '$ao'"
