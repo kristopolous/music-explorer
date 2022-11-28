@@ -582,7 +582,7 @@ manual_pull() {
 
   echo " ▾▾ Manual Pull "
 
-  for track in $(curl -s "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sed -E s'/[?#].*//' | sort | uniq); do
+  for track in $(curl -Ls "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sed -E s'/[?#].*//' | sort | uniq); do
     _ytdl "https://$base/${track##/}" "$path"
   done
 
