@@ -10,7 +10,7 @@ if ! declare -f $1 > /dev/null; then
     type $2 || echo ${!2}
   else
     headline 1 variables
-    (declare -p; bash -l -c "source /etc/profile;declare -p" ) | cut -f 3 -d ' ' | sort -t'=' -k1,1 | grep -v BASH | awk -F '=' -v counter=0 -v last= '{ if ($1 != last) { if (counter == 0) { printf ("%-30s%s\n", last, lastval); } last=$1; lastval=$2; counter=0} else { counter++;  }; } ' |  sed 's/^/\t\t/'
+    (declare -p; bash -l -c "source /etc/profile;declare -p" ) | cut -c 12- | sort -t'=' -k1,1 | grep -v BASH | awk -F '=' -v counter=0 -v last= '{ if ($1 != last) { if (counter == 0) { printf ("%-20s%s\n", last, lastval); } last=$1; lastval=$2; counter=0} else { counter++;  }; } ' |  sed 's/^/\t\t/'
 
     headline 1 functions
     for i in $(declare -F | sed s/'declare -f//g' | sort); do
