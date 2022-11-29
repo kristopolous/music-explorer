@@ -41,6 +41,7 @@ hr()    { echo; printf '\xe2\x80\x95%.0s' $( seq 1 $(tput cols) ); echo; }
 quit()  { echo "$1"; exit; }
 scan()  { [[ -z "$NOSCAN" ]] && echo */* | tr ' ' '\n' > $start_dir/.listen_all || debug "Skipping scan"; }
 check_for_stop() { [[ -e $STOPFILE ]] && quit "Stopping because $STOPFILE exists"; }
+stop() { touch $STOPFILE; }
 
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh || debug "Can't find $DIR/prefs.sh"
 
