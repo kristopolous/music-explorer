@@ -184,13 +184,17 @@ You can also do this:
 
 And see all the stuff you gave a high rating to.
 
-There's a tool included called rating-distrib.py that puts things into a histogram, like so:
+### Making it work without the infrastructure
 
-![rating distribution](http://i.9ol.es/rating-distrib.png)
+So even in a readonly mount of directories this system can work. Here's an example:
 
-From here I can tell that some labels I like more than others and some I actually haven't liked at all. This can help focus my exploration into more fruitful avenues
+    $ NOSCORE=1 NOPL=1 mpv-once
 
-... there's a lot more ... I'll write later
+This says you aren't trying to label (score) the system and you don't care about playlists. This is nice if you're like me and have this player integrated
+into your window manager but you're traveling and just want music to play. Then I have all the infrastructure with multi-sinks, dynamic sourcing, input control
+support etc, without having to worry about any of the dot files or the meta information.
+
+A bunch of things won't work such as some of the mpv key bindings from the lua script but that's fine.
 
 ### low bandwidth support
 
