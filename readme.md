@@ -216,6 +216,8 @@ The format is as follows:
 
 They don't sound *that awful* and you get at least a 75% drop in bitrate.
 
+This system is also nice because it keeps the transcoder and storage point independent. fdkaac seems to do suspiciously better on Intel hardware over AMD (like 8x more than you expect) so farming that out to say a 1x-gen i7 isn't a bad idea.
+
 -----
 
 The web interface, which is really not documented at all also has this if you search ":0" ":1" and ":2" for opus/heaac/mp3 accordingly. iOS Safari doesn't support
@@ -224,6 +226,6 @@ the better one doesn't exist. Unlike with mpv-once you'll have to convert these 
 
 Something like 
 
-   $ sqlite3 playlist.db "select path from tracks" | read path; do mpv-lib toopus $path; mpv-lib tom5a $path; done;
+    $ sqlite3 playlist.db "select path from tracks" | read path; do mpv-lib toopus $path; mpv-lib tom5a $path; done;
 
 Note the "m**5**a" fake extension here to not collide with any potentially existing m4a files.
