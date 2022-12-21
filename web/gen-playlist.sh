@@ -8,9 +8,19 @@ gen_playlist() {
   done
 }
 
+import() {
+  awk -F '/' ' { fuckoff=$0;sub(/-[0-9]*.mp3/, "", $7);print FNR",\""$5"\",\""$6"\",\""$7"\",\""fuckoff"\"" } ' playlist.txt > /tmp/playlist.csv
+  {
+  sqlite3 playlist.db << ENDL
+.mode csv
+.import /tmp/playlist.csv tracks
+update tracks set created_at = current_timestamp where created_at is null;
+ENDL
+} >& /dev/null
+}
+
 as_csv() {
   truncate --size 0 playlist.db
-  awk -F '/' ' { fuckoff=$0;sub(/-[0-9]*.mp3/, "", $7);print FNR",\""$5"\",\""$6"\",\""$7"\",\""fuckoff"\"" } ' playlist.txt > /tmp/playlist.csv
   sqlite3 playlist.db << ENDL
   create table tracks(
     id INTEGER PRIMARY KEY,
@@ -27,13 +37,11 @@ as_csv() {
     created_at timestamp default current_timestamp,
     unique(path));
 .mode csv
-.import /tmp/playlist.csv tracks
 create index label_name on tracks(label);
 create index release_name on tracks(release);
 ENDL
-  
-
 }
 
-gen_playlist
-as_csv
+#gen_playlist
+#create_db
+import

@@ -42,7 +42,7 @@ foreach($recordList as $record) {
   $duration = sprintf("%d:%02d:%02d", floor($dur/3600), ($dur/60)%60, ($dur)%60);
 
   $date = gmdate("D, d M Y H:i:s O", intval($time));
-  $audio = "https://9ol.es$path";
+  $audio = "https://9ol.es" . dirname($path) . '/' . (basename($path));
 
   $parts = explode('/', $path);
   $label = ucwords(preg_replace('/\-/', ' ', $parts[count($parts)-2]));
