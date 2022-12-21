@@ -342,7 +342,8 @@ while [[ ${#all[@]} -gt $ix ]]; do
         # In order to minimize the number of these calls we make
         # to decrease network iops, we check the arity of the function
         # to see if these files exist
-        playit "$i"/*.{$FMT,ogg,m4a,flac,aiff,wav} 
+        ls $start_dir/"$i"/*.{$FMT,ogg,m4a,flac,aiff,wav}  > $tmp/play.m3u
+        playit $tmp/play.m3u
 
         if [[ $? != -10 ]]; then
           (( listen_time += $(date +%s) - before ))
