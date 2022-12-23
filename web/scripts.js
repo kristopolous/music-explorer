@@ -39,7 +39,6 @@ function play_url(play) {
   
   if(!fake) {
     if(_level > 1) {
-      console.log("Doing it!");
       ifr = _if ^= 1;
       _DOM[`if${ifr}`].className = 'in';
 
@@ -142,7 +141,9 @@ function d(skip, orig) {
       }
     } 
 
-    _DOM.controls.className = 'disabled';
+    if(_level > 1) {
+      _DOM.controls.className = 'disabled';
+    }
     return remote([ `action=${skip}`, `orig=${orig || skip}` ])
       .then(data => {
         _my = data.release;
@@ -270,13 +271,15 @@ window.onload = () => {
 
   _DOM.player.onended = () => {
     d("+track");
-    Notification.requestPermission().then(p => {
-      if (p === "granted") {
-        let s = decodeURIComponent(el.src).split('/').reverse();
-        new Notification(s[1].replace(/-/g, ' ').toUpperCase(), {
-          body: s[0].replace(/-(\d*).mp3$/,'')});
-      }
-    });
+    if(_level > 1) {
+      Notification.requestPermission().then(p => {
+        if (p === "granted") {
+          let s = decodeURIComponent(el.src).split('/').reverse();
+          new Notification(s[1].replace(/-/g, ' ').toUpperCase(), {
+            body: s[0].replace(/-(\d*).mp3$/,'')});
+        }
+      });
+    }
   }
 
   d(parsehash() ?? 0).then(_DOM.navcontrols.onclick);

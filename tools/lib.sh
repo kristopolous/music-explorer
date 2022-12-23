@@ -41,8 +41,11 @@ hr()    { echo; printf '\xe2\x80\x95%.0s' $( seq 1 $(tput cols) ); echo; }
 quit()  { echo "$1"; exit; }
 scan()  { [[ -z "$NOSCAN" ]] && echo */* | tr ' ' '\n' > $start_dir/.listen_all || debug "Skipping scan"; }
 check_for_stop() { [[ -e $STOPFILE ]] && quit "Stopping because $STOPFILE exists"; }
+stop() { touch $STOPFILE; }
 
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh || debug "Can't find $DIR/prefs.sh"
+
+_mkdir "$tmp"
 
 announce() {
   [[ -n "$announce" ]] && echo "$*" | aosd_cat -p 2  -n "Noto Sans Condensed ExtraBold 150" -R white -f 1000 -u 15000 -o 2000 -x -20 -y 20 -d 50 -r 190 -b 216 -S black -e 2 -B black -w 3600 -b 200&
@@ -95,10 +98,16 @@ check_url() {
 unlistened() {
   local filter=${1:-.}
   [[ $filter == '.' ]] && cmd=cat || cmd="grep -hE $filter" 
-  if [[ -n "$NOSCORE" ]]; then
-    $cmd $start_dir/.listen_all | cut -d ' ' -f 1 | shuf
+  topl=$start_dir/.listen_all
+
+  if [[ ! -e $topl ]]; then
+    find . -mindepth 2 -maxdepth 2 -type d | sed s'/^..//' | shuf
   else
-    $cmd $start_dir/.listen_all $start_dir/.listen_done | cut -d ' ' -f 1 | sort | uniq -u | shuf
+    if [[ -n "$NOSCORE" ]]; then
+      $cmd $start_dir/.listen_all | cut -d ' ' -f 1 | shuf
+    else
+      $cmd $start_dir/.listen_all $start_dir/.listen_done | cut -d ' ' -f 1 | sort | uniq -u | shuf
+    fi
   fi
 }
 
@@ -580,7 +589,7 @@ manual_pull() {
 
   echo " ▾▾ Manual Pull "
 
-  for track in $(curl -s "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sed -E s'/[?#].*//' | sort | uniq); do
+  for track in $(curl -Ls "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sed -E s'/[?#].*//' | sort | uniq); do
     _ytdl "https://$base/${track##/}" "$path"
   done
 
