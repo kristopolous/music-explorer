@@ -30,7 +30,7 @@ if (command == 'pauseplay') {
 
 } else if (['volup', 'voldn'].includes(command)) {
   cb = function(volume) {
-    andthen = () => process.exit();
+    //andthen = () => process.exit();
     send(['set_property', 'volume', +volume + (command_orig == 'volup' ? 5 : -5)]);
   }
   command = 'volume';
@@ -77,8 +77,10 @@ client.on('data', (data) => {
       process.exit();
     } 
 
-    if ('data' in row) {
-      cb(row.data);
+    if ('data' in row && cb) {
+      let mycb = cb;
+      cb = null;
+      mycb(row.data);
     }
   });
   andthen();
