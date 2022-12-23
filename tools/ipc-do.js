@@ -3,9 +3,11 @@
 const net = require('net');
 const client = net.createConnection('/tmp/mpvonce/mpvsocket')
 const quitList = ['quit', 'pause', 'playback-restart', 'unpause'];
+const command_orig = process.argv[2];
 var cb = false;
-var command = process.argv[2];
+var command = command_orig;
 var direction = ['back', 'prev'].includes(command) ? -1 : 1;
+let andthen = () => {};
 
 const commandMap = {
   pause: ['set_property', 'pause', true],
@@ -25,6 +27,13 @@ if (command == 'pauseplay') {
     send(['set_property', 'pause', !state ]);
   }
   command = 'getpause';
+
+} else if (['volup', 'voldn'].includes(command)) {
+  cb = function(volume) {
+    andthen = () => process.exit();
+    send(['set_property', 'volume', +volume + (command_orig == 'volup' ? 5 : -5)]);
+  }
+  command = 'volume';
 
 } else if (['prev', 'next'].includes(command)) {
   cb = function(pos) {
@@ -72,5 +81,6 @@ client.on('data', (data) => {
       cb(row.data);
     }
   });
+  andthen();
 });
 
