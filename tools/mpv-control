@@ -41,7 +41,7 @@ declare -A mapping=( [0]='volup' [9]='voldn' [q]='quit' [up]='forward 60' [down]
 
 [[ -z "$1" ]] && printf "%s\n" "${!mapping[@]}" "${mapping[@]}" | pr -2t && exit 
 [[ ${mapping[$1]+_} ]] && control=${mapping[$1]} || control=$1
-if [[ "$control" =~ (.*60|0|9|forward|prev|quit|back|next|pauseplay) ]]; then 
+if [[ "$control" =~ (.*60|volup|voldn|forward|prev|quit|back|next|pauseplay) ]]; then 
   docmd "$DIR/ipc-do.js $control"
 else
   docmd "tmux send-keys -t $(cat $TMP/tmux-name) $control"
