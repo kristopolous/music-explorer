@@ -31,7 +31,7 @@ if (command == 'pauseplay') {
 } else if (['volup', 'voldn'].includes(command)) {
   cb = function(volume) {
     andthen = () => process.exit();
-    send(['set_property', 'volume', +volume + (command_orig == 'volup' ? 5 : -5)]);
+    send(['set_property', 'volume', +volume + (command_orig == 'volup' ? 2 : -2)]);
   }
   command = 'volume';
 
