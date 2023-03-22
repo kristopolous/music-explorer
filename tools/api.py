@@ -21,6 +21,8 @@ def expand(what):
   # perhaps some graph ql is the right 
   # approach here.
   #
+  pass
+
 discogs_client.fetchers.Fetcher.__init__ = cachie
 
 labelMap = {}
