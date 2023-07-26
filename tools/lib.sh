@@ -166,8 +166,8 @@ album_purge() {
 }
 
 unpurge() {
-  _rm "$1"/no 
   [[ -e $UNDODIR/"$1" ]] && mv $UNDODIR/"$1"/* "$1"
+  _rm "$1"/no 
   sed -i "/${1/\//.}/d" $start_dir/.listen_done
 }
 
@@ -446,7 +446,7 @@ _repl() {
       l       - List the files
       o       - Xdg-open the URL
       r       - Repeat
-      r nopl  - Repeat (ignore playlist)
+      r no    - Repeat (ignore playlist)
       s       - Skip 
       x       - Exit
 
@@ -554,7 +554,7 @@ ENDL
         get_playlist "$t_url" "$i"
       )
 
-    elif [[ "$n" == 'r nopl' ]]; then
+    elif [[ "$n" == 'r no' ]]; then
       status "Ignoring playlist"
       nopl=1
       # We treat this like a regular replay
