@@ -98,10 +98,16 @@ check_url() {
 unlistened() {
   local filter=${1:-.}
   [[ $filter == '.' ]] && cmd=cat || cmd="grep -hE $filter" 
-  if [[ -n "$NOSCORE" ]]; then
-    $cmd $start_dir/.listen_all | cut -d ' ' -f 1 | shuf
+  topl=$start_dir/.listen_all
+
+  if [[ ! -e $topl ]]; then
+    find . -mindepth 2 -maxdepth 2 -type d | sed s'/^..//' | shuf
   else
-    $cmd $start_dir/.listen_all $start_dir/.listen_done | cut -d ' ' -f 1 | sort | uniq -u | shuf
+    if [[ -n "$NOSCORE" ]]; then
+      $cmd $start_dir/.listen_all | cut -d ' ' -f 1 | shuf
+    else
+      $cmd $start_dir/.listen_all $start_dir/.listen_done | cut -d ' ' -f 1 | sort | uniq -u | shuf
+    fi
   fi
 }
 
@@ -209,7 +215,7 @@ pl_fallback() {
 get_page() {
   if [[ -s "$1/$PAGE" ]]; then
     curl -Ls $(resolve "$1") > "$tmp/$PAGE"
-    if [[ $( stat -c %s "$1/$PAGE" ) -lt $( stat -c %s "$tmp/$PAGE" ) ]]; then
+    if [[ -e "$tmp/$PAGE" && $( stat -c %s "$1/$PAGE" ) -lt $( stat -c %s "$tmp/$PAGE" ) ]]; then
       mv "$tmp/$PAGE" "$1/$PAGE"
     fi
   else 
