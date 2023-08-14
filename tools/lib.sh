@@ -510,6 +510,7 @@ ENDL
 
     elif [[ "$_fn" == "b" ]]; then
       status "Setting start time to $_arg"
+      start_time=$_arg
 
     elif [[ "$_fn" == 'l' ]]; then
       if [[ -s "$m3u" ]]; then
