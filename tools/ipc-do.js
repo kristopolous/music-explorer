@@ -4,6 +4,7 @@ const net = require('net');
 const client = net.createConnection('/tmp/mpvonce/mpvsocket')
 const quitList = ['quit', 'pause', 'playback-restart', 'unpause'];
 const command_orig = process.argv[2];
+const arg = process.argv[3];
 var cb = false;
 var command = command_orig;
 var direction = ['back', 'prev'].includes(command) ? -1 : 1;
@@ -28,6 +29,11 @@ if (command == 'pauseplay') {
   }
   command = 'getpause';
 
+} else if (['volume'].includes(command)) {
+  cb = function(volume) {
+    send(['set_property', 'volume', +arg]);
+  }
+  command = 'volume';
 } else if (['volup', 'voldn'].includes(command)) {
   cb = function(volume) {
     send(['set_property', 'volume', +volume + (command_orig == 'volup' ? 2 : -2)]);
@@ -48,7 +54,7 @@ if (command == 'pauseplay') {
   cb = function(pos) {
     // if the user passed a number it to go backward or forward some
     // specific amount
-    let amount = parseInt(process.argv[3], 10) || 10;
+    let amount = parseInt(arg, 10) || 10;
     send(['set_property', 'time-pos', pos + amount * direction]);
   }
   command = 'time-pos';
