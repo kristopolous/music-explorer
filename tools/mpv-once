@@ -1,4 +1,7 @@
 #!/bin/bash
+#
+# check lib.sh for lots of options
+#
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . $DIR/lib.sh
 
@@ -128,14 +131,14 @@ iop() {
 
   coproc { 
     if [[ -z "$1" ]] ; then
-      { wc -l < "$m3u"; } 2> /dev/null;
+      { timeout 4s wc -l < "$m3u"; } 2> /dev/null;
       echo -e "\t"; 
 
-      cat "$i"/domain 2> /dev/null;
+      timeout 4s cat "$i"/domain 2> /dev/null;
       echo -e "\t"; 
     fi
 
-    local flist=( "$i"/*.{mp3,ogg,m4a,flac,aiff,wav} )
+    local flist=( "$i"/*.{mp3,ogg,m4a,m5a,flac,aiff,wav} )
     echo ${#flist[@]}
     echo -e "\t"; 
 
@@ -194,7 +197,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
   timeit "after record"
 
   # This looks for existence so we skip the format check for now.
-  if [[ "$hasm3u" || -n "$(ls "$i"/*.{mp3,ogg,m4a,flac,aiff,wav} 2>/dev/null)" ]]; then
+  if [[ "$hasm3u" || -n "$(ls "$i"/*.{mp3,ogg,m4a,m5a,flac,aiff,wav} 2>/dev/null)" ]]; then
 
     attempts=0
     cycles=0
@@ -225,7 +228,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
       headline 2 "$ix\t$i"
       status "${url:8}"
 
-      if [[ ! "$hasm3u" && ! -e "$i"/no-files && -z "$NOPL" ]]; then
+      if [[ -z "$NOPL" && ! "$hasm3u" && ! -e "$i"/no-files ]]; then
 
         if [[ -e "$i"/no ]]; then
           status "Why am I here? it's marked as no"
@@ -268,7 +271,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
             fi
 
             # Here's where the conversion magic happens if needed.
-            if [[ $FMT != "mp3" ]]; then
+            if [[ $FMT != "mp3" && -z "$NONET" ]]; then
               timeit "convert"
               ssh $REMOTE "source .{zshrc,profile};mpv-lib to$FMT $REMOTEBASE/$i"
               sed "s/mp3/$FMT/" "$i"/$PLAYLIST > "$i"/playlist-$FMT.m3u
@@ -305,7 +308,6 @@ while [[ ${#all[@]} -gt $ix ]]; do
 
               *)
                 echo "Exited with $player_exit!"
-                exit
                 ;;
             esac
 
@@ -344,7 +346,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
         # In order to minimize the number of these calls we make
         # to decrease network iops, we check the arity of the function
         # to see if these files exist
-        ls $start_dir/"$i"/*.{$FMT,ogg,m4a,flac,aiff,wav}  > $tmp/play.m3u
+        ls $start_dir/"$i"/*.{$FMT,ogg,m4a,m5a,flac,aiff,wav}  > $tmp/play.m3u
         playit $tmp/play.m3u
 
         if [[ $? != -10 ]]; then
