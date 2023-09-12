@@ -103,9 +103,10 @@ def active():
   audioDev = audioDevList[sourceIndex % len(audioDevList)]
   logging.debug(audioDev)
 
-def addcmd(what):
+def addcmd(*args):
   global cmdList
-  cmdList.append( "{}/ipc-do.js {}".format(base_path, what))
+  ll = list(map(str,args))
+  cmdList[ll[0]] = "{}/ipc-do.js {}".format(base_path, ' '.join(ll))
 
 sign = lambda x: '-' if x < 0 else '+'
 
@@ -114,22 +115,32 @@ active()
 ###
 # Main loop
 ###
+cmdList = {}
 last_ts = time.time()
+instance_ix = 0
 while True:
   readable, blah0, blah1 = select.select([ps.stdout.fileno()], [], [], 1)
 
   # This is how we try to prevent message flooding from
   # the sliders.
-  if len(readable) == 0 or time.time() > last_ts + .14:
-    last_ts = time.time()
-
-    for v in todoMap.values():
-      logging.info(v)
-      os.system("{}&".format(v))
-
-    todoMap = {}
-
   if len(readable) == 0:
+    if time.time() > last_ts + .14:
+      last_ts = time.time()
+
+      instance_ix += 1
+      for v in todoMap.values():
+        logging.info("{}: ---- {}".format(instance_ix, v))
+        os.system("{}&".format(v))
+
+      for cmd in cmdList.values():
+        try:
+          logging.info("{} {} {}".format(instance_ix, os.waitstatus_to_exitcode(os.system(cmd)), cmd))
+        except:
+          pass
+
+      cmdList = {}
+      todoMap = {}
+
     continue
 
   output = ps.stdout.read(1)
@@ -171,7 +182,6 @@ while True:
     lastValueMap[control] = valueMap.get(control)
     valueMap[control] = value
 
-    cmdList = []
     todo = None
     if control in controlMapping:
       todo = controlMapping[control]
@@ -192,19 +202,19 @@ while True:
         active()
 
       if 'local_volume_abs' in todo:
-        cmdList.append( 'amixer -c 0 sset Master {}%'.format( int(100 * value / 127)) )
+        cmdList[todo] = 'amixer -c 0 sset Master {}%'.format( int(100 * value / 127)) 
 
       if 'mic1_vol' in todo:
-        cmdList.append( "pamixer --source 1 --set-volume {}".format( value) )
+        cmdList[todo] = "pamixer --source 1 --set-volume {}".format( value) 
 
       if 'mic2_vol' in todo:
-        cmdList.append( "pamixer --source 3 --set-volume {}".format( value) )
+        cmdList[todo] = "pamixer --source 3 --set-volume {}".format( value) 
 
       if 'pulse_volume_abs' in todo:
         #cmdList.append( 'amixer -D pulse sset Master {}%'.format( int(101 * value / 127)) )
         #if usbDevice:
         #  cmd += ";pactl set-sink-volume {} {}".format(usbDevice, value * 512)
-        cmdList.append( "pactl set-sink-volume {} {}".format(audioDev, value * 512) )
+        addcmd('volume', value / 127 * 100)
 
       if 'tabs' in todo:
         if lastValueMap.get('tabs'):
@@ -217,7 +227,7 @@ while True:
       elif todo and (todo[:2] == 'bw' or todo[:2] == 'fw'):
         amount = int(todo[2:])
         dir = 'back' if todo[:2] == 'bw' else 'forward'
-        addcmd( "{} {}".format(dir, amount) )
+        addcmd(dir, amount )
 
       if 'redshift' in todo:
         params = []
@@ -234,7 +244,7 @@ while True:
 
       if 'scrub' in todo and value == 0:
         if 'slidescrub' in valueMap:
-          addcmd( "forward {}".format(valueMap.get('slidescrub') - 64))
+          addcmd( "forward",valueMap.get('slidescrub') - 64)
 
       if 'seek' in todo and value == 0:
         if 'slideseek' in valueMap:
@@ -248,14 +258,8 @@ while True:
 
       elif todo[0] in cmdMap:
         if value == 0:
-          cmdList.append( "tmux send-keys -t mpv-once '{}'".format(cmdMap[todo[0]]) )
+          cmdList[todo[0]] = "tmux send-keys -t mpv-once '{}'".format(cmdMap[todo[0]]) 
 
       else:
         pass
 
-    if cmdList:
-      for cmd in cmdList:
-        try:
-          logging.info("{} {}".format(os.waitstatus_to_exitcode(os.system(cmd)), cmd))
-        except:
-          pass
