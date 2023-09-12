@@ -31,6 +31,10 @@ _artistMap = {}
 d = discogs_client.Client('ExampleApplication/0.1', user_token=secrets.USER_TOKEN)
 r = redis.Redis(host='localhost', port=6379, db=0)
 
+if len(sys.argv) < 2:
+  print("I need a release")
+  sys.exit(0)
+
 search = sys.argv[1]
 print(search)
 res = d.search(search, type='release')

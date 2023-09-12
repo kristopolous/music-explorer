@@ -8,6 +8,7 @@ NONET=${NONET:=}
 NOSCAN=${NOSCAN:=}
 NOUNDO=${NOUNDO:=}
 NOPL=${NOPL:=}
+NOANNOU=${NOANNOU:=}
 
 # We can optimize things if we assume there's no such things as a playlist that
 # points to URLS that expire
@@ -47,8 +48,25 @@ stop() { touch $STOPFILE; }
 
 _mkdir "$tmp"
 
+ardy_stat() {
+  {
+  case $1 in
+    [123] )
+      printf "$1%-31s" "$2" 
+      ;;
+    * )
+      printf "$1$2"
+      ;;
+  esac
+  } | tee /tmp/ann | timeout 0.05 nc localhost 5000
+}
+
 announce() {
-  [[ -n "$announce" ]] && echo "$*" | aosd_cat -p 2  -n "Noto Sans Condensed ExtraBold 150" -R white -f 1000 -u 15000 -o 2000 -x -20 -y 20 -d 50 -r 190 -b 216 -S black -e 2 -B black -w 3600 -b 200&
+  [[ -n "$NOANNOU" ]] && echo "$*" | aosd_cat -p 2  -n "Noto Sans Condensed ExtraBold 150" -R white -f 1000 -u 15000 -o 2000 -x -20 -y 20 -d 50 -r 190 -b 216 -S black -e 2 -B black -w 3600 -b 200&
+  IFS="-"
+  read -ra tp <<< "$@"
+  printf "1%-32s2%-32s" "${tp[0]}" "${tp[1]}"  | tee /tmp/ann | timeout 0.05 nc localhost 5000
+  unset IFS
 }
 headline() {
   [[ $1 == "3" ]] && echo -e "\n\t$2"
@@ -470,6 +488,7 @@ _repl() {
       debug   - Toggle debug        [${STR[${DEBUG:-1}]}]
       scan    - Toggle rescan       [${STR[${NOSCAN:-1}]}]
       undo    - Toggle purge backup [${STR[${NOUNDO:-0}]}]
+      anno    - Toggle announce     [${STR[${NOANNOU:-0}]}]
 
       list    - List things in filter
 
@@ -521,7 +540,7 @@ ENDL
       headline 1 "files"
       ls -l "${_arg:-$i}" | sed 's/^/\t\t/'
       echo
-    elif [[ "$n" =~ (undo|scan|score|net|prompt|pl) ]]; then 
+    elif [[ "$n" =~ (anno|undo|scan|score|net|prompt|pl) ]]; then 
       local base=1
       flag=NO${n^^}
       eval $flag'=${base:$'$flag}
@@ -659,3 +678,4 @@ get_videos() {
     done
   done
 }
+

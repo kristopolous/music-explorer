@@ -276,7 +276,9 @@ while [[ ${#all[@]} -gt $ix ]]; do
             fi
             timeit "player"
             playit "$m3u"
+
             player_exit=$?
+            ( ardy_stat 2 "..done.." ) &
 
             ## See the lua script for how this is invoked, (as of this writing it's capital Q)
             case $player_exit in 
