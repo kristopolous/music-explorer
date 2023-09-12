@@ -161,7 +161,7 @@ void loop() {
   const int8_t line[] = {7, 21, 30}, strsz = 32;
   char *start, *cmdptr, cmd;
   
-  int8_t arg, ix, bufix = 0, ttl;
+  uint8_t arg, ix, bufix = 0, ttl;
   if (Serial.available() > 0){
     
     memset(inbuf, 0, LEN);
