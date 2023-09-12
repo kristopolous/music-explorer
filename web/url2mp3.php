@@ -38,7 +38,7 @@ if(!$mp3) {
   $url = $matches[count($matches)-1];
   $mp3 = trim(shell_exec("yt-dlp -g $url"));
   $client->set($key, $mp3);
-  $client->expire($key, 60 * 60 * 12);
+  $client->expire($key, 60 * 60 * 2);
 }
 $mp3 = str_replace('?', '%3f', $mp3);
 $mp3 = str_replace('&', '%26', $mp3);

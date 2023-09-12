@@ -42,6 +42,6 @@ create index release_name on tracks(release);
 ENDL
 }
 
-#gen_playlist
+gen_playlist
 #create_db
 import
