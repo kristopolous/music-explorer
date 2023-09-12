@@ -40,7 +40,7 @@ if (command == 'pauseplay') {
     let newvol = +volume + (command_orig == 'volup' ? 2 : -2);
     sclient.connect(5000, '127.0.0.1', () => {
     send(['set_property', 'volume', newvol]);
-      const bt = Math.floor(newvol/100*0xff);
+      const bt = Math.floor(Math.floor(100,newvol)/100*0xff);
       const binaryData = Buffer.from([0x56,bt]);
       sclient.write(binaryData, () => sclient.end);
     });
