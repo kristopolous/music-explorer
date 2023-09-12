@@ -2,31 +2,50 @@
 
 tmp=/tmp/mpvonce
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# What format to look for 
+FMT=${FMT:=mp3}
+
 BACKUPDIR=$HOME/.mpvonce
 UNDODIR=$tmp/undo
+
+# For controlling of remote players 
+REMOTE=${REMOTE:=localhost}
+REMOTEBASE=${REMOTEBASE:=$PWD}
+
+DEBUG=${DEBUG:=}
+
+# If set, won't try to use the internet
 NONET=${NONET:=}
+
+# If set, won't do "expensive" network file system operations 
 NOSCAN=${NOSCAN:=}
+
+# If set, don't copy the tracks for an undro of a purge (removal)
 NOUNDO=${NOUNDO:=}
+
+# If set, don't try to find or construct ordinal playlists, just play things in the glob-order
 NOPL=${NOPL:=}
 NOANNOU=${NOANNOU:=}
+
+# What the general downloader tool is (there's a built-in parser with curl as a backup)
+YTDL=${YTDL:=yt-dlp}
+
+# What options to pass it
+FORMAT="-f mp3-128"
+
+# These are finer options for scraping that tries to not be too greedy
+SLEEP_MIN=1
+SLEEP_MAX=4
+SLEEP_OPTS="--max-sleep-interval $SLEEP_MAX --min-sleep-interval $SLEEP_MIN"
 
 # We can optimize things if we assume there's no such things as a playlist that
 # points to URLS that expire
 REMOTEPL=
 
-DEBUG=${DEBUG:=}
-FMT=${FMT:=mp3}
-REMOTE=${REMOTE:=localhost}
-REMOTEBASE=${REMOTEBASE:=$PWD}
 PLAYLIST=playlist.m3u
 PLAYLIST_DBG=
-YTDL=${YTDL:=yt-dlp}
 PAGE=page.html
 STOPFILE=$tmp/mpvstop
-FORMAT="-f mp3-128"
-SLEEP_MIN=1
-SLEEP_MAX=4
-SLEEP_OPTS="--max-sleep-interval $SLEEP_MAX --min-sleep-interval $SLEEP_MIN"
 start_dir=$( pwd )
 direct=
 
