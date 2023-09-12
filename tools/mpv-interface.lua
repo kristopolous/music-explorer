@@ -108,6 +108,7 @@ end
 mp.register_event("log-message", lg)
 mp.register_event("file-loaded", print_on_start)
 mp.register_event("shutdown", record_volume)
+mp.register_script_message('updatearduino', print_on_start)
 mp.add_key_binding('f', 'share', share_handler)
 mp.add_key_binding('o', 'openpage', openpage_handler)
 mp.add_key_binding('?', 'getinfo', getinfo_handler)
