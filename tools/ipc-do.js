@@ -5,6 +5,7 @@ const client = net.createConnection('/tmp/mpvonce/mpvsocket')
 const quitList = ['quit', 'pause', 'playback-restart', 'unpause'];
 const command_orig = process.argv[2];
 const arg = process.argv[3];
+const sclient = new net.Socket();
 var cb = false;
 var command = command_orig;
 var direction = ['back', 'prev'].includes(command) ? -1 : 1;
@@ -36,7 +37,13 @@ if (command == 'pauseplay') {
   command = 'volume';
 } else if (['volup', 'voldn'].includes(command)) {
   cb = function(volume) {
-    send(['set_property', 'volume', +volume + (command_orig == 'volup' ? 2 : -2)]);
+    let newvol = +volume + (command_orig == 'volup' ? 2 : -2);
+    sclient.connect(5000, '127.0.0.1', () => {
+    send(['set_property', 'volume', newvol]);
+      const bt = Math.floor(newvol/100*0xff);
+      const binaryData = Buffer.from([0x56,bt]);
+      sclient.write(binaryData, () => sclient.end);
+    });
   }
   command = 'volume';
 

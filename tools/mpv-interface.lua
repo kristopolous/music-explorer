@@ -106,7 +106,7 @@ function quit_handler(level)
 end
 
 mp.register_event("log-message", lg)
-mp.register_event("start-file", print_on_start)
+mp.register_event("file-loaded", print_on_start)
 mp.register_event("shutdown", record_volume)
 mp.add_key_binding('f', 'share', share_handler)
 mp.add_key_binding('o', 'openpage', openpage_handler)
