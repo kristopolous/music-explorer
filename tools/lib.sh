@@ -47,6 +47,7 @@ stop() { touch $STOPFILE; }
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh || debug "Can't find $DIR/prefs.sh"
 
 _mkdir "$tmp"
+[[ -e "$tmp"/cmd_sock ]] || mkfifo "$tmp"/cmd_sock
 
 ardy_stat() {
   {
@@ -68,6 +69,7 @@ announce() {
   printf "1%-32s2%-32s" "${tp[0]}" "${tp[1]}"  | tee /tmp/ann | timeout 0.05 nc localhost 5000
   unset IFS
 }
+
 headline() {
   [[ $1 == "3" ]] && echo -e "\n\t$2"
   [[ $1 == "2" ]] && echo -e "\n\t\033[1m$2\033[0m" 
@@ -450,7 +452,8 @@ _trackpath() {
 
 _repl() {
   while [[ -z "$NOPROMPT" && -z "$skipprompt" ]]; do 
-    read -p "[[1m$i[0m] " -e n
+    echo -n "[$i] " 
+    n=$( $DIR/magic-read.py "$tmp/cmd_sock"   )
     history -s "$n"
     _parse $n
 
