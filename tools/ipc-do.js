@@ -1,11 +1,13 @@
 #!/usr/bin/env nodejs
 
+const fs = require('fs');
+const tmp = '/tmp/mpvonce'
 const net = require('net');
 const client = net.createConnection('/tmp/mpvonce/mpvsocket')
 const quitList = ['quit', 'pause', 'playback-restart', 'unpause'];
 const command_orig = process.argv[2];
 const arg = process.argv[3];
-const sclient = new net.Socket();
+const sclient = fs.createWriteStream(`${tmp}/ardy_socket`);
 const util = require('util');
 var cb = false;
 var command = command_orig;
@@ -28,21 +30,19 @@ function send(list) {
 
 if (command == 'pauseplay') {
   cb = function(state) {
-    sclient.connect(5000, '127.0.0.1', () => {
-      // this is a huge hack. the code below is set to
-      // exit after it receives a response from set_property
-      // so we get these messages in first. This works
-      // reliably because it's a local serialized unix socket.
-      if(!state) {
-        sclient.write("2..paused..".padEnd(32),
-          () => sclient.end
-        );
-      } else {
-        // restore the song name
-        send(['script-message', 'updatearduino']);
-      }
-      send(['set_property', 'pause', !state ]);
-    });
+    // this is a huge hack. the code below is set to
+    // exit after it receives a response from set_property
+    // so we get these messages in first. This works
+    // reliably because it's a local serialized unix socket.
+    if(!state) {
+      sclient.write("2..paused..".padEnd(32), 'utf-8',
+        () => sclient.end
+      );
+    } else {
+      // restore the song name
+      send(['script-message', 'updatearduino']);
+    }
+    send(['set_property', 'pause', !state ]);
   }
   command = 'getpause';
 
@@ -54,12 +54,10 @@ if (command == 'pauseplay') {
 } else if (['volup', 'voldn'].includes(command)) {
   cb = function(volume) {
     let newvol = +volume + (command_orig == 'volup' ? 2 : -2);
-    sclient.connect(5000, '127.0.0.1', () => {
-      send(['set_property', 'volume', newvol]);
-      const bt = Math.floor(Math.min(100,newvol)/100*0xff);
-      const binaryData = Buffer.from([0x56,bt]);
-      sclient.write(binaryData, () => sclient.end);
-    });
+    send(['set_property', 'volume', newvol]);
+    const bt = Math.floor(Math.min(100,newvol)/100*0xff);
+    const binaryData = Buffer.from([0x56,bt]);
+    sclient.write(binaryData, () => sclient.end);
   }
   command = 'volume';
 
