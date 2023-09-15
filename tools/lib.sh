@@ -69,7 +69,8 @@ _mkdir "$tmp"
 [[ -e "$tmp"/cmd_sock ]] || mkfifo "$tmp"/cmd_sock
 
 ardy_serve() {
-  [[ -e $tmp/ardy_socket ]] || mkfifo $tmp/ardy_socket
+  [[ -e $tmp/ardy_socket ]] && rm $tmp/ardy_socket
+  mkfifo $tmp/ardy_socket
   dev=/dev/ttyUSB*
   stty -F $dev 9600
   exec 3<> $dev
