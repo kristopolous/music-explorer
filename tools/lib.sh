@@ -76,7 +76,6 @@ ardy_serve() {
   exec 3<> $dev
   while [ 0 ]; do
     cat $tmp/ardy_socket | tee -a $tmp/cmd | tee > $dev
-    echo >> $tmp/cmd
     sleep 0.01
   done
 }
