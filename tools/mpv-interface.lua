@@ -93,6 +93,7 @@ end
 -- exit codes
 --
 --  0-4       - reserved for mpv
+--  5         - keyboard exit
 --  6         - skip
 --  7         - quit and reprompt
 --  8         - purge
@@ -112,7 +113,12 @@ mp.register_script_message('updatearduino', print_on_start)
 mp.add_key_binding('f', 'share', share_handler)
 mp.add_key_binding('o', 'openpage', openpage_handler)
 mp.add_key_binding('?', 'getinfo', getinfo_handler)
-mp.add_key_binding('Q', 'quit', function() 
+-- We call this a normal quit but we want to differentiated it 
+-- from the quit on track end
+mp.add_key_binding('q', 'quit', function() 
+  quit_handler(5)
+end)
+mp.add_key_binding('Q', 'prompt-quit', function() 
   quit_handler(7)
 end)
 
