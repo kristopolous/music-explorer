@@ -109,6 +109,10 @@ function playit() {
     --term-status-msg="\t\t\${audio-pts} - \${duration}\n" \
     --start=$start_time \
     $*
+
+  for i in 660 660 500; do
+    ffplay -autoexit -nodisp -f lavfi -i "sine=frequency=$i:duration=0.10" 
+  done
 }
 
 [[ -f "$1" ]] && set_filter $(< $1) || set_filter $*
