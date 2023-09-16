@@ -1,31 +1,10 @@
-/**************************************************************************
- This is an example for our Monochrome OLEDs based on SSD1306 drivers
-
- Pick one up today in the adafruit shop!
- ------> http://www.adafruit.com/category/63_98
-
- This example is for a 128x32 pixel display using I2C to communicate
- 3 pins are required to interface (two I2C and one reset).
-
- Adafruit ests time and resources providing this open
- source code, please support Adafruit and open-source
- hardware by purchasing products from Adafruit!
-
- Written by Limor Fried/Ladyada for Adafruit Industries,
- with contributions from the open source community.
- BSD license, check license.txt for more information
- All text above, and the splash screen below must be
- included in any redistribution.
- **************************************************************************/
 
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Fonts/FreeSerif9pt7b.h>
-#include <Fonts/Picopixel.h>
 #define LEN 128
-
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
@@ -39,29 +18,6 @@
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-#define NUMFLAKES     10 // Number of snowflakes in the animation example
-
-#define LOGO_HEIGHT   16
-#define LOGO_WIDTH    16
-static const unsigned char PROGMEM logo_bmp[] =
-{ 0b00000000, 0b11000000,
-  0b00000001, 0b11000000,
-  0b00000001, 0b11000000,
-  0b00000011, 0b11100000,
-  0b11110011, 0b11100000,
-  0b11111110, 0b11111000,
-  0b01111110, 0b11111111,
-  0b00110011, 0b10011111,
-  0b00011111, 0b11111100,
-  0b00001101, 0b01110000,
-  0b00011011, 0b10100000,
-  0b00111111, 0b11100000,
-  0b00111111, 0b11110000,
-  0b01111100, 0b11110000,
-  0b01110000, 0b01110000,
-  0b00000000, 0b00110000 };
-uint8_t inbuf[LEN] = {0};
-const int8_t wid = 4, off = wid+4;
 void setup() {
   Serial.begin(9600);
   Serial.setTimeout(250);
@@ -79,84 +35,10 @@ void setup() {
   display.display();
   display.setCursor(0, 0);
   display.setTextWrap(false);
-/*
-  display.setCursor(off,5);
-  display.setFont(&FreeSerif9pt7b);
-  display.println(F("Artist name!"));
-  display.setFont(0);
-  display.setCursor(off,16);
-  for(int16_t a=0; a<30; a++) { 
-    display.fillRect(off, 16, display.width(), 8, SSD1306_BLACK);
-
-    display.setCursor(off,16);
-  
-   display.println((a));
-   display.display();
-   delay(1000);
-  }
-  display.setFont(&Picopixel);
-  display.setCursor(off,31);
-  display.println(F("1/2 - playing - pause"));
-  
-
-  
-  for(int16_t i=0; i<display.height(); i++) {
-    // The ERSE color is used so rectangles alternate white/black
-    display.fillRect(0, i, wid, display.height(), SSD1306_WHITE);
-    display.fillRect(0, 0, wid, i, SSD1306_BLACK);
-
-    display.display(); // Update screen with each newly-drawn rectangle
-    delay(400);
-  }
-  
-   display.display();
-  delay(8000);
-
-  // Show the display buffer on the screen. You MUST call display() after
-  // drawing commands to make them visible on screen!
-  display.display();
-  delay(2000);
-  // display.display() is NOT necessary after every single drawing command,
-  // unless that's what you want...rather, you can batch up a bunch of
-  // drawing operations and then update the screen all at once by calling
-  // display.display(). These examples demonstrate both approaches...
-
-  testdrawline();      // Draw many lines
-
-  testdrawrect();      // Draw rectangles (outlines)
-
-  testfillrect();      // Draw rectangles (filled)
-
-  testdrawcircle();    // Draw circles (outlines)
-
-  testfillcircle();    // Draw circles (filled)
-
-  testdrawroundrect(); // Draw rounded rectangles (outlines)
-
-  testfillroundrect(); // Draw rounded rectangles (filled)
-
-  testdrawtriangle();  // Draw triangles (outlines)
-
-  testfilltriangle();  // Draw triangles (filled)
-
-  testdrawchar();      // Draw characters of the default font
-
-  testdrawstyles();    // Draw 'stylized' characters
-
-  testscrolltext();    // Draw scrolling text
-
-  testdrawbitmap();    // Draw a small bitmap image
-
-  // ert and restore display, pausing in-between
-  display.ertDisplay(true);
-  delay(1000);
-  display.ertDisplay(false);
-  delay(1000);
-
-  testanimate(logo_bmp, LOGO_WIDTH, LOGO_HEIGHT); // Animate bitmaps
-  */
 }
 
+uint8_t inbuf[LEN] = {0};
+const int8_t wid = 4, off = wid+4;
 void loop() {
   const int8_t line[] = {7, 21, 30}, strsz = 32;
   char *start, *cmdptr, cmd;
@@ -176,7 +58,7 @@ void loop() {
         display.fillRect(0, height, wid, display.height(), SSD1306_WHITE);
         display.fillRect(0, 0, wid, height, SSD1306_BLACK);
         
-      } else if (cmd >= '1' && cmd <= '3') {
+      } else if (cmd == 'T' || cmd == '1' || cmd <= '2') {
         cmdptr = (char*)inbuf + bufix;
         bufix += strsz;
         
@@ -198,106 +80,31 @@ void loop() {
           display.setFont(0);
           display.fillRect(off, line[1] - 3, display.width(), 12, SSD1306_BLACK);  
           display.setCursor(off, line[1]);      
-        } else if(cmd == '3') {
-          display.setCursor(off, line[2]);
-          display.fillRect(off, line[2] - 3, display.width(), 6, SSD1306_BLACK);        
-          display.setFont(&Picopixel);
+        } else if(cmd == 'T') {
+          int16_t track_count, track_index;
+          start[16] = 0;
+          sscanf(start, "%2d:%2d", &track_index, &track_count);          
+          display.drawLine(off, display.height()-1, display.width(), display.height()-1, SSD1306_BLACK);
+          track_count = min(track_count,28);
+          track_index = min(track_count, track_index);
+         
+          int16_t seg_width  = (display.width() - off) / track_count;
+          int16_t line_width = (7 - track_count / 4) * seg_width / 8;
+          int16_t endlen     = seg_width * track_index + off;
+          for (int16_t i = off;i < endlen; i += seg_width) {
+             display.drawLine(i, display.height()-1, i + line_width, display.height()-1, SSD1306_WHITE);
+          }
+          display.display();
         }
-        display.print(start);
+        if(cmd == '1' || cmd == '2') {
+          display.print(start);
+        }
       } else {
         display.print(cmd);
       }
     }
     display.display();
   }
-
-
-}
-
-void testdrawline() {
-  int16_t i;
-
-  display.clearDisplay(); // Clear display buffer
-
-  for(i=0; i<display.width(); i+=4) {
-    display.drawLine(0, 0, i, display.height()-1, SSD1306_WHITE);
-    display.display(); // Update screen with each newly-drawn line
-    delay(1);
-  }
-  for(i=0; i<display.height(); i+=4) {
-    display.drawLine(0, 0, display.width()-1, i, SSD1306_WHITE);
-    display.display();
-    delay(1);
-  }
-  delay(250);
-
-  display.clearDisplay();
-
-  for(i=0; i<display.width(); i+=4) {
-    display.drawLine(0, display.height()-1, i, 0, SSD1306_WHITE);
-    display.display();
-    delay(1);
-  }
-  for(i=display.height()-1; i>=0; i-=4) {
-    display.drawLine(0, display.height()-1, display.width()-1, i, SSD1306_WHITE);
-    display.display();
-    delay(1);
-  }
-  delay(250);
-
-  display.clearDisplay();
-
-  for(i=display.width()-1; i>=0; i-=4) {
-    display.drawLine(display.width()-1, display.height()-1, i, 0, SSD1306_WHITE);
-    display.display();
-    delay(1);
-  }
-  for(i=display.height()-1; i>=0; i-=4) {
-    display.drawLine(display.width()-1, display.height()-1, 0, i, SSD1306_WHITE);
-    display.display();
-    delay(1);
-  }
-  delay(250);
-
-  display.clearDisplay();
-
-  for(i=0; i<display.height(); i+=4) {
-    display.drawLine(display.width()-1, 0, 0, i, SSD1306_WHITE);
-    display.display();
-    delay(1);
-  }
-  for(i=0; i<display.width(); i+=4) {
-    display.drawLine(display.width()-1, 0, i, display.height()-1, SSD1306_WHITE);
-    display.display();
-    delay(1);
-  }
-
-  delay(2000); // Pause for 2 seconds
-}
-
-void testdrawrect(void) {
-  display.clearDisplay();
-
-  for(int16_t i=0; i<display.height()/2; i+=2) {
-    display.drawRect(i, i, display.width()-2*i, display.height()-2*i, SSD1306_WHITE);
-    display.display(); // Update screen with each newly-drawn rectangle
-    delay(1);
-  }
-
-  delay(2000);
-}
-
-void testfillrect(void) {
-  display.clearDisplay();
-
-  for(int16_t i=0; i<display.height()/2; i+=3) {
-    // The ERSE color is used so rectangles alternate white/black
-    display.fillRect(i, i, display.width()-i*2, display.height()-i*2, SSD1306_INVERSE);
-    display.display(); // Update screen with each newly-drawn rectangle
-    delay(1);
-  }
-
-  delay(2000);
 }
 
 void testdrawcircle(void) {
@@ -402,25 +209,6 @@ void testdrawchar(void) {
   delay(2000);
 }
 
-void testdrawstyles(void) {
-  display.clearDisplay();
-
-  display.setTextSize(1);             // Normal 1:1 pixel scale
-  display.setTextColor(SSD1306_WHITE);        // Draw white text
-  display.setCursor(0,0);             // Start at top-left corner
-  display.println(F("Hello, world!"));
-
-  display.setTextColor(SSD1306_BLACK, SSD1306_WHITE); // Draw 'inverse' text
-  display.println(3.141592);
-
-  display.setTextSize(2);             // Draw 2X-scale text
-  display.setTextColor(SSD1306_WHITE);
-  display.print(F("0x")); display.println(0xDEADBEEF, HEX);
-
-  display.display();
-  delay(2000);
-}
-
 void testscrolltext(void) {
   display.clearDisplay();
 
@@ -446,60 +234,4 @@ void testscrolltext(void) {
   delay(2000);
   display.stopscroll();
   delay(1000);
-}
-
-void testdrawbitmap(void) {
-  display.clearDisplay();
-
-  display.drawBitmap(
-    (display.width()  - LOGO_WIDTH ) / 2,
-    (display.height() - LOGO_HEIGHT) / 2,
-    logo_bmp, LOGO_WIDTH, LOGO_HEIGHT, 1);
-  display.display();
-  delay(1000);
-}
-
-#define XPOS   0 // Indexes into the 'icons' array in function below
-#define YPOS   1
-#define DELTAY 2
-
-void testanimate(const uint8_t *bitmap, uint8_t w, uint8_t h) {
-  int8_t f, icons[NUMFLAKES][3];
-
-  // Initialize 'snowflake' positions
-  for(f=0; f< NUMFLAKES; f++) {
-    icons[f][XPOS]   = random(1 - LOGO_WIDTH, display.width());
-    icons[f][YPOS]   = -LOGO_HEIGHT;
-    icons[f][DELTAY] = random(1, 6);
-    Serial.print(F("x: "));
-    Serial.print(icons[f][XPOS], DEC);
-    Serial.print(F(" y: "));
-    Serial.print(icons[f][YPOS], DEC);
-    Serial.print(F(" dy: "));
-    Serial.println(icons[f][DELTAY], DEC);
-  }
-
-  for(;;) { // Loop forever...
-    display.clearDisplay(); // Clear the display buffer
-
-    // Draw each snowflake:
-    for(f=0; f< NUMFLAKES; f++) {
-      display.drawBitmap(icons[f][XPOS], icons[f][YPOS], bitmap, w, h, SSD1306_WHITE);
-    }
-
-    display.display(); // Show the display buffer on the screen
-    delay(200);        // Pause for 1/10 second
-
-    // Then update coordinates of each flake...
-    for(f=0; f< NUMFLAKES; f++) {
-      icons[f][YPOS] += icons[f][DELTAY];
-      // If snowflake is off the bottom of the screen...
-      if (icons[f][YPOS] >= display.height()) {
-        // Reinitialize to a random position, just off the top
-        icons[f][XPOS]   = random(1 - LOGO_WIDTH, display.width());
-        icons[f][YPOS]   = -LOGO_HEIGHT;
-        icons[f][DELTAY] = random(1, 6);
-      }
-    }
-  }
 }

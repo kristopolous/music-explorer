@@ -76,20 +76,24 @@ ardy_serve() {
   exec 3<> $dev
   while [ 0 ]; do
     cat $tmp/ardy_socket | tee -a $tmp/cmd | tee > $dev
+    echo "]" >> $tmp/cmd
     sleep 0.01
   done
 }
 
 ardy_stat() {
   {
-  case $1 in
-    [123] )
-      printf "$1%-31s" "$2" 
-      ;;
-    * )
-      printf "$1$2"
-      ;;
-  esac
+    case $1 in
+      [123] )
+        printf "$1%-31s" "$2" 
+        ;;
+      T )
+        printf "$1%-31s" "$2:$3" 
+        ;;
+      * )
+        printf "$1$2"
+        ;;
+    esac
   } > $tmp/ardy_socket
 }
 
