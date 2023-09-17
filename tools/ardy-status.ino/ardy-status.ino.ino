@@ -38,7 +38,7 @@ void setup() {
 }
 
 uint8_t inbuf[LEN] = {0};
-const int8_t wid = 4, off = wid+4;
+const int8_t wid = 2, off = wid+3;
 void loop() {
   const int8_t line[] = {7, 21, 30}, strsz = 32;
   char *start, *cmdptr, cmd;
@@ -55,7 +55,11 @@ void loop() {
       if(cmd == 'V') {
         arg = inbuf[bufix++];
         uint8_t height = display.height() - (display.height() * arg / 0xff);
-        display.fillRect(0, height, wid, display.height(), SSD1306_WHITE);
+        for(int8_t i = display.height(); i > height; i-=2) {
+          display.drawLine(0, i, 1, i+1, SSD1306_WHITE);
+        }
+        //display.fillRect(0, height, wid, display.height(), SSD1306_WHITE);
+        
         display.fillRect(0, 0, wid, height, SSD1306_BLACK);
         
       } else if (cmd == 'T' || cmd == '1' || cmd <= '2') {
