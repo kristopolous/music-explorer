@@ -1,14 +1,14 @@
 #!/bin/bash
 
-player=mpv
-player_opts_orig='--no-cache --no-audio-display --msg-level=cplayer=no --term-playing-msg=\n${media-title} --script='"$DIR"'/mpv-interface.lua --input-ipc-server='"$tmp"'/mpvsocket'
-player_opts_dbg="--msg-level=all=debug"
-player_opts=$player_opts_orig
-
 tmp=/tmp/mpvonce
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # What format to look for 
 FMT=${FMT:=mp3}
+
+player=mpv
+player_opts_orig='--no-cache --no-audio-display --msg-level=cplayer=no --term-playing-msg=\n${media-title} --script='"$DIR"'/mpv-interface.lua --input-ipc-server='"$tmp"'/mpvsocket'
+player_opts_dbg="--msg-level=all=debug"
+player_opts=$player_opts_orig
 
 BACKUPDIR=$HOME/.mpvonce
 UNDODIR=$tmp/undo
