@@ -4,26 +4,11 @@ $header = false;
 $header_size = -1;
 
 $ch = curl_init();
-/*
-ob_start();
-curl_setopt($ch, CURLOPT_VERBOSE, true);
-$out = fopen('php://output', 'w');
-curl_setopt($ch, CURLOPT_STDERR, $out);
-
-curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
- */
 curl_setopt($ch, CURLOPT_URL,$url);
 
 curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 curl_setopt($ch, CURLOPT_HEADER, 1);
-/*
-curl_setopt($ch, CURLOPT_HEADERFUNCTION,
-  function($curl, $header) {
-    header($header);
-  }
-);
- */
 
 curl_setopt($ch, CURLOPT_WRITEFUNCTION, function ($curl, $data) {
   global $header, $ch, $header_size;
@@ -43,8 +28,6 @@ curl_setopt($ch, CURLOPT_WRITEFUNCTION, function ($curl, $data) {
   flush();
   return strlen($data);
 });
-
-// curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
 curl_exec($ch);
 
