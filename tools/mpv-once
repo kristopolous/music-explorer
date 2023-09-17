@@ -5,10 +5,6 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . $DIR/lib.sh
 
-player=mpv
-player_opts_orig='--no-cache --no-audio-display --msg-level=cplayer=no --term-playing-msg=\n${media-title} --script='"$DIR"'/mpv-interface.lua --input-ipc-server='"$tmp"'/mpvsocket'
-player_opts_dbg="--msg-level=all=debug"
-player_opts=$player_opts_orig
 display=0
 pipe=$tmp/mpv-pipe
 auto=
@@ -307,11 +303,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
 
               [0-4])
                 # if it exited naturally we send an audio indicator
-                {
-                  for freq in 660 500; do
-                    ffplay -af "volume=-5dB" -loglevel quiet -autoexit -nodisp -f lavfi -i "sine=frequency=$freq:duration=0.05" 
-                  done
-                } > /dev/null
+                breaker
                 ;;
 
               5) player_exit=0 

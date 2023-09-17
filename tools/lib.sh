@@ -1,5 +1,10 @@
 #!/bin/bash
 
+player=mpv
+player_opts_orig='--no-cache --no-audio-display --msg-level=cplayer=no --term-playing-msg=\n${media-title} --script='"$DIR"'/mpv-interface.lua --input-ipc-server='"$tmp"'/mpvsocket'
+player_opts_dbg="--msg-level=all=debug"
+player_opts=$player_opts_orig
+
 tmp=/tmp/mpvonce
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # What format to look for 
@@ -79,6 +84,17 @@ ardy_serve() {
     echo "]" >> $tmp/cmd
     sleep 0.01
   done
+}
+
+breaker() {
+  if [[ ! -e $tmp/breaker.mp3 ]]; then 
+    for freq in 660 1 500; do
+      ffmpeg -loglevel quiet -y -f lavfi -i "sine=frequency=$freq:duration=0.05"  -af "volume=-5dB" -c:a pcm_s16le -f wav $tmp/out-$ix.wav
+      (( ix++ ))
+    done
+    ffmpeg -safe 0 -loglevel quiet -f concat -i <(ls -v1 $tmp/out-*.wav | sed -e 's/^/file /g') -y $tmp/breaker.mp3
+  fi
+  $player --ao=$ao -really-quiet $tmp/breaker.mp3
 }
 
 ardy_stat() {
