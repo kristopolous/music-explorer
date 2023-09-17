@@ -62,7 +62,7 @@ void loop() {
         
         display.fillRect(0, 0, wid, height, SSD1306_BLACK);
         
-      } else if (cmd == 'T' || cmd == '1' || cmd <= '2') {
+      } else if (cmd == 'T' || cmd == '1' || cmd == '2') {
         cmdptr = (char*)inbuf + bufix;
         bufix += strsz;
         
