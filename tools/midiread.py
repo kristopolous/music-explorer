@@ -258,7 +258,7 @@ while True:
 
       elif todo[0] in cmdMap:
         if value == 0:
-          cmdList[todo[0]] = "tmux send-keys -t mpv-once '{}'".format(cmdMap[todo[0]]) 
+          cmdList[todo[0]] = "ipc-do.js '{}'".format(cmdMap[todo[0]]) 
 
       else:
         pass

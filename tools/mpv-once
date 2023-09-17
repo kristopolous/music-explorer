@@ -12,8 +12,6 @@ start_time=0:45
 ao=${ao:-pulse}
 myname="mpv-once-$RANDOM-$PPID"
 
-# We're going to restore it to this.
-start_name=$( tmux display-message -p '#W' )
 STR=(on off)
 unset echo
 delim=$(echo -e "\t")
@@ -27,25 +25,8 @@ delim=$(echo -e "\t")
 
 _mkdir $tmp
 
-setname() {
-  {
-    [[ -n "$WINDOWID" ]] && xprop -id "$WINDOWID" -set WM_NAME "$myname" > /dev/null 2>&1
-    tmux rename-session $myname #2> /dev/null
-    echo $myname > $tmp/tmux-name
-  } &
-}
-
-setname
-
-function finish {
-  history -w $tmp/readline-history
-  tmux rename-window "$start_name"
-  exit
-}
-
 history -r $tmp/readline-history
 shopt -s nullglob
-trap finish EXIT
 
 function set_filter() {
   filter=.
@@ -164,7 +145,6 @@ while [[ ${#all[@]} -gt $ix ]]; do
 
   m3u="$i/$PLAYLIST"
 
-  setname
   (( ix ++ ))
   f_count=0
   listen_time=0
