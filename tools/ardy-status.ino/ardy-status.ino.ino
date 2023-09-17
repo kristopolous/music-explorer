@@ -85,7 +85,7 @@ void loop() {
           start[16] = 0;
           sscanf(start, "%2d:%2d", &track_index, &track_count);          
           display.drawLine(off, display.height()-1, display.width(), display.height()-1, SSD1306_BLACK);
-          track_count = min(track_count,28);
+          track_count = max(min(track_count,28),3);
           track_index = min(track_count, track_index);
          
           int16_t seg_width  = (display.width() - off) / track_count;

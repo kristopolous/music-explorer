@@ -46,8 +46,10 @@ end
 function print_on_start(e,f)
   pl = mp.get_property_native("playlist", {})
   pos = mp.get_property_native("playlist-pos-1", 1)
+  ttl = mp.get_property_native("playlist-count")
   toprint = string.gsub(pl[pos]['filename'], "(.*/)(.*)-%d*.mp3", "%2")
   os.execute('mpv-lib announce "' .. toprint .. '"')
+  os.execute('mpv-lib ardy_stat T ' .. pos .. ' ' .. ttl)
 end
 
 function openpage_handler()
