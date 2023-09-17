@@ -2,7 +2,6 @@
 #
 # This is a mapping of 
 #   /usr/include/X11/keysymdef.h and
-#   http://man.openbsd.org/OpenBSD-current/man1/tmux.1#KEY_BINDINGS
 #
 TMP=/tmp/mpvonce
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
