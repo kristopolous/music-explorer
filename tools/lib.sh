@@ -73,6 +73,11 @@ stop() { touch $STOPFILE; }
 _mkdir "$tmp"
 [[ -e "$tmp"/cmd_sock ]] || mkfifo "$tmp"/cmd_sock
 
+function finish {
+  history -w $tmp/readline-history
+  exit
+}
+
 ardy_serve() {
   [[ -e $tmp/ardy_socket ]] && rm $tmp/ardy_socket
   mkfifo $tmp/ardy_socket
