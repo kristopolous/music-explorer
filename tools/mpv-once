@@ -68,7 +68,7 @@ function record_listen() {
         (( age > 86400 )) && rm $lock
       fi
 
-      if [[ ! -e "$lock" ]]; then
+      if [[ -n "$NOSCORE" && ! -e "$lock" ]]; then
         touch "$lock"
         backup 
         rm "$lock"
