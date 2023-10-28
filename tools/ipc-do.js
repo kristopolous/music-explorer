@@ -82,7 +82,11 @@ if (command == 'pauseplay') {
 }
 
 if (!command) {
-  console.log(Object.keys(commandMap).concat(['back', 'forward', 'pauseplay', 'prev', 'next']).sort());
+  console.log(Object.keys(commandMap).concat([
+    'back', 'forward', 
+    'volume', 'volup', 'voldn',
+    'pauseplay', 
+    'prev', 'next']).sort());
   process.exit();
 }
 
