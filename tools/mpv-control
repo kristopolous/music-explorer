@@ -5,7 +5,7 @@
 #
 TMP=/tmp/mpvonce
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-MPVCONTROL=mpv-control
+MPVCONTROL=/home/chris/code/music-explorer/tools/mpv-control
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 [[ -e "$TMP" ]] || mkdir "$TMP"
 

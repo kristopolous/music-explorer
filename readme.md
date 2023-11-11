@@ -1,5 +1,33 @@
 # Music-Explorer
 
+## Background
+
+I enjoy listening to new, underground music on what could be called "the edge". Many artists I like never become popular and spend their whole careers playing in tiny bars.
+
+Services like spotify don't cut it for me because they end up tending towards some definition of collective approval, some kind of popular.
+
+For instance, on a far older approach to this technique which relied on youtube's recommendation album, there was an explicit filtering out of anything with over a [nominal 300k views](https://github.com/kristopolous/ytmix/blob/master/api/ytlib.php#L27) because the random walk of youtube music recommendation would eventually tend towards mainstream indy or pop artists and then form a tightly clustered and repetitive network around them. (Mainstream indy is essentially a second layer of more refined and eclectic pop that was invented to cater to those who reject mainstream consensus).
+
+So I wanted a tool for exploring a mix of variability, consistency and novelty that expanded my horizons without these vanishing gradient properties.
+
+This is my fourth attempt, since 2006 or so, of building that tool, this one starting in 2020.
+
+## Overview
+
+Essentially the pipeline, in non-technical terms is:
+
+ * automate the collection of stuff to listen to with a curation system flexible enough to include serendipity but focused enough to avoid exhaustion
+ * have a system of navigating and listening to it that can be instrumented in a variety of ways
+ * record in a simple manner what to do with it: what I'd like to revisit, go off an buy, keep around, or is not for me.
+
+So this more or less does that.
+
+There's a secret part, which I may you know, try to get some kind of money for, and an open part. 
+
+---
+The rest of this document is from an older readme about the project. This is a work in progress and I'm trying to make it more comprehensible. Sorry for the disorganization.
+---
+
 A set of tools for exploring music surrounding yt-dlp and mpv (although that is configurable)
 
 There's also a way to navigate and control the music that uses lua and optionally things like usb foot pedals or MIDI controllers, really. I also use an arduino with an LCD display for the tracks, that  code is in there too. These are all optional and the tools work seamlessly with or without them, whether you are connected or not connected to the internet.
