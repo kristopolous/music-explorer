@@ -8,7 +8,7 @@ Additionally there's music-discovery navigation tools that involve discogs, sear
 
 There is also a web player currently, whose code is included, here's one against my collection [https://9ol.es/pl](https://9ol.es/pl). 
 
-It works by ... downloading entire labels from bandcamp. I know what you're saying "that sounds shady." --- I've actually spent 300% more buying music on bandcamp month over month than I did before because this tool exposes artists to me for me to buy.
+It works by ... essentially cloning entire labels. I know what you're saying "that sounds shady." --- I've actually spent 300% more buying music on bandcamp month over month than I did before because this tool exposes artists to me for me to buy.
 
 The abstractions are like any powerful sets of tools: your personal moral compass is the guide to how you use it.
 
