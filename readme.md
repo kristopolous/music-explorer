@@ -74,6 +74,8 @@ The url-list.m3u is an m3u that gets created through bash and awk (see ytdl2m3u.
 
 The domain is because some albums are hosted on different sites.
 
+After a mature crawl and some cron-job work, this is my current tree as of Nov 11, 2023, about 4 years into the project: [https://9ol.es/tmp/tree.txt](https://9ol.es/tmp/tree.txt)
+
 #### But wait, there's more!
 
 So let's say you want to see if I added anything, just run it again.
