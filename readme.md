@@ -1,14 +1,14 @@
 # Music-Explorer
 
-A set of tools for exploring music surrounding yt-dlp and mpv.
+A set of tools for exploring music surrounding yt-dlp and mpv (although that is configurable)
 
-There's also a way to navigate and control the music that uses tmux, notion, and a usb foot pedal, really. You should have id3v2 and amixer if you want to do that one.
+There's also a way to navigate and control the music that uses lua and optionally things like usb foot pedals or MIDI controllers, really. I also use an arduino with an LCD display for the tracks, that  code is in there too. These are all optional and the tools work seamlessly with or without them, whether you are connected or not connected to the internet.
 
 Additionally there's music-discovery navigation tools that involve discogs, search engine apis, soundcloud, archive.org, youtube, and bandcamp. That one is done in python and has a web-interface (the code isn't here yet). Hopefully I'll get it cleaned up and presentable.
 
-There is a web player currently, you can check it out at [https://9ol.es/pl](https://9ol.es/pl). 
+There is also a web player currently, whose code is included, here's one against my collection [https://9ol.es/pl](https://9ol.es/pl). 
 
-It works by ... downloading entire labels from bandcamp. I know what you're saying "that sounds shady." --- I've actually spent 300% more buying music on bandcamp month over month than I did before because this tool exposes artists to me for me to buy.
+It works by ... essentially cloning entire labels. I know what you're saying "that sounds shady." --- I've actually spent 300% more buying music on bandcamp month over month than I did before because this tool exposes artists to me for me to buy.
 
 The abstractions are like any powerful sets of tools: your personal moral compass is the guide to how you use it.
 
@@ -55,7 +55,7 @@ Woah shit, what just happened?
         ├── chris mckenzie - Space Royalty-3306453676.mp3
         └── exit-code
 
-That's all my stuff along with `youtube-dl`'s exit codes that get checked for errors.
+That's all my stuff along with `yt-dlp`'s exit codes that get checked for errors. (this is configurable)
 
 (and here's the more modern version)
 
@@ -73,6 +73,8 @@ That's all my stuff along with `youtube-dl`'s exit codes that get checked for er
 The url-list.m3u is an m3u that gets created through bash and awk (see ytdl2m3u.awk) that will eventually get fed back into mpv.
 
 The domain is because some albums are hosted on different sites.
+
+After a mature crawl and some cron-job work, this is my current tree as of Nov 11, 2023, about 4 years into the project: [https://9ol.es/tmp/tree.html](https://9ol.es/tmp/tree.html) (warning: 455,914 lines and 22.6MB of html)
 
 #### But wait, there's more!
 

@@ -119,12 +119,12 @@ cmdList = {}
 last_ts = time.time()
 instance_ix = 0
 while True:
-  readable, blah0, blah1 = select.select([ps.stdout.fileno()], [], [], 1)
+  readable, blah0, blah1 = select.select([ps.stdout.fileno()], [], [], 0.07)
 
   # This is how we try to prevent message flooding from
   # the sliders.
   if len(readable) == 0:
-    if time.time() > last_ts + .14:
+    if time.time() > last_ts + .18:
       last_ts = time.time()
 
       instance_ix += 1
