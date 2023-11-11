@@ -1,12 +1,12 @@
 # Music-Explorer
 
-A set of tools for exploring music surrounding yt-dlp and mpv.
+A set of tools for exploring music surrounding yt-dlp and mpv (although that is configurable)
 
-There's also a way to navigate and control the music that uses tmux, notion, and a usb foot pedal, really. You should have id3v2 and amixer if you want to do that one.
+There's also a way to navigate and control the music that uses tmux, notion, and a usb foot pedal, really. I also use an arduino with an LCD display for the tracks, that  code is in there too. You should have id3v2 and amixer if you want to do that one.
 
 Additionally there's music-discovery navigation tools that involve discogs, search engine apis, soundcloud, archive.org, youtube, and bandcamp. That one is done in python and has a web-interface (the code isn't here yet). Hopefully I'll get it cleaned up and presentable.
 
-There is a web player currently, you can check it out at [https://9ol.es/pl](https://9ol.es/pl). 
+There is also a web player currently, whose code is included, here's one against my collection [https://9ol.es/pl](https://9ol.es/pl). 
 
 It works by ... downloading entire labels from bandcamp. I know what you're saying "that sounds shady." --- I've actually spent 300% more buying music on bandcamp month over month than I did before because this tool exposes artists to me for me to buy.
 
@@ -55,7 +55,7 @@ Woah shit, what just happened?
         ├── chris mckenzie - Space Royalty-3306453676.mp3
         └── exit-code
 
-That's all my stuff along with `youtube-dl`'s exit codes that get checked for errors.
+That's all my stuff along with `yt-dlp`'s exit codes that get checked for errors. (this is configurable)
 
 (and here's the more modern version)
 
