@@ -83,7 +83,7 @@ function playit() {
 
   $player --ao=$ao $player_opts \
     --term-playing-msg=" \${playlist-pos-1}\t\${media-title}" \
-    --term-status-msg="\t\t\${audio-pts} - \${duration}\n" \
+    --term-status-msg="\t\t\${audio-pts} - \${duration}" \
     --start=$start_time \
     $*
 }
