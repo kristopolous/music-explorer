@@ -64,7 +64,6 @@ debug() { [[ -n "$DEBUG" ]] && echo -e "\t$1"; }
 purge() { album_purge "CLI" "$1"; }
 hr()    { echo; printf '\xe2\x80\x95%.0s' $( seq 1 $(tput cols) ); echo; }
 quit()  { echo "$1"; exit; }
-scan()  { [[ -z "$NOSCAN" ]] && echo */* | tr ' ' '\n' > $start_dir/.listen_all || debug "Skipping scan"; }
 check_for_stop() { [[ -e $STOPFILE ]] && quit "Stopping because $STOPFILE exists"; }
 stop() { touch $STOPFILE; }
 
@@ -76,6 +75,19 @@ _mkdir "$tmp"
 function finish {
   history -w $tmp/readline-history
   exit
+}
+
+scan()  { 
+  if [[ -z "$NOSCAN" ]]; then
+    echo */* | tr ' ' '\n' > $tmp/.listen_all
+    if [[ -s $tmp/.listen_all ]]; then 
+      cp $tmp/.listen_all $start_dir/.listen_all
+    else 
+      info "Unable to create playlist scan"
+    fi
+  else 
+    debug "Skipping scan"; 
+  fi
 }
 
 ardy_serve() {
@@ -240,7 +252,7 @@ album_purge() {
 
     mv "$path"/* $UNDODIR/"$path"
   else
-    debug "Bypassing undo and deleting"
+    debug "Bypassing undo"
     rm "$path"/*
   fi
 
