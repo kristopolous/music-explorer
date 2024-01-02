@@ -83,7 +83,7 @@ function playit() {
 
   $player --ao=$ao $player_opts \
     --term-playing-msg=" \${playlist-pos-1}\t\${media-title}" \
-    --term-status-msg="\t\t\${audio-pts} - \${duration}\n" \
+    --term-status-msg="\t\t\${audio-pts} - \${duration}" \
     --start=$start_time \
     $*
 }
@@ -160,7 +160,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
   else
     hasm3u=
     if [[ ! -d "$i" ]]; then
-      grep -m 1 $i $start_dir/.listen_done > /dev/null
+      grep -m 1 -- $i $start_dir/.listen_done > /dev/null
       # This means it's in the done but not the all, which is fine.
       [[ $? -eq 0 ]] && continue
 
