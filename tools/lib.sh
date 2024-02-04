@@ -99,7 +99,7 @@ breaker() {
     done
     ffmpeg -safe 0 -loglevel quiet -f concat -i <(ls -v1 $tmp/out-*.wav | sed -e 's/^/file /g') -y $tmp/breaker.mp3
   fi
-  $player --ao=$ao -really-quiet $tmp/breaker.mp3
+  $player --ao=$ao $player_opts -really-quiet $tmp/breaker.mp3
 }
 
 ardy_stat() {
