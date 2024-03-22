@@ -205,6 +205,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
       status "${url:8}"
 
       if [[ -z "$NOPL" && ! "$hasm3u" && ! -e "$i"/no-files ]]; then
+        echo " .... ||||| .... "
 
         if [[ -e "$i"/no ]]; then
           status "Why am I here? it's marked as no"
@@ -329,7 +330,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
         # In order to minimize the number of these calls we make
         # to decrease network iops, we check the arity of the function
         # to see if these files exist
-        ls $start_dir/"$i"/*.{$FMT,ogg,m4a,m5a,flac,aiff,wav}  > $tmp/play.m3u
+        ls $start_dir/"$i"/*.{$FMT,ogg,m4a,m5a,flac,aiff,wav} > $tmp/play.m3u
         playit $tmp/play.m3u
 
         if [[ $? != -10 ]]; then

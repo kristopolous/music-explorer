@@ -178,7 +178,7 @@ window.onload = () => {
           _lock[word] = setTimeout(() => {
             d( sign + ' track release label'.split(' ')[Math.min(_lock[sign], 3)] );
             _lock[sign] = _lock[word] = 0;
-          }, 400);
+          }, 800);
         }
       })
     );
