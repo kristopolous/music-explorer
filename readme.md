@@ -256,6 +256,13 @@ the better one doesn't exist. Unlike with mpv-once you'll have to convert these 
 
 Something like 
 
-    $ sqlite3 playlist.db "select path from tracks" | while read p; do mpv-lib toopus $p; mpv-lib tom5a $p; done;
+```bash
+$ sqlite3 playlist.db "select path from tracks" | while read p; do 
+    echo $p
+    mpv-lib toopus $p
+    mpv-lib tom5a $p
+  done
+```
+
 
 Note the "m**5**a" fake extension here to not collide with any potentially existing m4a files.
