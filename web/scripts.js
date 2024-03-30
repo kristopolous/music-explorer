@@ -10,7 +10,11 @@ var
   _DOM = {},
   _lock = {},
   path_to_url = str => 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1],
-  remote = (append = []) => fetch("get_playlist.php?" + [ `q=${_qstr}`, `release=${_my.release}`, `label=${_my.label}`, ...append ].join('&')).then(response => response.json()),
+  remote = (append = []) => fetch("get_playlist.php?" + [ 
+      `rand=` +(new Date()),
+      `q=${_qstr}`, 
+      `release=${_my.release}`, 
+      `label=${_my.label}`, ...append ].join('&')).then(response => response.json()),
   lookup = play => _db[play.path] ?
     new Promise(r => r(_db[play.path])) :
     fetch(`url2mp3.php?q=${_level}&path=${encodeURIComponent(play.path)}&u=${path_to_url(play.path)}`)
