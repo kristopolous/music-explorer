@@ -169,7 +169,12 @@ album_art() {
       album=$(resolve $i)
 
       url=$(curl -Ls $album | grep -A 4 'tralbumArt' | grep popupImage | grep -Po 'https:.*[jp][pn]g')
-      [[ -n "$url" ]] && curl -so $i/album-art.jpg $url
+      if [[ -n "$url" ]]; then
+        curl -so $i/album-art.jpg $url 
+      else
+        url="404"
+        touch "$i"/album-art.jpg
+      fi
       echo "$url => $album"
     fi
   done
