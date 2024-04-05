@@ -18,7 +18,7 @@ Essentially the pipeline, in non-technical terms is:
 
  * automate the collection of stuff to listen to with a curation system flexible enough to include serendipity but focused enough to avoid exhaustion
  * have a system of navigating and listening to it that can be instrumented in a variety of ways
- * record in a simple manner what to do with it: what I'd like to revisit, go off an buy, keep around, or is not for me.
+ * record in a simple manner what to do with it: what I'd like to revisit, go off and buy, keep around, or is not for me.
 
 So this more or less does that.
 
@@ -175,6 +175,8 @@ Here we decide what to do with what we just heard. We can
   * 3-5 - rate it from 3-5
   * q - exit
 
+Actually there's documentation:
+
 That wasn't painful, hopefully. There's quite a bit more just use ? to see the various commands.
 
 I'm going to decide to dump my own music, that slouch is awful.
@@ -226,7 +228,7 @@ support etc, without having to worry about any of the dot files or the meta info
 
 A bunch of things won't work such as some of the mpv key bindings from the lua script but that's fine.
 
-### low bandwidth support
+### Low Bandwidth support
 
 The repl supports on-demand converting to HE AAC+ and Opus for instances where you are doing say, ssh remote mounting. So let's pretend you're doing this:
 
