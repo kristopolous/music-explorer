@@ -159,7 +159,7 @@ Here's how we do it
     .. listen
 
     Exiting... (Quit)
-    chrismckenzie/astrophilosophy >> 
+    [chrismckenzie/astrophilosophy]
 
 
 "Oh great, a REPL". you say
@@ -183,7 +183,7 @@ That wasn't painful, hopefully. There's quite a bit more just use ? to see the v
 
 I'm going to decide to dump my own music, that slouch is awful.
 
-    chrismckenzie/textures-i >> p
+    [chrismckenzie/textures-i] p
     + base=/sd/mp3/label
     + mkdir -p /tmp/chrismckenzie/astrophilosophy
     + mv '/sd/mp3/label/chrismckenzie/astrophilosophy/chris mckenzie - Astrophilosophy-3196176877.mp3' '/sd/mp3/label/chrismckenzie/astrophilosophy/chris mckenzie - Instrumentals-2161707097.mp3' '/sd/mp3/label/chrismckenzie/astrophilosophy/chris mckenzie - Vocals-589691184.mp3' /sd/mp3/label/chrismckenzie/astrophilosophy/exit-code /tmp/chrismckenzie/astrophilosophy
@@ -274,7 +274,7 @@ What's that mpv-lib thing? Well that's documented as well:
 
 ![help](https://github.com/kristopolous/music-explorer/assets/231761/1f7616f4-66ef-4ae6-8265-644c45631104)
 
-and you cah also inspect the function for instance:
+and you can also inspect the function for instance:
 
 ![opus](https://github.com/kristopolous/music-explorer/assets/231761/ad30baf8-251b-4823-b2c9-88140369484f)
 
