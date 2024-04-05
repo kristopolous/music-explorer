@@ -163,8 +163,11 @@ album_art() {
   for i in */*; do
     [[ ! -d "$i" ]] && continue
 
-    # && ! -e $i/no
-    if [[ ! -e "$i"/album-art.jpg ]] ; then
+    if [[ -e "$i"/album-art.jpg ]]; then 
+      echo " ✓     $i"
+    elif [[ -e "$i"/no-album-art.jpg ]] ; then
+      echo "   ✗   $i"
+    else
 
       album=$(resolve $i)
 
@@ -173,7 +176,7 @@ album_art() {
         curl -so $i/album-art.jpg $url 
       else
         url="404"
-        touch "$i"/album-art.jpg
+        touch "$i"/no-album-art.jpg
       fi
       echo "$url => $album"
     fi
