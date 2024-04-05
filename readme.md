@@ -175,7 +175,9 @@ Here we decide what to do with what we just heard. We can
   * 3-5 - rate it from 3-5
   * q - exit
 
-Actually there's documentation:
+Actually there's documentation with the "?", see
+
+![documentation](https://github.com/kristopolous/music-explorer/assets/231761/e88a846e-306b-4a0b-b458-faec2c4c2e40)
 
 That wasn't painful, hopefully. There's quite a bit more just use ? to see the various commands.
 
@@ -266,5 +268,15 @@ $ sqlite3 playlist.db "select path from tracks" | while read p; do
   done
 ```
 
-
 Note the "m**5**a" fake extension here to not collide with any potentially existing m4a files.
+
+What's that mpv-lib thing? Well that's documented as well:
+
+![help](https://github.com/kristopolous/music-explorer/assets/231761/1f7616f4-66ef-4ae6-8265-644c45631104)
+
+and you cah also inspect the function for instance:
+
+![opus](https://github.com/kristopolous/music-explorer/assets/231761/ad30baf8-251b-4823-b2c9-88140369484f)
+
+
+
