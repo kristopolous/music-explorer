@@ -85,7 +85,7 @@ Woah shit, what just happened?
 
 That's all my stuff along with `yt-dlp`'s exit codes that get checked for errors. (this is configurable)
 
-(and here's the more modern version)
+Here's another version you can have which just downloads links that get updated to the tracks.
 
     $ tree chrismckenzie
     chrismckenzie
