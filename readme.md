@@ -42,7 +42,7 @@ The abstractions are like any powerful sets of tools: your personal moral compas
 
 ## Getting music
 
-This tool is label/artist based - you'll need an *unknown number* of gigabytes of disk space free (depending on your apetite) - set aside 250GB or so, disks are cheap, under $20/TB, stop raising your eyebrows at me.
+This tool is label/artist based - you'll need an *unknown number* of gigabytes of disk space free (depending on your apetite) - set aside 250GB or so, disks are cheap, under $10/TB, stop raising your eyebrows at me.
 
 The first thing to do is run `./install.sh` using a resolvable path as the arg. (`$HOME/bin` is the default)
 
