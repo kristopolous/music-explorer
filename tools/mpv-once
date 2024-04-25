@@ -61,6 +61,7 @@ function record_listen() {
       # Also record how many audio files we saw at the time
       echo "$i $n ($_stats) $(date +%Y%m%d)" >> $start_dir/.listen_done
 
+      set +x
       # If we do this too frequently it's pretty broken
       # But we also have to be smart enough to not block us out
       if [[ -e "$lock" ]]; then
@@ -68,11 +69,12 @@ function record_listen() {
         (( age > 86400 )) && rm $lock
       fi
 
-      if [[ -n "$NOSCORE" && ! -e "$lock" ]]; then
+      if [[ -z "$NOSCORE" && ! -e "$lock" ]]; then
         touch "$lock"
+        echo "BACKING UP"
         backup 
-        rm "$lock"
       fi
+      set +x
     } &
   fi
 }
