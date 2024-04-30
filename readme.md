@@ -65,6 +65,7 @@ Let's say you want to get a label or artist, heck let's use me, pay me nothing, 
 Woah shit, what just happened? 
 
 (this is the download version) 
+
     $ tree chrismckenzie
     chrismckenzie
     ├── astrophilosophy
