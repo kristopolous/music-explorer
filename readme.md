@@ -65,14 +65,16 @@ Let's say you want to get a label or artist, heck let's use me, pay me nothing, 
 Woah shit, what just happened? 
 
 (this is the download version) 
-
     $ tree chrismckenzie
     chrismckenzie
     ├── astrophilosophy
     │   ├── chris mckenzie - Astrophilosophy-3196176877.mp3
     │   ├── chris mckenzie - Instrumentals-2161707097.mp3
     │   ├── chris mckenzie - Vocals-589691184.mp3
-    │   └── exit-code
+    │   ├── domain
+    │   ├── exit-code
+    │   ├── page.html
+    │   └── playlist.m3u
     └── textures-i
         ├── chris mckenzie - 6AM-3099860585.mp3
         ├── chris mckenzie - Dawn Break-3496240403.mp3
@@ -81,9 +83,12 @@ Woah shit, what just happened?
         ├── chris mckenzie - October Wind-2524682866.mp3
         ├── chris mckenzie - Rose-2272020348.mp3
         ├── chris mckenzie - Space Royalty-3306453676.mp3
-        └── exit-code
+        ├── domain
+        ├── exit-code
+        └── playlist.m3u
 
 That's all my stuff along with `yt-dlp`'s exit codes that get checked for errors. (this is configurable)
+The `page.html` is a cached version of the page as the scraper saw it at the time.
 
 Here's another version you can have which just downloads links that get updated to the tracks.
 
@@ -100,7 +105,9 @@ Here's another version you can have which just downloads links that get updated 
 
 The url-list.m3u is an m3u that gets created through bash and awk (see ytdl2m3u.awk) that will eventually get fed back into mpv.
 
-The domain is because some albums are hosted on different sites.
+The domain is because some albums are hosted on different sites. Here's an example of where that can be useful. Under the [rohsrecords](https://rohsrecords.bandcamp.com) label there's an artist whose content is [mforsleep](https://mforsleep.bandcamp.com/) so if you pull rohsrecords, you can filter for mforsleep like so:
+
+    $ grep -l mforsleep rohsrecords/*/domain | cut -d '/' -f 1,2
 
 After a mature crawl and some cron-job work, this is my current tree as of Nov 11, 2023, about 4 years into the project: [https://9ol.es/tmp/tree.html](https://9ol.es/tmp/tree.html) (warning: 455,914 lines and 22.6MB of html)
 
