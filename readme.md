@@ -110,7 +110,7 @@ The domain is because some albums are hosted on different sites. Here's an examp
 
     $ grep -l mforsleep rohsrecords/*/domain | cut -d '/' -f 1,2
 
-After a mature crawl and some cron-job work, this is my current tree as of Nov 11, 2023, about 4 years into the project: [https://9ol.es/tmp/tree.html](https://9ol.es/tmp/tree.html) (warning: 455,914 lines and 22.6MB of html)
+After a mature crawl and some cron-job work, this is my current tree as of Apr 2024, 4 years into the project: [https://9ol.es/tmp/tree.html](https://9ol.es/tmp/tree.html) (warning: 490,000 lines and 25MB of html)
 
 #### But wait, there's more!
 
