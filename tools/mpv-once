@@ -50,8 +50,8 @@ function load_tracks() {
 
 function record_listen() {
   local lock="$tmp/backup-lock"
-  if [[ "$n" != "__nothing" ]]; then 
-    {
+  #if [[ "$n" != "__nothing" ]]; then 
+    #{
       cp $start_dir/.listen_done $tmp/.listen_done-$(date +%Y%m%d%H%M%S)
 
       # Remove any previous record of this
@@ -61,6 +61,7 @@ function record_listen() {
       # Also record how many audio files we saw at the time
       echo "$i $n ($_stats) $(date +%Y%m%d)" >> $start_dir/.listen_done
 
+      set +x
       # If we do this too frequently it's pretty broken
       # But we also have to be smart enough to not block us out
       if [[ -e "$lock" ]]; then
@@ -72,8 +73,9 @@ function record_listen() {
         touch "$lock"
         backup 
       fi
-    } &
-  fi
+      set +x
+    #} &
+  #fi
 }
 
 function playit() {
