@@ -56,7 +56,7 @@ function record_listen() {
 
       # Remove any previous record of this
       st=$( echo "$i" | tr '//' '.' )
-      sed -i "/$st/d" $start_dir/.listen_done
+      sed -Ei "/^$st\ /d" $start_dir/.listen_done
 
       # Also record how many audio files we saw at the time
       echo "$i $n ($_stats) $(date +%Y%m%d)" >> $start_dir/.listen_done
