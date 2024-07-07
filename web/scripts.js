@@ -10,11 +10,7 @@ var
   _DOM = {},
   _lock = {},
   path_to_url = str => 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1],
-  remote = (append = []) => fetch("get_playlist.php?" + [ 
-      `rand=` +(new Date()),
-      `q=${_qstr}`, 
-      `release=${_my.release}`, 
-      `label=${_my.label}`, ...append ].join('&')).then(response => response.json()),
+  remote = (append = []) => fetch("get_playlist.php?" + [ `q=${_qstr}`, `release=${_my.release}`, `label=${_my.label}`, ...append ].join('&')).then(response => response.json()),
   lookup = play => _db[play.path] ?
     new Promise(r => r(_db[play.path])) :
     fetch(`url2mp3.php?q=${_level}&path=${encodeURIComponent(play.path)}&u=${path_to_url(play.path)}`)
@@ -68,7 +64,14 @@ function play_url(play) {
     window.location.hash = [play.label, play.release, play.id, _qstr, _level].join('/');
   }
   ['release','label'].forEach(a => _DOM[a].innerHTML = _my[a].replace(/-/g, ' '))
-  _DOM.track.innerHTML = `${play.id + 1}:${_my.trackList.length}<br/>${_my.number + 1}:${_my.count}`;
+  _DOM.track.innerHTML = [
+    '<div style=width:',
+    (100 * (play.id+1) / _my.trackList.length ),
+    '%></div><div style=width:',
+    (100 * (_my.number+1) / _my.count ),
+    '%></div>'
+    ].join('');
+  //_DOM.track.innerHTML = `${play.id + 1}:${_my.trackList.length}<br/>${_my.number + 1}:${_my.count}`;
 
   _my.track = play.track;
 
@@ -182,7 +185,7 @@ window.onload = () => {
           _lock[word] = setTimeout(() => {
             d( sign + ' track release label'.split(' ')[Math.min(_lock[sign], 3)] );
             _lock[sign] = _lock[word] = 0;
-          }, 800);
+          }, 400);
         }
       })
     );
@@ -201,10 +204,12 @@ window.onload = () => {
       if(newstr !== _qstr) {
         if (_DOM.search.value[0] == ':'){
           if (_DOM.search.value.length > 1) {
-            _level = parseInt(_DOM.search.value[1], 10);
-            _DOM.search.value = '';
-            _db = {};
-            document.body.className = "q" + _level;
+            if(_DOM.search.value[1] >= '0' && _DOM.search.value[1] <= '9') {
+              _level = parseInt(_DOM.search.value[1], 10);
+              _DOM.search.value = '';
+              _db = {};
+              document.body.className = "q" + _level;
+            }
           }
         } else {
           _qstr = newstr;

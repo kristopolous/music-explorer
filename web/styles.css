@@ -155,13 +155,20 @@ li.selected {
 #track {
   vertical-align: middle;
   display:inline-block;
-  padding: 0.15rem 0.25rem;
+  padding: 0;
   font-size: .6rem;
   margin-top: -0.5rem;
   line-height: .5rem;
-  border-radius: 0.5rem;
   font-family: monospace;
   user-select: none;
+  background:#333;
+
+  width:1rem;
+}
+#track div {
+  background: #888;
+  height:.5rem;
+  border-right: 0.5px solid #ccc;
 }
 
 #iframe-wrap {
