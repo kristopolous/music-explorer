@@ -7,7 +7,7 @@ declare -i TTL=0
 declare -A site_regex
 [[ -n "$DEBUG" ]] && set -x
 
-site_regex[bandcamp]='(?<=")[\w:\/\.]+(?<=(album|track)\/)[^?'"'"'"]*' 
+site_regex[bandcamp]='(?<=("|;))[\-\w:\/\.]+(?<=(album|track)\/)[^\&?'"'"'"]*' 
 site_regex[archive]='(?<=")/details/[^"@&]+(?=..title)'
 
 if [[ $# = 0 ]]; then
@@ -98,6 +98,7 @@ while [[ $# -gt 0 ]]; do
 
   list=${list:-$(curl -sL $url | grep -Po $regex | sort | uniq )}
 
+  #echo $url $list; exit
   for full in $list; do
     check_for_stop
     # sometimes we get x-dom references, sometimes it's relevant. We resolve that below.
