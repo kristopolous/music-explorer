@@ -39,8 +39,8 @@ YTDL=${YTDL:=yt-dlp}
 FORMAT="-f mp3-128"
 
 # These are finer options for scraping that tries to not be too greedy
-SLEEP_MIN=2
-SLEEP_MAX=10
+SLEEP_MIN=5
+SLEEP_MAX=25
 SLEEP_OPTS="--max-sleep-interval $SLEEP_MAX --min-sleep-interval $SLEEP_MIN"
 
 # We can optimize things if we assume there's no such things as a playlist that
@@ -70,7 +70,10 @@ stop() { touch $STOPFILE; }
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh || debug "Can't find $DIR/prefs.sh"
 
 _mkdir "$tmp"
-[[ -e "$tmp"/cmd_sock ]] || mkfifo "$tmp"/cmd_sock
+if [[ ! -p "$tmp"/cmd_sock ]]; then
+  rm -f "$tmp"/cmd_sock 
+  mkfifo "$tmp"/cmd_sock
+fi
 
 function finish {
   history -w $tmp/readline-history
