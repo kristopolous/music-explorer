@@ -15,6 +15,7 @@ myname="mpv-once-$RANDOM-$PPID"
 STR=(on off)
 unset echo
 delim=$(echo -e "\t")
+_me=$(hostname)
 
 [[ -n "$NOSCORE" ]] && NOPROMPT=1 || NOPROMPT=
 # [[ -e $pipe ]] || mkfifo $pipe
@@ -59,7 +60,7 @@ function record_listen() {
       sed -Ei "/^$st\ /d" $start_dir/.listen_done
 
       # Also record how many audio files we saw at the time
-      echo "$i $n ($_stats) $(date +%Y%m%d)" >> $start_dir/.listen_done
+      echo "$i $n ($_stats) $_me $(date +%Y%m%d)" >> $start_dir/.listen_done
 
       set +x
       # If we do this too frequently it's pretty broken
