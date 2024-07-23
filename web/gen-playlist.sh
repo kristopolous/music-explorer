@@ -2,10 +2,23 @@
  
 gen_playlist() {
   truncate --size 0 playlist.txt
-  grep rating_5 /raid/mp3/label/.listen_done | sort | cut -f 1 -d ' ' | while read i
+  grep rating_5 /raid-real/mp3/label/.listen_done | sort | cut -f 1 -d ' ' | while read i
   do
-    ls /raid/mp3/label/$i/*.mp3 >> playlist.txt
+    ls /raid-real/mp3/label/$i/*.mp3 >> playlist.txt
   done
+}
+
+import_songs() {
+  set -e
+  # get just the paths
+  cat playlist.txt | awk -F'/' '{ $NF=""; print $0 }' | sed 's/ /\//g' | uniq | while read remotepath; do
+    localpath="$(echo "$remotepath" | sed "s/raid-real/raid/")"
+    [[ -d "$localpath" ]] || mkdir -p "$localpath"
+    cp --preserve=timestamps -ur "$remotepath"/* "$localpath"
+    echo "$remotepath -> $localpath"
+  done
+
+  sed -i 's/raid-real/raid/g' playlist.txt
 }
 
 import() {
@@ -43,5 +56,6 @@ ENDL
 }
 
 gen_playlist
+import_songs
 #create_db
 import
