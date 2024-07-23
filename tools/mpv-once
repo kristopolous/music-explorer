@@ -162,7 +162,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
   else
     hasm3u=
     if [[ ! -d "$i" ]]; then
-      grep -m 1 -- $i $start_dir/.listen_done > /dev/null
+      grep -m 1 -- "$i " $start_dir/.listen_done > /dev/null
       # This means it's in the done but not the all, which is fine.
       [[ $? -eq 0 ]] && continue
 

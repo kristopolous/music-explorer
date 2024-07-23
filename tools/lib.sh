@@ -273,7 +273,7 @@ album_purge() {
 unpurge() {
   [[ -e $UNDODIR/"$1" ]] && mv $UNDODIR/"$1"/* "$1"
   _rm "$1"/no 
-  sed -i "/${1/\//.}/d" $start_dir/.listen_done
+  sed -i "/${1/\//.} /d" $start_dir/.listen_done
 }
 
 resolve() {
