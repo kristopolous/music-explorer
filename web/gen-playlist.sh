@@ -9,20 +9,29 @@ gen_playlist() {
   done
 }
 
-import_songs() {
-  set -e
+copy_songs() {
   # get just the paths
-  grep rating_5 "$music_dir"/.listen_done | sort | cut -f 1 -d ' ' | uniq | awk '{ print "/raid-real/mp3/label/"$0 }' | while read remotepath; do
+  grep rating_5 "$music_dir"/.listen_done | sort | cut -f 1 -d ' ' | uniq | awk '{ print "'$music_dir'"$0 }' | while read remotepath; do
     localpath="$(echo "$remotepath" | sed "s/raid-real/raid/")"
-    [[ -d "$localpath" ]] || mkdir -p "$localpath"
-    cp --preserve=timestamps -ur "$remotepath"/* "$localpath"
-    echo "$remotepath -> $localpath"
+    if [[ ! -d "$localpath" ]];then 
+      mkdir -p "$localpath"
+      cp --preserve=timestamps -ur "$remotepath"/* "$localpath"
+      echo "$remotepath -> $localpath"
+    fi
   done
 
   sed -i 's/raid-real/raid/g' playlist.txt
 }
 
-import() {
+convert_songs() {
+  sqlite3 playlist.db "select path from tracks" | while read p; do
+    echo $p
+    mpv-lib toopus $p
+    mpv-lib tom5a $p
+  done
+}
+
+import_todb() {
   awk -F '/' ' { fuckoff=$0;sub(/-[0-9]*.mp3/, "", $7);print FNR",\""$5"\",\""$6"\",\""$7"\",\""fuckoff"\"" } ' playlist.txt > /tmp/playlist.csv
   {
   sqlite3 playlist.db << ENDL
@@ -56,7 +65,9 @@ create index release_name on tracks(release);
 ENDL
 }
 
-gen_playlist
-import_songs
 #create_db
-import
+
+gen_playlist
+copy_songs
+import_todb
+convert_songs
