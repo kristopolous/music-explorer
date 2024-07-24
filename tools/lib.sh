@@ -59,6 +59,7 @@ _rm ()  { [[ -e "$1" ]] && rm "$1"; }
 _mkdir(){ [[ -e "$1" ]] || mkdir -p "$1"; }
 _tabs() { tabs 2,+4,+2,+10; }
 _stub() { echo "$1" | tr '/' ':'; }
+_warn()  { echo -e "\n\t$1\n"; }
 info()  { echo -e "\t$1"; }
 debug() { [[ -n "$DEBUG" ]] && echo -e "\t$1"; }
 purge() { album_purge "CLI" "$1"; }
@@ -490,6 +491,7 @@ _url() {
 }
 
 toopus() {
+  set -e
   in="$*"
 
   if [[ -d "$in" ]]; then
@@ -502,11 +504,12 @@ toopus() {
 
   out="${in/.mp3/.opus}"
   if [[ ! -s "$out" ]] ; then
-    ffmpeg -nostdin -loglevel quiet -i "$in" -write_xing 0 -id3v2_version 0 -vn -c:a libopus -b:a 15000 "$out"
+    ffmpeg -nostdin -loglevel quiet -i "$in" -write_xing 0 -id3v2_version 0 -vn -c:a libopus -b:a 15000 "$out" 
   fi
 }
 
 tom5a() {
+  set -e
   in="$*"
   
   if [[ -d "$in" ]]; then
@@ -519,7 +522,7 @@ tom5a() {
 
   out="${in/.mp3/.m5a}"
   if [[ ! -s "$out" ]] ; then
-    ffmpeg -nostdin -loglevel quiet  -i "$in" -write_xing 0 -id3v2_version 0 -vn -f wav - | fdkaac -S -b 32000 -p 29 /dev/stdin -o "$out"
+    ffmpeg -nostdin -loglevel quiet -i "$in" -write_xing 0 -id3v2_version 0 -vn -ac 2 -f wav - | fdkaac -S -b 32000 -p 29 /dev/stdin -o "$out"
   fi
 }
 
@@ -708,6 +711,11 @@ get_mp3s() {
 
   _ytdl "$url" "$path" 
   get_playlist "$url" "$path"
+}
+
+single_album() {
+  get_mp3s "$1" "$(pwd)"
+  get_page "$(pwd)"
 }
 
 details() {
