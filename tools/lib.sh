@@ -267,7 +267,9 @@ album_purge() {
     rm "$path"/*
   fi
 
-  echo "$1" > "$path"/no
+  if [[ ! -e "$path"/no ]]; then
+    echo "$1" > "$path"/no
+  fi
 }
 
 unpurge() {

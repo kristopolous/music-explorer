@@ -207,8 +207,6 @@ while [[ ${#all[@]} -gt $ix ]]; do
       status "${url:8}"
 
       if [[ -z "$NOPL" && ! "$hasm3u" && ! -e "$i"/no-files ]]; then
-        echo " .... ||||| .... "
-
         if [[ -e "$i"/no ]]; then
           status "Why am I here? it's marked as no"
           [[ -n "$COPROC_PID" ]] && kill $COPROC_PID 
