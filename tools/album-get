@@ -57,6 +57,14 @@ while [[ $# -gt 0 ]]; do
   # We start with a bandcamp assumption
   regex=${site_regex[bandcamp]}
   FORMAT="-f mp3-128"
+  #
+  # base_name   the hostname
+  # base        the path
+  # base_url    ??
+  # domain      ??
+  #
+  # (wrote this 5 years ago, can't figure it out.)
+  #
   if [[ "$arg" =~ \. ]]; then
     if [[ "$arg" =~ archive.org ]]; then
       base=$(basename "$arg")
@@ -129,8 +137,8 @@ while [[ $# -gt 0 ]]; do
   [[ "$url" =~ http ]] || url="https://$url"
 
   if [[ -z "$list" ]]; then
-    [[ -n "$USECACHE" && -s "$base_name/$PAGE" ]] || curl -sL "$url" > "$base_name/$PAGE"
-    list=$(grep -Po "$regex" "$base_name/$PAGE" | sort | uniq)
+    [[ -n "$USECACHE" && -s "$base/$PAGE" ]] || curl -sL "$url" > "$base/$PAGE"
+    list=$(grep -Po "$regex" "$base/$PAGE" | sort | uniq)
   fi
 
   #echo $url $list; exit
@@ -155,7 +163,7 @@ while [[ $# -gt 0 ]]; do
 
     # if we haven't any files then we just try to download from it again... 
     exitcode=0
-    [[ -e $place/exit-code ]] && exitcode=$(< $place/exit-code )
+    [[ -e "$place/exit-code" ]] && exitcode=$(< $place/exit-code )
 
     # Make sure the path is full
     count=$( /bin/ls "$place" 2> /dev/null | /bin/grep -Ev '^(page.html|exit-code|album-art.jpg|domain)$' | /usr/bin/wc -l )
