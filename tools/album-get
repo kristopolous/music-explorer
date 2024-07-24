@@ -50,24 +50,24 @@ while [[ $# -gt 0 ]]; do
   # We start with a bandcamp assumption
   regex=${site_regex[bandcamp]}
   FORMAT="-f mp3-128"
-  if [[ $arg =~ \. ]]; then
-    if [[ $arg =~ archive.org ]]; then
+  if [[ "$arg" =~ \. ]]; then
+    if [[ "$arg" =~ archive.org ]]; then
       base=$(basename "$arg")
       parser="archive"
       # Do an override here.
       regex=${site_regex[archive]}
-      base_url=$arg
+      base_url="$arg"
       FORMAT=
-    elif [[ $arg =~ soundcloud.com ]]; then
+    elif [[ "$arg" =~ soundcloud.com ]]; then
       # there is no descent, we use the base
       list=($arg)
       base=$(basename "$arg")
-      domain=$arg
+      domain="$arg"
       always_attempt=1
-      base_url=$arg
+      base_url="$arg"
       FORMAT=
     # This means we are getting a single album
-    elif [[ $arg =~ bandcamp.com/album/ ]]; then
+    elif [[ "$arg" =~ bandcamp.com/album/ ]]; then
       eval $(echo $arg | awk -F\/ ' { sub(/\..*/,"",$3);print "base="$3";list=/"$(NF-1)"/"$NF }')
       base_url=$base.bandcamp.com
     elif [[ -n "$2" ]]; then 
@@ -77,9 +77,20 @@ while [[ $# -gt 0 ]]; do
       shift
     else 
       base=$( echo $arg | sed -n 's/\..*$//p' )
-      base_url=$arg
+      base_url="$arg"
     fi
     extra=
+  # We are looking for a path with a domain file already there
+  # This doesn't really work but here's a workaround
+  #
+  # mpv-lib single_album some_url
+  #
+  # And it dumps it in the current directory
+  #
+  elif [[ "$arg" =~ '/' && -d "$base_path/$arg" ]]; then 
+    echo hi
+    base="$arg"
+    list=$(< $arg/domain )
   else
     base=$arg
     base_url=$base.bandcamp.com
@@ -107,7 +118,7 @@ while [[ $# -gt 0 ]]; do
     echo "♫ $base_name ♫ ($ttl)"
   fi
 
-  url=$base_url/$extra
+  url="$base_url/$extra"
   [[ $url =~ http ]] || url=https://$url
 
   list=${list:-$(curl -sL $url | grep -Po $regex | sort | uniq )}

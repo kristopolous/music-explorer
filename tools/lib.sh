@@ -714,6 +714,7 @@ get_mp3s() {
 }
 
 single_album() {
+  echo "$1" > domain
   get_mp3s "$1" "$(pwd)"
   get_page "$(pwd)"
 }
