@@ -18,7 +18,7 @@ if [[ $# = 0 ]]; then
       # it DOES NOT loop, it reruns it every time
       #
       # If we just cycle through the labels with no update you'll
-      # eventually get a 429 so wee need to use our backoff strategy
+      # eventually get a 429 so we need to use our backoff strategy
       now=$(date +%s)
       
       if (( now - lastrun < SLEEP_MIN )); then
@@ -161,11 +161,16 @@ while [[ $# -gt 0 ]]; do
           echo -e "\t$release_date is in the past"
 
           # Second confirmation.
-          page_download_date=$(stat -c %Z  "$place/$PAGE")
+          # We are trying to get the minvalue of the mtime and ctime. 
+          # mtime can be < ctime, who knew?
+          page_download_date=$(xargs -n1 <<< "$(stat -c %Z "$place/$PAGE") $(stat -c %Y "$place/$PAGE")" | sort -n | head -n 1)
 
-          ## we'll add a couple day buffer to the relase date for timezones and delays
-          if [[ $page_download_date -gt $(( release_date_unix + 172800 )) ]]; then
-            echo -e "\tHOWEVER, $PAGE is newer than that date"
+          ## we'll add a couple weeks buffer because sometimes people release things
+          ## gradually overtime This is seconds in day * days
+          buffer_days=21
+          buffer=$(( 86400 * buffer_days ))
+          if [[ $page_download_date -gt $(( release_date_unix + buffer )) ]]; then
+            echo -e "\tHOWEVER, $PAGE is newer than that date + $buffer_days day(s)"
           else
             force_try=0
             _rm "$place/no-files"
