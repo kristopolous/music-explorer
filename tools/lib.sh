@@ -64,7 +64,7 @@ debug() { [[ -n "$DEBUG" ]] && echo -e "\t$1"; }
 purge() { album_purge "CLI" "$1"; }
 hr()    { echo; printf '\xe2\x80\x95%.0s' $( seq 1 $(tput cols) ); echo; }
 quit()  { echo "$1"; exit; }
-check_for_stop() { [[ -e $STOPFILE ]] && quit "Stopping because $STOPFILE exists"; }
+check_for_stop() { [[ -e $STOPFILE && -z "$IGNORESTOP" ]] && quit "Stopping because $STOPFILE exists"; }
 stop() { touch $STOPFILE; echo "Unstop by running $(basename $0) unstop"; }
 unstop() { rm $STOPFILE; echo "Unstopped"; }
 
