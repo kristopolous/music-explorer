@@ -9,9 +9,9 @@ gen_playlist() {
   dbg "truncating"
   truncate --size 0 playlist.txt
   dbg "recreating"
-  grep rating_5 "$music_dir"/.listen_done | sort | cut -f 1 -d ' ' | while read i
+  grep rating_5 "$music_dir".listen_done | sort | cut -f 1 -d ' ' | while read i
   do
-    ls "$music_dir"/$i/*.mp3 >> playlist.txt
+    ls "$music_dir"$i/*.mp3 >> playlist.txt
   done
   dbg "playlist done"
 }
@@ -19,7 +19,7 @@ gen_playlist() {
 copy_songs() {
   # get just the paths
   dbg "copying songs"
-  grep rating_5 "$music_dir"/.listen_done | sort | cut -f 1 -d ' ' | uniq | awk '{ print "'$music_dir'"$0 }' | while read remotepath; do
+  grep rating_5 "$music_dir".listen_done | sort | cut -f 1 -d ' ' | uniq | awk '{ print "'$music_dir'"$0 }' | while read remotepath; do
     localpath="$(echo "$remotepath" | sed "s/raid-real/raid/")"
     if [[ ! -d "$localpath" ]];then 
       mkdir -p "$localpath"
@@ -79,7 +79,7 @@ ENDL
 } >& /dev/null
 }
 
-as_csv() {
+create_db() {
   truncate --size 0 playlist.db
   sqlite3 playlist.db << ENDL
   create table tracks(
@@ -103,8 +103,7 @@ create index release_name on tracks(release);
 ENDL
 }
 
-#create_db
-
+create_db
 gen_playlist
 copy_songs
 import_todb
