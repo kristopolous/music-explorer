@@ -1,10 +1,15 @@
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 FULLALBUM=1
+
+# Setting this will allow you to bypass the curl for releases
+# by using the cached version for the label. 
+#USECACHE=
 . $DIR/lib.sh
 
 declare -i TTL=0
 declare -A site_regex
+
 [[ -n "$DEBUG" ]] && set -x
 
 site_regex[bandcamp]='(?<=("|;))[\-\w:\/\.]+(?<=(album|track)\/)[^\&?'"'"'"]*' 
@@ -14,22 +19,24 @@ if [[ $# = 0 ]]; then
   export COUNTFILE=$(mktemp)
 
   for i in $(ls); do
-    if [[ -d $i ]]; then
+    if [[ -d "$i" ]]; then
       # it DOES NOT loop, it reruns it every time
       #
       # If we just cycle through the labels with no update you'll
       # eventually get a 429 so we need to use our backoff strategy
-      now=$(date +%s)
-      
-      if (( now - lastrun < SLEEP_MIN )); then
-        ttl=$(( SLEEP_MIN - (now - lastrun) ))
-        echo "  !! Moving too quickly, sleeping $ttl seconds"
-        sleep $ttl
+      #
+      # The one exception is if we use the cache
+      if [[ -z "$USECACHE" || ! -e "$i/$PAGE" ]]; then
+        now=$(date +%s)
+        if (( now - lastrun < SLEEP_MIN )); then
+          ttl=$(( SLEEP_MIN - (now - lastrun) ))
+          echo "  !! Moving too quickly, sleeping ${ttl}s"
+          sleep $ttl
+        fi
+        lastrun=$now
       fi
 
-      lastrun=$now
-
-      ${BASH_SOURCE[0]} $i
+      ${BASH_SOURCE[0]} "$i"
       check_for_stop
       TTL+=$(< $COUNTFILE )
     fi
@@ -68,15 +75,15 @@ while [[ $# -gt 0 ]]; do
       FORMAT=
     # This means we are getting a single album
     elif [[ "$arg" =~ bandcamp.com/album/ ]]; then
-      eval $(echo $arg | awk -F\/ ' { sub(/\..*/,"",$3);print "base="$3";list=/"$(NF-1)"/"$NF }')
-      base_url=$base.bandcamp.com
+      eval $(echo "$arg" | awk -F\/ ' { sub(/\..*/,"",$3);print "base="$3";list=/"$(NF-1)"/"$NF }')
+      base_url="$base.bandcamp.com"
     elif [[ -n "$2" ]]; then 
       base="$2" 
-      domain=$arg
-      base_url=$arg
+      domain="$arg"
+      base_url="$arg"
       shift
     else 
-      base=$( echo $arg | sed -n 's/\..*$//p' )
+      base=$( echo "$arg" | sed -n 's/\..*$//p' )
       base_url="$arg"
     fi
     extra=
@@ -90,24 +97,24 @@ while [[ $# -gt 0 ]]; do
   elif [[ "$arg" =~ '/' && -d "$base_path/$arg" ]]; then 
     echo hi
     base="$arg"
-    list=$(< $arg/domain )
+    list=$(< "$arg/domain" )
   else
-    base=$arg
-    base_url=$base.bandcamp.com
+    base="$arg"
+    base_url="$base.bandcamp.com"
     extra=music
   fi
   shift
 
-  _mkdir $base
+  _mkdir "$base"
 
-  base_name=$base
-  if [[ -e $base/domain ]]; then
-    base_url=$(< $base/domain )
-    base_name=$base_url
+  base_name="$base"
+  if [[ -s "$base/domain" ]]; then
+    base_url=$(< "$base/domain" )
+    base_name="$base_url"
   elif [[ -n "$domain" ]]; then
-    echo $base_url > $base/domain
+    echo "$base_url" > "$base/domain"
   fi
-  ttl=$(ls $base | grep -v domain | wc -l)
+  ttl=$(ls "$base" | grep -v domain | wc -l)
 
   starting_point="$PWD/$base"
 
@@ -119,15 +126,18 @@ while [[ $# -gt 0 ]]; do
   fi
 
   url="$base_url/$extra"
-  [[ $url =~ http ]] || url=https://$url
+  [[ "$url" =~ http ]] || url="https://$url"
 
-  list=${list:-$(curl -sL $url | grep -Po $regex | sort | uniq )}
+  if [[ -z "$list" ]]; then
+    [[ -n "$USECACHE" && -s "$base_name/$PAGE" ]] || curl -sL "$url" > "$base_name/$PAGE"
+    list=$(grep -Po "$regex" "$base_name/$PAGE" | sort | uniq)
+  fi
 
   #echo $url $list; exit
   # If we didn't get anything then the domain is "probably" gone, let's record that.
   if [[ -z "$list" ]]; then
     echo "  !! ~~~ $base @ $url Disappeared! ~~~" 
-    echo $url $base $(date +%Y%m%d) >> "$base_path/.dl_failure"
+    echo "$url $base $(date +%Y%m%d)" >> "$base_path/.dl_failure"
   fi
 
   for full in $list; do
@@ -205,7 +215,7 @@ while [[ $# -gt 0 ]]; do
         url=https://$base_url$full
       fi
       echo "  ⇩ $url"
-      echo $url > "$place"/domain
+      echo "$url" > "$place"/domain
 
       [[ -e "$place"/no-files ]] && continue
 
