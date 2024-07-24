@@ -15,6 +15,20 @@ if [[ $# = 0 ]]; then
 
   for i in $(ls); do
     if [[ -d $i ]]; then
+      # it DOES NOT loop, it reruns it every time
+      #
+      # If we just cycle through the labels with no update you'll
+      # eventually get a 429 so wee need to use our backoff strategy
+      now=$(date +%s)
+      
+      if (( now - lastrun < SLEEP_MIN )); then
+        ttl=$(( SLEEP_MIN - (now - lastrun) ))
+        echo "  !! Moving too quickly, sleeping $ttl seconds"
+        sleep $ttl
+      fi
+
+      lastrun=$now
+
       ${BASH_SOURCE[0]} $i
       check_for_stop
       TTL+=$(< $COUNTFILE )
@@ -99,6 +113,12 @@ while [[ $# -gt 0 ]]; do
   list=${list:-$(curl -sL $url | grep -Po $regex | sort | uniq )}
 
   #echo $url $list; exit
+  # If we didn't get anything then the domain is "probably" gone, let's record that.
+  if [[ -z "$list" ]]; then
+    echo "  !! ~~~ $base @ $url Disappeared! ~~~" 
+    echo $url $base $(date +%Y%m%d) >> "$base_path/.dl_failure"
+  fi
+
   for full in $list; do
     check_for_stop
     # sometimes we get x-dom references, sometimes it's relevant. We resolve that below.
