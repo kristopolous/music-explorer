@@ -1,6 +1,7 @@
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 FULLALBUM=1
+final_judgement=
 
 # Setting this will allow you to bypass the curl for releases
 # by using the cached version for the label. 
@@ -149,10 +150,22 @@ while [[ $# -gt 0 ]]; do
   fi
 
   for full in $list; do
-    check_for_stop
-    # sometimes we get x-dom references, sometimes it's relevant. We resolve that below.
     release=$(basename "$full")
     place="$starting_point/$release"
+
+    if [[ -e "$place/no" ]]; then 
+      #echo   "     $release"
+      continue
+      # Pay attention to the -s, essentially we 
+      # make a final judgement below if there's really
+      # no files.
+    elif [[ -s "$place/no-files" ]]; then
+      echo   "  0  $release"
+      continue
+    fi
+
+    check_for_stop
+    # sometimes we get x-dom references, sometimes it's relevant. We resolve that below.
     isnew=
     manual_pull_flag=
 
@@ -169,12 +182,7 @@ while [[ $# -gt 0 ]]; do
     count=$( /bin/ls "$place" 2> /dev/null | /bin/grep -Ev '^(page.html|exit-code|album-art.jpg|domain)$' | /usr/bin/wc -l )
 
     # [[ "$count" = "1" ]] && [[ ! -e "$place"/no ]] && ls "$place/"
-    if [[ -e "$place/no" ]]; then 
-      printf "  -  "
-    else
-      printf "  %-2d " $count 
-    fi
-    echo $release
+    printf "  %-2d %s\n" $count $release
 
     force_try=
     if [[ -n "$always_attempt" || ( $count -lt 4 && -e "$place/$PAGE" ) ]]; then
@@ -202,6 +210,9 @@ while [[ $# -gt 0 ]]; do
             echo -e "\tHOWEVER, $PAGE is newer than that date + $buffer_days day(s)"
           else
             force_try=0
+            final_judgement=0
+            ## This isn't smart because it forces a check every time.
+            # Sometimes there's honestly, truly no files.
             _rm "$place/no-files"
           fi
         else
@@ -235,10 +246,16 @@ while [[ $# -gt 0 ]]; do
         manual_pull_flag=0
 
         # we put in some kind of backoff strategy
-        sleep 2
+        sleep $SLEEP_MIN
         track_count=$( $YTDL -i $FORMAT -g -- "$url" | wc -l )
         if [[ "$track_count" = "0" ]]; then
           echo "  ( no files )"
+          if [[ -n "$final_judgement" ]] ; then
+            final_judgement=
+            # We give the no-files a non-zero size to tell 
+            # us to REALLY go away
+            echo "." > "$place"/no-files
+          fi
           touch "$place"/no-files
           continue
         fi

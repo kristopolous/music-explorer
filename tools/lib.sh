@@ -39,8 +39,8 @@ YTDL=${YTDL:=yt-dlp}
 FORMAT="-f mp3-128"
 
 # These are finer options for scraping that tries to not be too greedy
-SLEEP_MIN=3
-SLEEP_MAX=10
+SLEEP_MIN=2
+SLEEP_MAX=7
 SLEEP_OPTS="--max-sleep-interval $SLEEP_MAX --min-sleep-interval $SLEEP_MIN"
 
 # We can optimize things if we assume there's no such things as a playlist that
@@ -453,6 +453,7 @@ _ytdl () {
       $FORMAT -- "$url"
     
     local ec=$?
+
     if [[ $ec -ne 0 ]]; then
 
       status "Checking $url"
