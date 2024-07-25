@@ -10,7 +10,7 @@ var
   _DOM = {},
   _lock = {},
   path_to_url = str => 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1],
-  remote = (append = []) => fetch("get_playlist.php?" + [ `q=${_qstr}`, `release=${_my.release}`, `label=${_my.label}`, ...append ].join('&')).then(response => response.json()),
+  remote = (append = []) => fetch("get_playlist.php?" + [ _level == 5 ? "chrono=true" : "", `q=${_qstr}`, `release=${_my.release}`, `label=${_my.label}`, ...append ].join('&')).then(response => response.json()),
   lookup = play => _db[play.path] ?
     new Promise(r => r(_db[play.path])) :
     fetch(`url2mp3.php?q=${_level}&path=${encodeURIComponent(play.path)}&u=${path_to_url(play.path)}`)
@@ -29,6 +29,7 @@ function parsehash() {
   _qstr = hash[3] || '';
   _level = hash[4] || 2;
   document.body.className = "q" + _level;
+  document.querySelectorAll('input[name="format"]')[_level].checked = true
   return hash[2];
 }
 
@@ -161,10 +162,17 @@ function d(skip, orig) {
   }
 }
 
+function setLevel(what) {
+  _level = what;
+  _DOM.search.value = '';
+  _db = {};
+  document.body.className = "q" + _level;
+}
+
 window.onload = () => {
   parsehash();
 
-  'player if0 if1 label release top list nav navcontrols search track controls'.split(' ').forEach(
+  'prefs player if0 if1 label release top list nav navcontrols search track controls'.split(' ').forEach(
     what => _DOM[what] = document.querySelector(`#${what}`)
   );
 
@@ -205,10 +213,7 @@ window.onload = () => {
         if (_DOM.search.value[0] == ':'){
           if (_DOM.search.value.length > 1) {
             if(_DOM.search.value[1] >= '0' && _DOM.search.value[1] <= '9') {
-              _level = parseInt(_DOM.search.value[1], 10);
-              _DOM.search.value = '';
-              _db = {};
-              document.body.className = "q" + _level;
+              setLevel( +_DOM.search.value[1] );
             }
           }
         } else {
@@ -227,9 +232,17 @@ window.onload = () => {
       what.parentNode.childNodes.forEach(m => m.className = '');
       what.className = 'selected';
     }
+    if(_tab == "prefs") {
+      _DOM.list.innerHTML = '';
+      _DOM.list.appendChild( _DOM.prefs );
+      return;
+    }
 
     remote([ `action=${_tab}` ])
       .then(data => {
+				try {
+					_DOM.list.removeChild(_DOM.list.firstElementChild);
+				}catch(e) { } 
         _DOM.list.innerHTML = '';
         _DOM.list.append(...data.sort().map((obj,ix) => {
             let l = Object.assign(document.createElement('li'), {innerHTML: obj.track || obj, obj, ix});
@@ -249,7 +262,11 @@ window.onload = () => {
 
   _DOM.list.onclick = e => {
     let ix = 0;
-    if(e.target.tagName == 'LI'){
+    if(e.target.tagName == 'INPUT'){
+			if(e.target.name == "format") {
+        setLevel( +e.target.value );
+      }
+    } else if(e.target.tagName == 'LI'){
       if(_tab === 'track') {
         ix = e.target.ix;
         _my = e.target.obj;

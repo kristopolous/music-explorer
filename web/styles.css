@@ -1,3 +1,11 @@
+/* Here's the palette
+   #f1f3f4;
+   #ebebeb;
+   #888888;
+   #303030;
+   #201e1e;
+	 #1f1f1f
+*/
 body {
   font-family: 'BenchNine', sans-serif;
   background: black;
@@ -16,6 +24,10 @@ body {
 }
   
 *:focus {outline: none}
+
+#templates { 
+  display: none
+}
 
 #controls > div { 
   display: inline-block;
@@ -58,6 +70,16 @@ audio {
   left: 0px;
   top: -126px;
 } 
+
+fieldset {
+  color: #888888;
+	border-color: #303030;
+	border-style: solid;
+	border-width: 1px;
+}
+fieldset input[type="radio"]:checked+label{
+ 	color: #ebebeb;
+}
 
 .q0 audio, .q1 audio {
   top: -66px;
@@ -161,8 +183,7 @@ li.selected {
   line-height: .5rem;
   font-family: monospace;
   user-select: none;
-  background:#333;
-
+  background: #303030;
   width:1rem;
 }
 #track div {
@@ -199,10 +220,10 @@ li.selected {
 #navcontrols a {
   display: inline-block;
   font-size: 1rem;
-  width: 33%;
+  width: 25%;
 }
 #navcontrols a.selected {
-  box-shadow: 0px -2px 0px 2px #1f1f1f;
+  box-shadow: 0px 2px 0px 2px inset #1f1f1f;
   background: black;
 }
 #list {
@@ -222,4 +243,7 @@ li.selected {
   white-space: nowrap;
   overflow: hidden;
   border-bottom: 1px solid #1f1f1f;
+}
+#list input {
+	width: auto;
 }

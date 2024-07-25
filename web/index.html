@@ -2,7 +2,7 @@
 <meta name=viewport content="width=device-width, initial-scale=1.0"/>
 <link rel=preconnect href=https://fonts.gstatic.com>
 <link rel=stylesheet href=https://fonts.googleapis.com/css2?family=BenchNine:wght@300;400;700&display=swap>
-<link rel=stylesheet href=styles.css?2>
+<link rel=stylesheet href=styles.css?c>
 
 <main>
   <div id=top>
@@ -12,6 +12,7 @@
         <a>label</a>
         <a>release</a>
         <a class=selected>track</a>
+        <a>prefs</a>
       </div>
       <ul id=list />
     </div>
@@ -42,4 +43,38 @@
   </div>
 </main>
 
-<script src=scripts.js?a></script>
+<div id="templates">
+  <div id="prefs">
+		<fieldset>
+			<legend>Format</legend>
+			<div>
+				<input type="radio" id="opus" name="format" value="0" />
+				<label for="opus">Opus 15k</label>
+			</div>
+
+			<div>
+				<input type="radio" id="heaac" name="format" value="1" />
+				<label for="heaac">HE-AAC+ 32k</label>
+			</div>
+
+			<div>
+				<input type="radio" id="mp3" name="format" value="2" />
+				<label for="mp3">MP3 128k</label>
+			</div>
+		</fieldset>
+		<fieldset>
+			<legend>Order</legend>
+			<div>
+				<input type="radio" id="chrono" name="order" value="chrono" />
+				<label for="chrono">Chronological</label>
+			</div>
+
+			<div>
+				<input type="radio" id="rand" name="order" value="rand" />
+				<label for="rand">Random</label>
+			</div>
+		</fieldset>
+	</div>
+</div>
+
+<script src=scripts.js?c></script>
