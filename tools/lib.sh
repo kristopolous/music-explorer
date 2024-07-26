@@ -25,6 +25,9 @@ NONET=${NONET:=}
 # If set, won't do "expensive" network file system operations 
 NOSCAN=${NOSCAN:=}
 
+# Performance monitor
+TIMEIT=${TIMEIT:=}
+
 # If set, don't copy the tracks for an undro of a purge (removal)
 NOUNDO=${NOUNDO:=}
 
@@ -53,20 +56,42 @@ PAGE=page.html
 STOPFILE=$tmp/mpvstop
 start_dir=$( pwd )
 direct=
+declare -A _doc
 
 # some simple things first.
+_doc['_rm']="(internal)"
 _rm ()  { [[ -e "$1" ]] && rm "$1"; }
+
+_doc['_mkdir']="(internal)"
 _mkdir(){ [[ -e "$1" ]] || mkdir -p "$1"; }
+
+_doc['_tabs']="(internal)"
 _tabs() { tabs 2,+4,+2,+10; }
+
+_doc['_stub']="(internal)"
 _stub() { echo "$1" | tr '/' ':'; }
+
+_doc['_warn']="(internal)"
 _warn()  { echo -e "\n\t$1\n"; }
+
+_doc['info']="(internal)"
 info()  { echo -e "\t$1"; }
+
+_doc['debug']="(internal)"
 debug() { [[ -n "$DEBUG" ]] && echo -e "\t$1"; }
-purge() { album_purge "CLI" "$1"; }
+
+_doc['hr']="() generates a horizontal rule"
 hr()    { echo; printf '\xe2\x80\x95%.0s' $( seq 1 $(tput cols) ); echo; }
+
+_doc['purge']="( what ) A manual CLI way to purge an album"
+purge() { album_purge "CLI" "$1"; }
 quit()  { echo "$1"; exit; }
 check_for_stop() { [[ -e $STOPFILE && -z "$IGNORESTOP" ]] && quit "Stopping because $STOPFILE exists"; }
+
+_doc['stop']="() Stops running any mpv looped system at the next re-entrent opportunity"
 stop() { touch $STOPFILE; echo "Unstop by running $(basename $0) unstop"; }
+
+_doc['unstop']="() Unblocks things from running"
 unstop() { rm $STOPFILE; echo "Unstopped"; }
 
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh || debug "Can't find $DIR/prefs.sh"
@@ -77,11 +102,13 @@ if [[ ! -p "$tmp"/cmd_sock ]]; then
   mkfifo "$tmp"/cmd_sock
 fi
 
+_doc['finish']='Deprecated'
 function finish {
   history -w $tmp/readline-history
   exit
 }
 
+_doc['scan']='() Finds a list of files to shuffle through'
 scan()  { 
   if [[ -z "$NOSCAN" ]]; then
     echo */* | tr ' ' '\n' > $tmp/.listen_all
@@ -491,6 +518,7 @@ _url() {
   echo "https://$domain/album/$release"
 }
 
+_doc['toopus']="( dir/file ) Generates an Opus version of either a directory or file"
 toopus() {
   set -e
   in="$*"
@@ -509,6 +537,7 @@ toopus() {
   fi
 }
 
+_doc['tom5a']="( dir/file ) Generates an HE-AAC+ version of either a directory or file"
 tom5a() {
   set -e
   in="$*"
@@ -570,14 +599,15 @@ _repl() {
       b       - Set start time    [$start_time]
       filter  - Set filter        [$filter]
 
-      pl      - Toggle playlist     [${STR[${NOPL:-0}]}]
-      net     - Toggle network      [${STR[${NONET:-0}]}]
-      score   - Toggle scoring      [${STR[${NOSCORE:-0}]}]
-      prompt  - Toggle prompt       [${STR[${NOPROMPT:-0}]}]
-      debug   - Toggle debug        [${STR[${DEBUG:-1}]}]
-      scan    - Toggle rescan       [${STR[${NOSCAN:-1}]}]
-      undo    - Toggle purge backup [${STR[${NOUNDO:-0}]}]
       anno    - Toggle announce     [${STR[${NOANNOU:-0}]}]
+      debug   - Toggle debug        [${STR[${DEBUG:-1}]}]
+      net     - Toggle network      [${STR[${NONET:-0}]}]
+      pl      - Toggle playlist     [${STR[${NOPL:-0}]}]
+      prompt  - Toggle prompt       [${STR[${NOPROMPT:-0}]}]
+      scan    - Toggle rescan       [${STR[${NOSCAN:-1}]}]
+      score   - Toggle scoring      [${STR[${NOSCORE:-0}]}]
+      timer   - Toggle timing       [${STR[${TIMEIT:-1}]}]
+      undo    - Toggle purge backup [${STR[${NOUNDO:-0}]}]
 
       list    - List things in filter
 
@@ -635,6 +665,14 @@ ENDL
       eval $flag'=${base:$'$flag}
       status "${n^} ${STR[${!flag:-0}]}"
 
+    elif [[ "$n" == 'timer' ]]; then
+      if [[ -z "$TIMEIT" ]]; then 
+        TIMEIT=1
+      else
+        TIMEIT=
+      fi
+      status "Timer ${STR[${TIMEIT:-1}]}"
+
     elif [[ "$n" == 'debug' ]]; then
       if [[ -z "$DEBUG" ]]; then 
         DEBUG=0 
@@ -669,7 +707,7 @@ ENDL
         get_playlist "$t_url" "$i"
       )
 
-    elif [[ "$n" == 'r no' ]]; then
+    elif [[ "$n" =~ 'r n' ]]; then
       status "Ignoring playlist"
       nopl=1
       # We treat this like a regular replay
@@ -691,6 +729,7 @@ ENDL
   done
 }
 
+_doc['manual_pull']="( url ) url to manually pull down"
 manual_pull() {
   local path="$2"
   local base=$( echo $1 | awk -F[/:] '{print $4}' )
@@ -706,6 +745,7 @@ manual_pull() {
   pl_check "$path"
 }
 
+_doc['single_album']="( url, path ) Downloads a single album. "
 get_mp3s() {
   local url="$1"
   local path="$2"
@@ -714,12 +754,14 @@ get_mp3s() {
   get_playlist "$url" "$path"
 }
 
+_doc['single_album']="( url ) Downloads a single album via a url into the current directory"
 single_album() {
   echo "$1" > domain
   get_mp3s "$1" "$(pwd)"
   get_page "$(pwd)"
 }
 
+_doc['details']="( ) [Deprecated] grabs the pid information of a running proc to see the current stats"
 details() {
   for pid in $(pgrep -f "^mpv "); do
     current=$(lsof -F n -p $pid | grep -E mp3\$ | cut -c 2-)
@@ -745,6 +787,7 @@ details() {
   done
 }
 
+_doc['get_links']="( ) Generates the url of the level-5 listens in the listen_done"
 get_links() {
   cat .listen_done | grep rating_5 | awk ' { print $1 } ' | while read line; do
     if [[ -e $line/domain ]]; then
@@ -755,6 +798,7 @@ get_links() {
   done
 }
 
+_doc['get_videos']="( ) Gets all the videos"
 get_videos() {
   label=$1
   video_domain="https://bandcamp.23video.com"

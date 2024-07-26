@@ -14,7 +14,7 @@ if ! declare -f $1 > /dev/null; then
 
     headline 1 functions
     for i in $(declare -F | sed s/'declare -f//g' | sort); do
-      echo $i | sed 's/^/\t\t/'
+      printf "\t\t%-20s %s\n" $i "${_doc[$i]}"
     done
   fi
   exit 1

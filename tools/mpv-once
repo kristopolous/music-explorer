@@ -102,10 +102,11 @@ ix=0
 
 timeit() {
   this_ts=$(date +%s.%N)
-  #echo $(echo "$this_ts - $start;$this_ts - $last_ts" | bc -l | tr '\n' ' ')" $*"
+  [[ -n "$TIMEIT" ]] && echo $(echo "$this_ts - $start;$this_ts - $last_ts" | bc -l | tr '\n' ' ')" $*"
   last_ts=$this_ts
 }
 
+# deprecated
 iop() {
 
   coproc { 
@@ -135,42 +136,36 @@ while [[ ${#all[@]} -gt $ix ]]; do
 
   # This can potentially skip things in with a reload
   # but it's fine ... 
-  i=${all[$ix]}
-  m3u="$i/$PLAYLIST"
-
   if [[ -n "$direct" ]]; then
     i=$direct
     direct=
+  else
+    i=${all[$ix]}
   fi
-
-  iop
-
   m3u="$i/$PLAYLIST"
 
   (( ix ++ ))
+  hasm3u=
   f_count=0
+  t_count=0
   listen_time=0
 
   timeit "before record"
-  read -r -d "$delim" -u ${COPROC[0]} t_count
-  t_count=${t_count:-0}
+  t_count=$(cat "$m3u" 2> /dev/null | wc -l)
 
   # We assume the directory exists unless this fails 
   # then we question that assumption
   if [[ $t_count -gt 0 ]]; then
     hasm3u=1
-  else
-    hasm3u=
-    if [[ ! -d "$i" ]]; then
-      grep -m 1 -- "$i " $start_dir/.listen_done > /dev/null
-      # This means it's in the done but not the all, which is fine.
-      [[ $? -eq 0 ]] && continue
+  elif [[ ! -d "$i" ]]; then
+    grep -m 1 -- "$i " $start_dir/.listen_done > /dev/null
+    # This means it's in the done but not the all, which is fine.
+    [[ $? -eq 0 ]] && continue
 
-      status "Gone - $i"
-      n="__purge"
-      record_listen
-      continue;
-    fi
+    status "Gone - $i"
+    n="__purge"
+    record_listen
+    continue;
   fi
   timeit "after record"
 
@@ -181,7 +176,6 @@ while [[ ${#all[@]} -gt $ix ]]; do
     cycles=0
     url=
     while [[ 0 ]]; do
-      [[ $cycles -gt 0 ]] && iop 1
 
       (( cycles ++ ))
       n="__nothing"
@@ -190,7 +184,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
       timeit "display"
 
       if [[ -z "$url" ]]; then
-        read -r -d "$delim" -u ${COPROC[0]} url
+        url=$(< "$i"/domain)
         timeit "domain-read"
       fi
 
@@ -209,7 +203,6 @@ while [[ ${#all[@]} -gt $ix ]]; do
       if [[ -z "$NOPL" && ! "$hasm3u" && ! -e "$i"/no-files ]]; then
         if [[ -e "$i"/no ]]; then
           status "Why am I here? it's marked as no"
-          [[ -n "$COPROC_PID" ]] && kill $COPROC_PID 
           n=p
           break
         fi
@@ -226,9 +219,8 @@ while [[ ${#all[@]} -gt $ix ]]; do
           if [[ -z "$playlistIsRemote" || $(( $(date +%s) - $(stat -c %Y "$m3u") )) -lt $DAY ]]; then
             
             timeit "counter"
-            read -r -d "$delim" -u ${COPROC[0]} f_count
-            [[ -n "$COPROC_PID" ]] && kill $COPROC_PID
-            timeit "coproc"
+            flist=( "$i"/*.{mp3,ogg,m4a,m5a,flac,aiff,wav} )
+            f_count=${#flist[@]}
 
             if [[ $f_count != $t_count ]]; then
               headline 1 "Playlist has $t_count, there's $f_count here. Ignoring playlist (dir: $i)"
@@ -263,7 +255,6 @@ while [[ ${#all[@]} -gt $ix ]]; do
             ## See the lua script for how this is invoked, (as of this writing it's capital Q)
             case $player_exit in 
               13|14|15)
-                echo "HERE"
                 # 4 is what mpv does on ctrl+c
                 # so we add 10 to avoid the collision
                 n=$(( player_exit - 10 ))
@@ -312,7 +303,6 @@ while [[ ${#all[@]} -gt $ix ]]; do
 
             get_urls "$url" "$i"
             (( attempts ++ ))
-            iop 1
             continue
           fi
           break
@@ -320,7 +310,6 @@ while [[ ${#all[@]} -gt $ix ]]; do
       elif [[ -e "$i"/no-files ]]; then
 
         headline 1 "No files"
-        [[ -n "$COPROC_PID" ]] && kill $COPROC_PID; 
         ls -ltr "$i"  |  sed 's/^/\t\t/'
         n=p
         hr
