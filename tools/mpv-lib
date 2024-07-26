@@ -1,6 +1,10 @@
 #!/bin/bash
+#declare -p > 1
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . $DIR/lib.sh
+#declare -p >> 1
+#sort 1 #| uniq -u
+#exit
 
 [[ -n "$DEBUG" ]] && set -x
 
@@ -14,7 +18,7 @@ if ! declare -f $1 > /dev/null; then
 
     headline 1 functions
     for i in $(declare -F | sed s/'declare -f//g' | sort); do
-      printf "\t\t%-20s %s\n" $i "${_doc[$i]}"
+      [[ "${_doc[$i]}" =~ (internal|deprecated) ]] || printf "\t\t%-20s %s\n" $i "${_doc[$i]}"
     done
   fi
   exit 1

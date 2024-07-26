@@ -59,33 +59,37 @@ direct=
 declare -A _doc
 
 # some simple things first.
-_doc['_rm']="(internal)"
-_rm ()  { [[ -e "$1" ]] && rm "$1"; }
+_doc['_rm']="[ internal ]"
+_rm () { [[ -e "$1" ]] && rm "$1"; }
 
-_doc['_mkdir']="(internal)"
-_mkdir(){ [[ -e "$1" ]] || mkdir -p "$1"; }
+_doc['_mkdir']="[ internal ]"
+_mkdir() { [[ -e "$1" ]] || mkdir -p "$1"; }
 
-_doc['_tabs']="(internal)"
+_doc['_tabs']="[ internal ]"
 _tabs() { tabs 2,+4,+2,+10; }
 
-_doc['_stub']="(internal)"
+_doc['_stub']="[ internal ]"
 _stub() { echo "$1" | tr '/' ':'; }
 
-_doc['_warn']="(internal)"
-_warn()  { echo -e "\n\t$1\n"; }
+_doc['_warn']="[ internal ]"
+_warn() { echo -e "\n\t$1\n"; }
 
-_doc['info']="(internal)"
-info()  { echo -e "\t$1"; }
+_doc['info']="[ internal ]"
+info() { echo -e "\t$1"; }
 
-_doc['debug']="(internal)"
+_doc['debug']="[ internal ]"
 debug() { [[ -n "$DEBUG" ]] && echo -e "\t$1"; }
 
 _doc['hr']="() generates a horizontal rule"
-hr()    { echo; printf '\xe2\x80\x95%.0s' $( seq 1 $(tput cols) ); echo; }
+hr() { echo; printf '\xe2\x80\x95%.0s' $( seq 1 $(tput cols) ); echo; }
 
 _doc['purge']="( what ) A manual CLI way to purge an album"
 purge() { album_purge "CLI" "$1"; }
-quit()  { echo "$1"; exit; }
+
+_doc['quit']="[ internal ]"
+quit() { echo "$1"; exit; }
+
+_doc['check_for_stop']="[ internal ] () Sees if the stop flag has been triggered"
 check_for_stop() { [[ -e $STOPFILE && -z "$IGNORESTOP" ]] && quit "Stopping because $STOPFILE exists"; }
 
 _doc['stop']="() Stops running any mpv looped system at the next re-entrent opportunity"
@@ -102,7 +106,7 @@ if [[ ! -p "$tmp"/cmd_sock ]]; then
   mkfifo "$tmp"/cmd_sock
 fi
 
-_doc['finish']='Deprecated'
+_doc['finish']='[ deprecated ]'
 function finish {
   history -w $tmp/readline-history
   exit
@@ -122,6 +126,7 @@ scan()  {
   fi
 }
 
+_doc['ardy_serve']='() Runs the socket server for the arduino modules'
 ardy_serve() {
   [[ -e $tmp/ardy_socket ]] && rm $tmp/ardy_socket
   mkfifo $tmp/ardy_socket
@@ -135,6 +140,7 @@ ardy_serve() {
   done
 }
 
+_doc["breaker"]="[ internal ] () Generates that beep/boop sound at the end of the release"
 breaker() {
   if [[ ! -e $tmp/breaker.mp3 ]]; then 
     for freq in 660 1 500; do
@@ -162,6 +168,7 @@ ardy_stat() {
   } > $tmp/ardy_socket
 }
 
+_doc['announce']="[ internal ] Puts up the next track to an active X display through aosd_cat and sends it off to an arduino socket"
 announce() {
   [[ -n "$NOANNOU" ]] && echo "$*" | aosd_cat -p 2  -n "Noto Sans Condensed ExtraBold 150" -R white -f 1000 -u 15000 -o 2000 -x -20 -y 20 -d 50 -r 190 -b 216 -S black -e 2 -B black -w 3600 -b 200&
   IFS="-"
@@ -170,6 +177,7 @@ announce() {
   unset IFS
 }
 
+_doc['headline']="[ internal ] Formatting"
 headline() {
   [[ $1 == "3" ]] && echo -e "\n\t$2"
   [[ $1 == "2" ]] && echo -e "\n\t\033[1m$2\033[0m" 
@@ -179,6 +187,7 @@ headline() {
   fi
 }
 
+_doc['status']="[ internal ] Formatting"
 status() {
   [[ -n "$2" ]] && echo
   echo -e "\t\t$1"
@@ -191,6 +200,7 @@ backup() {
   debug "Backing up to $BACKUPDIR/$backupname"
 }
 
+_doc['album_art']="() Looks for the album-art jpeg and downloads it if avilable"
 album_art() {
   for i in */*; do
     [[ ! -d "$i" ]] && continue
@@ -283,6 +293,7 @@ get_urls() {
   fi
 }
 
+_doc['album_purge']="( META, path ) Removes an album, creating an optional backup and records the source as META"
 album_purge() {
   local info="$1"
   local path="$2"
@@ -301,6 +312,7 @@ album_purge() {
   fi
 }
 
+_doc['unpurge']="( path ) Assuming backups were enabled, undoes an album_purge"
 unpurge() {
   [[ -e $UNDODIR/"$1" ]] && mv $UNDODIR/"$1"/* "$1"
   _rm "$1"/no 
@@ -354,6 +366,7 @@ get_page() {
   fi
 }
 
+_doc['open_page']="[ internal ] Allows the release page to be opened in a browser from the lua attached to mpv"
 open_page() {
   [[ -z "$DISPLAY" ]] && export DISPLAY=:0
   if [[ $1 =~ http ]]; then
@@ -413,6 +426,7 @@ get_playlist() {
   [[ -n "$failed" ]] && status "Look in $PLAYLIST_DBG\n"
 }
 
+_doc['_info_section']="[ internal ]"
 _info_section()  {
   local count=$(echo "$2" | wc -l)
   headline 2 "$count $1"
@@ -437,7 +451,7 @@ cat >> .share_list << END
 END
 }
 
-
+_doc['_info']="( path ) The verbose info on a release"
 _info () {
   local path="$1"
   local url=$(resolve "$path")
@@ -503,6 +517,7 @@ _ytdl () {
   check_for_stop
 }
 
+_doc['_parse']="[ internal ]"
 _parse() {
   _fn=$1
   shift
@@ -565,6 +580,7 @@ _trackpath() {
   <$base/page.html tr '\n' ' ' | grep -Po '(?<=script type="application.ld.json">)(.*?)(?=</scr)'  | jq ".track.itemListElement[] |select(.item.name==\"$title\")|.item[\"@id\"]" | tr -d '"'
 }
 
+_doc['_repl']="[ internal ] The main REPL"
 _repl() {
   while [[ -z "$NOPROMPT" && -z "$skipprompt" ]]; do 
     echo -n "[$i] " 
@@ -761,7 +777,7 @@ single_album() {
   get_page "$(pwd)"
 }
 
-_doc['details']="( ) [Deprecated] grabs the pid information of a running proc to see the current stats"
+_doc['details']="[ deprecated ] () Grabs the pid information of a running proc to see the current stats"
 details() {
   for pid in $(pgrep -f "^mpv "); do
     current=$(lsof -F n -p $pid | grep -E mp3\$ | cut -c 2-)
@@ -787,7 +803,7 @@ details() {
   done
 }
 
-_doc['get_links']="( ) Generates the url of the level-5 listens in the listen_done"
+_doc['get_links']="() Generates the url of the level-5 listens in the listen_done"
 get_links() {
   cat .listen_done | grep rating_5 | awk ' { print $1 } ' | while read line; do
     if [[ -e $line/domain ]]; then
@@ -798,7 +814,7 @@ get_links() {
   done
 }
 
-_doc['get_videos']="( ) Gets all the videos"
+_doc['get_videos']="() Gets all the videos"
 get_videos() {
   label=$1
   video_domain="https://bandcamp.23video.com"

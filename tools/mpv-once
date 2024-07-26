@@ -311,7 +311,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
 
         headline 1 "No files"
         ls -ltr "$i"  |  sed 's/^/\t\t/'
-        n=p
+        n=s
         hr
         break
       else 
