@@ -36,13 +36,20 @@ convert_songs() {
   dbg "converting songs"
   truncate --size 0 conv_update.sql
   local n=0
-  sqlite3 playlist.db "select path from tracks where converted = false" > conv_list.txt
+  sqlite3 playlist.db "select path from tracks where converted is not true" > conv_list.txt
   cat conv_list.txt | while read p; do
     if [[ ! -s "$p" ]]; then
       echo "path $p doesn't exist"
     else 
-      mpv-lib toopus "$p"
-      mpv-lib tom5a "$p"
+      mpv-lib toopus "$p" &
+      pid_opus=$!
+
+      mpv-lib tom5a "$p" &
+      pid_m5a=$!
+
+      wait $pid_opus
+      wait $pid_m5a
+
       path_m5a="${p/.mp3/.m5a}"
       path_opus="${p/.mp3/.opus}"
 
@@ -103,7 +110,7 @@ create index release_name on tracks(release);
 ENDL
 }
 
-create_db
+#create_db
 gen_playlist
 copy_songs
 import_todb
