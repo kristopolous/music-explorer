@@ -129,7 +129,7 @@ while [[ $# -gt 0 ]]; do
 
   if [[ -f "$starting_point/no" ]]; then
     echo "! $base_name purged"
-    exit 0
+    continue
   else
     echo "♫ $base_name ♫ ($ttl)"
   fi
