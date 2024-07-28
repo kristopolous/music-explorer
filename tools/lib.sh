@@ -54,7 +54,9 @@ PLAYLIST=playlist.m3u
 PLAYLIST_DBG=
 PAGE=page.html
 STOPFILE=$tmp/mpvstop
+RELOADFILE=$tmp/reloadlib
 start_dir=$( pwd )
+start_time=$( date +%s )
 direct=
 declare -A _doc
 
@@ -90,10 +92,26 @@ _doc['quit']="[ internal ]"
 quit() { echo "$1"; exit; }
 
 _doc['check_for_stop']="[ internal ] () Sees if the stop flag has been triggered"
-check_for_stop() { [[ -e $STOPFILE && -z "$IGNORESTOP" ]] && quit "Stopping because $STOPFILE exists"; }
+check_for_stop() { 
+  if [[ -e $STOPFILE && -z "$IGNORESTOP" ]]; then
+    stoptime=$( < $STOPFILE )
+    [[ $stoptime -gt $start_time ]] && quit "Stopping because $STOPFILE exists and I started before that";
+  fi
+}
+
+_doc['check_for_reload']="[ internal ] () Reloads the lib.sh for long term running procs"
+check_for_reload() {
+  if [[ -e $RELOADFILE ]]; then
+    reloadtime=$( < $RELOADFILE )
+    [[ $reloadtime -gt $start_time ]]; then
+      source $DIR/lib.sh
+      $start_time=$reloadtime
+    fi
+  fi
+}
 
 _doc['stop']="() Stops running any mpv looped system at the next re-entrent opportunity"
-stop() { touch $STOPFILE; echo "Unstop by running $(basename $0) unstop"; }
+stop() { echo $(date +%s) > $STOPFILE; echo "Unstop by running $(basename $0) unstop"; }
 
 _doc['unstop']="() Unblocks things from running"
 unstop() { rm $STOPFILE; echo "Unstopped"; }
