@@ -101,11 +101,11 @@ check_for_stop() {
 
 _doc['check_for_reload']="[ internal ] () Reloads the lib.sh for long term running procs"
 check_for_reload() {
-  if [[ -e $RELOADFILE ]]; then
-    reloadtime=$( < $RELOADFILE )
-    [[ $reloadtime -gt $start_time ]]; then
-      source $DIR/lib.sh
-      $start_time=$reloadtime
+  if [[ -e "$RELOADFILE" ]]; then
+    reloadtime=$( < "$RELOADFILE" )
+    if [[ "$reloadtime" -gt "$start_time" ]]; then
+      source "$DIR/lib.sh"
+      $start_time="$reloadtime"
     fi
   fi
 }
@@ -211,6 +211,7 @@ status() {
   echo -e "\t\t$1"
 }
 
+_doc['backup']="() Backs up the important listen record files to a date based timestamp"
 backup() {
   _mkdir $BACKUPDIR
   backupname=$(date +%Y%m%d).tbz
@@ -251,6 +252,7 @@ check_url() {
   fi
 }
 
+_doc['unlistened']="( filter ) List the unlistened releases with an optional regex filter"
 unlistened() {
   local filter=${1:-.}
   [[ $filter == '.' ]] && cmd=cat || cmd="grep -hE $filter" 
