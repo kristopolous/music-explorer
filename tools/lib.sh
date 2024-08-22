@@ -451,6 +451,37 @@ _info_section()  {
   echo "$2"
 }
 
+_doc['record_listen']="( release, score, stats, source ) Record a listen and backup the db"
+record_listen() {
+  local i="$1"
+  local n="$2"
+  local stats="$3"
+  local me="${4:-_me}"
+
+  local lock="$tmp/backup-lock"
+  cp $start_dir/.listen_done $tmp/.listen_done-$(date +%Y%m%d%H%M%S)
+
+  # Remove any previous record of this
+  st=$( echo "$i" | tr '//' '.' )
+  sed -Ei "/^$st\ /d" $start_dir/.listen_done
+
+  # Also record how many audio files we saw at the time
+  echo "$i $n ($stats) $me $(date +%Y%m%d)" >> $start_dir/.listen_done
+
+  # If we do this too frequently it's pretty broken
+  # But we also have to be smart enough to not block us out
+  if [[ -e "$lock" ]]; then
+    local age=$(( $( date +%s ) - $(stat -c %Y "$lock") ))
+    (( age > 86400 )) && rm $lock
+  fi
+
+  if [[ -z "$NOSCORE" && ! -e "$lock" ]]; then
+    touch "$lock"
+    backup 
+  fi
+}
+
+_doc['_trinfo']="() A tool that records the current release info to display remotely"
 _trinfo() {
   local path=$(dirname "$1")
   local len=$2
@@ -502,6 +533,7 @@ _info () {
   echo
 }
 
+_doc['_ytdl']="(url, path) The wrapper function around the music-getting-tool (such as yt-dlp)"
 _ytdl () {
   if [[ -z "$NONET" ]]; then
     local url="$1"
@@ -542,6 +574,7 @@ _parse() {
   _arg=$1
 }
 
+_doc['_url']="( path ) Get the source url of a given release path"
 _url() {
   local domain
   local release
@@ -589,6 +622,7 @@ tom5a() {
   fi
 }
 
+_doc['_trackpath']="( path ) Try to get the track info from a given path"
 _trackpath() {
   # first we have to extract the title
   local path="$@"

@@ -49,35 +49,6 @@ function load_tracks() {
   [[ -n "$1" ]] && echo $size
 }
 
-function record_listen() {
-  local lock="$tmp/backup-lock"
-  #if [[ "$n" != "__nothing" ]]; then 
-    #{
-      cp $start_dir/.listen_done $tmp/.listen_done-$(date +%Y%m%d%H%M%S)
-
-      # Remove any previous record of this
-      st=$( echo "$i" | tr '//' '.' )
-      sed -Ei "/^$st\ /d" $start_dir/.listen_done
-
-      # Also record how many audio files we saw at the time
-      echo "$i $n ($_stats) $_me $(date +%Y%m%d)" >> $start_dir/.listen_done
-
-      set +x
-      # If we do this too frequently it's pretty broken
-      # But we also have to be smart enough to not block us out
-      if [[ -e "$lock" ]]; then
-        local age=$(( $( date +%s ) - $(stat -c %Y "$lock") ))
-        (( age > 86400 )) && rm $lock
-      fi
-
-      if [[ -z "$NOSCORE" && ! -e "$lock" ]]; then
-        touch "$lock"
-        backup 
-      fi
-      set +x
-    #} &
-  #fi
-}
 
 function playit() {
   [[ $# == 0 ]] && return -10
@@ -164,7 +135,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
 
     status "Gone - $i"
     n="__purge"
-    record_listen
+    record_listen "$i" "$n" "$_stats" "$_me"
     continue;
   fi
   timeit "after record"
@@ -383,5 +354,5 @@ while [[ ${#all[@]} -gt $ix ]]; do
   nopl=
   auto=
   skipprompt=
-  [[ -z "$NOSCORE" ]] && record_listen
+  [[ -z "$NOSCORE" ]] && record_listen "$i" "$n" "$_stats" "$_me"
 done
