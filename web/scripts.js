@@ -6,11 +6,14 @@ var
   _db = {},
   _tab = 'track',
   _if,
+  // 0: opus
+  // 1: heaac
+  // 2: mp3
   _level = 2,
   _DOM = {},
   _lock = {},
   path_to_url = str => 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1],
-  remote = (append = []) => fetch("get_playlist.php?" + [ _level == 5 ? "chrono=true" : "", `q=${_qstr}`, `release=${_my.release}`, `label=${_my.label}`, ...append ].join('&')).then(response => response.json()),
+  remote = (append = []) => fetch("get_playlist.php?" + [ _level == 5 ? "chrono=true" : `level=${_level}`, `q=${_qstr}`, `release=${_my.release}`, `label=${_my.label}`, ...append ].join('&')).then(response => response.json()),
   lookup = play => _db[play.path] ?
     new Promise(r => r(_db[play.path])) :
     fetch(`url2mp3.php?q=${_level}&path=${encodeURIComponent(play.path)}&u=${path_to_url(play.path)}`)
@@ -300,7 +303,7 @@ window.onload = () => {
     if(_level > 1) {
       Notification.requestPermission().then(p => {
         if (p === "granted") {
-          let s = decodeURIComponent(el.src).split('/').reverse();
+          let s = decodeURIComponent(_DOM.player.src).split('/').reverse();
           new Notification(s[1].replace(/-/g, ' ').toUpperCase(), {
             body: s[0].replace(/-(\d*).mp3$/,'')});
         }
