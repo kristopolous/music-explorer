@@ -633,6 +633,20 @@ _trackpath() {
   local title=$(echo "$fname" | sed -E 's/ - (.*)/\/\1/g;s/-[0-9]+.mp3//g;' | cut -d \/ -f 2)
   <$base/page.html tr '\n' ' ' | grep -Po '(?<=script type="application.ld.json">)(.*?)(?=</scr)'  | jq ".track.itemListElement[] |select(.item.name==\"$title\")|.item[\"@id\"]" | tr -d '"'
 }
+_doc['save']="[ internal ] Save the playlist"
+save() {
+  echo ${all[*]} > $BACKUPDIR/playlist
+  info "Saved to $BACKUPDIR/playlist"
+}
+
+_doc['load']="[ internal ] Load the playlist"
+load() {
+  mapfile -t all < $BACKUPDIR/playlist
+  all=($all)
+  size=${#all[@]}
+  info "Loaded $size from $BACKUPDIR/playlist"
+}
+
 
 _doc['_repl']="[ internal ] The main REPL"
 _repl() {
@@ -661,6 +675,9 @@ _repl() {
       r no    - Repeat (ignore playlist)
       s       - Skip 
       x       - Exit
+
+      save    - Save the current playlist
+      load    - Load a playlist
 
       remote  - Set remote server [$REMOTE]
       base    - Set remote base   [$REMOTEBASE]
@@ -784,6 +801,8 @@ ENDL
       n=r
     else
       [[ -n "$_arg" ]]          && t_url="$(_url "$_arg")" || t_url="$url"
+      [[ "$_fn" == 'save' ]]    && save
+      [[ "$_fn" == 'load' ]]    && load
       [[ "$_fn" == 'list' ]]    && echo ${all[@]} | tr ' ' '\n' | sed 's/^\s*/\t/g' | sort
       [[ "$_fn" == 'i' ]]       && _info "${_arg:-$i}"
       [[ "$_fn" == 'dl' ]]      && get_mp3s "$t_url" "${_arg:-$i}"

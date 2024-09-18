@@ -67,7 +67,7 @@ scan
 
 touch $start_dir/.listen_done
 
-load_tracks 1
+[[ -n "$LOAD" ]] && load || load_tracks 1
 
 ix=0 
 
@@ -103,7 +103,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
   # This approach permits for new content to come in and multiple
   # to be running without issue.
   timeit "start loop"
-  [[ -z "$NOSCORE" && -z "$NOSCAN" ]] && load_tracks 
+  [[ -z "$NOSCORE" && -z "$NOSCAN" && -z "$LOAD" ]] && load_tracks 
 
   # This can potentially skip things in with a reload
   # but it's fine ... 
