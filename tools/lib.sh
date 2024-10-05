@@ -99,6 +99,11 @@ check_for_stop() {
   fi
 }
 
+_doc['album_get']="( hostname1 ... hostnamen ) this is a pass-through to the album-get script"
+album_get() {
+  $DIR/album-get $*
+}
+
 _doc['check_for_reload']="[ internal ] () Reloads the lib.sh for long term running procs"
 check_for_reload() {
   if [[ -e "$RELOADFILE" ]]; then
