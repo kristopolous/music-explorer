@@ -8,13 +8,21 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 MPVCONTROL=/home/chris/code/music-explorer/tools/mpv-control
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 [[ -e "$TMP" ]] || mkdir "$TMP"
+key=$1
+
+if [[ $key == 'prefs' ]]; then 
+  echo "$DIR/prefs.sh"
+  [[ -e $DIR/prefs.sh ]] && cat $DIR/prefs.sh || echo "No prefs at $DIR/prefs.sh"
+  echo "----"
+  echo $HOST
+  exit
+fi
 
 if [[ -n "$HOST" && "$HOST" != "localhost" ]]; then
   timeout 5s ssh "$HOST" "$MPVCONTROL $1"
   exit 0
 fi
 
-key=$1
 
 volume() {
   pactl list sinks short | grep RUNNING | cut -f 1 | while read source ; do
@@ -32,9 +40,6 @@ if [[ $1 == 'd' ]]; then
   ( docmd "mpv-lib details" ) | xmessage -timeout 14 -file -
   exit
 fi
-
-#[[ $1 == '9' ]] && volume -2000 
-#[[ $1 == '0' ]] && volume +2000
 
 declare -A mapping=( [0]='volup' [9]='voldn' [q]='quit' [up]='forward 60' [down]='back 60' [left]='back' [right]='forward' [p]='p' [return]='ENTER' [space]='pauseplay' [comma]='prev' [period]='next' [s]='s' [r]='r' )
 
