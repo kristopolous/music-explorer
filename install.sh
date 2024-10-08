@@ -15,7 +15,7 @@ install_bin() {
 }
 
 install_deps() {
-  list="lua5.4 pulseaudio lua-posix mpv nodejs tmux gawk bash perl bc"
+  list="lua5.4 pulseaudio lua-posix mpv nodejs gawk bash perl bc"
   read -p "I'm a stupid bash script. I'm going to assume you have a system that uses apt. Just press return if I'm correct > " n
 
   if [[ -n "$n" ]]; then
