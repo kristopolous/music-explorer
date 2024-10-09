@@ -11,11 +11,8 @@ MPVCONTROL=/home/chris/code/music-explorer/tools/mpv-control
 key=$1
 
 if [[ $key == 'prefs' ]]; then 
-  echo "$DIR/prefs.sh"
-  [[ -e $DIR/prefs.sh ]] && cat $DIR/prefs.sh || echo "No prefs at $DIR/prefs.sh"
-  echo "----"
-  echo $HOST
-  exit
+  mpv-lib prefs
+  exit 0
 fi
 
 if [[ -n "$HOST" && "$HOST" != "localhost" ]]; then

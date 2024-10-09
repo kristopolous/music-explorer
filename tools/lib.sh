@@ -129,6 +129,12 @@ if [[ ! -p "$tmp"/cmd_sock ]]; then
   mkfifo "$tmp"/cmd_sock
 fi
 
+_doc['prefs']="() Opens the prefs file in $EDITOR"
+prefs() {
+  $EDITOR "$DIR/prefs.sh"
+  exit 0
+}
+
 _doc['finish']='[ deprecated ]'
 function finish {
   history -w $tmp/readline-history
