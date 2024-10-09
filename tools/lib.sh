@@ -280,6 +280,7 @@ unlistened() {
   fi
 }
 
+_doc['recent']="( ) List recently downloaded content"
 recent() {
   scan
   # The great 2049 problem.
