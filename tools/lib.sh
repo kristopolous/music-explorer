@@ -261,6 +261,7 @@ album_art() {
   done
 }
 
+_doc['check_url']="[ internal ] Gets the effective url and stores it as the referrential domain"
 check_url() {
   real_url=$(curl -Ls -o /dev/null -w %{url_effective} "$1")
   if [[ "$real_url" != "$1" ]]; then
@@ -310,6 +311,7 @@ END
   du -sh
 }
 
+_doc['_get_urls']="[ internal ] Creates an m3u playlist"
 _get_urls() {
   echo $DIR/ytdl2m3u.awk;
   $YTDL $SLEEP_OPTS \
@@ -357,6 +359,7 @@ unpurge() {
   sed -i "/${1/\//.} /d" $start_dir/.listen_done
 }
 
+_doc['resolve']="( path ) Figures out the url resolution for given path"
 resolve() {
   if [[ -e "$1/domain" ]]; then
     echo $(cat "$1/domain" )
