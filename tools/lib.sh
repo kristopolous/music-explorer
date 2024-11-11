@@ -65,8 +65,6 @@ start_time=$( date +%s )
 direct=
 declare -A _doc
 
-[[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh || debug "Can't find $DIR/prefs.sh"
-
 # some simple things first.
 _doc['_rm']="[ internal ]"
 _rm () { [[ -e "$1" ]] && rm "$1"; }
@@ -97,6 +95,8 @@ purge() { album_purge "CLI" "$1"; }
 
 _doc['quit']="[ internal ]"
 quit() { echo "$1"; exit; }
+
+[[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh || debug "Can't find $DIR/prefs.sh"
 
 _doc['check_for_stop']="[ internal ] () Sees if the stop flag has been triggered"
 check_for_stop() { 
