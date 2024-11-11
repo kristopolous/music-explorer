@@ -6,10 +6,18 @@ $_dir = $_GET['orig'] ?? false;
 
 function get($qstr, $params = [], $type = false) {
   global $_sql;
-  $extra = '';
-  if(isset($params['_extra'])) {
-    $extra = $params['_extra'];
-    unset($params['_extra']);
+
+  $order = "order by created_at desc";
+  $group = '';
+
+  if(isset($params['_group'])) {
+    $group = $params['_group'];
+    unset($params['_group']);
+  }
+
+  if(isset($params['_order'])) {
+    $order = $params['_order'];
+    unset($params['_order']);
   }
 
   foreach( $params as $k => $v ){
@@ -27,8 +35,7 @@ function get($qstr, $params = [], $type = false) {
     $qstr .= " where " . implode (' and ', $where_list);
   }
 
-  $qstr .= " ${extra}";
-  $qstr .= " order by created_at desc limit 1000";
+  $qstr .= " ${group} ${order} limit 1000";
   $prep = $_sql->prepare($qstr);
   //error_log($qstr . json_encode($params));
   $prep->execute($params);
@@ -49,7 +56,8 @@ function get_tracks($label = '', $release = '') {
 
 function search_releases($label = '') {
   $res = get("select path, label, release from tracks", [ 
-    "_extra" => "group by label, release",
+    "_group" => "group by label, release",
+    "_order" => "order by release, track asc",
     'label' => $label
   ]);
   for($ix = 0; $ix < count($res); $ix++) {
