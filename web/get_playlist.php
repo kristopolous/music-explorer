@@ -1,8 +1,16 @@
 <?php
-$sql = new PDO('sqlite:playlist.db', false, false, [PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+$_sql = new PDO('sqlite:playlist.db', false, false, [PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]);
+$_chrono = $_GET['chrono'] ?? false;
+$_releaseMap = [];
+$_dir = $_GET['orig'] ?? false;
 
 function get($qstr, $params = [], $type = false) {
-  global $sql;
+  global $_sql;
+  $extra = '';
+  if(isset($params['_extra'])) {
+    $extra = $params['_extra'];
+    unset($params['_extra']);
+  }
 
   foreach( $params as $k => $v ){
     if(empty($v)) {
@@ -11,7 +19,7 @@ function get($qstr, $params = [], $type = false) {
   }
 
   $where_list = array_map(fn($v) => "$v = :$v", array_keys($params));
-  if(isset($_GET['q'])) {
+  if(!empty($_GET['q'])) {
     $where_list[] = "path like :q";
     $params['q'] = "%${_GET['q']}%";
   }
@@ -19,12 +27,14 @@ function get($qstr, $params = [], $type = false) {
     $qstr .= " where " . implode (' and ', $where_list);
   }
 
-  $prep = $sql->prepare("$qstr");
+  $qstr .= " ${extra}";
+  $qstr .= " order by created_at desc limit 1000";
+  $prep = $_sql->prepare($qstr);
+  //error_log($qstr . json_encode($params));
   $prep->execute($params);
   return $prep->fetchAll($type);
 }
 
-$_releaseMap = [];
 function get_tracks($label = '', $release = '') {
   global $_releaseMap;
   if(!isset($_releaseMap["$label:$release"])) {
@@ -37,12 +47,25 @@ function get_tracks($label = '', $release = '') {
   return $_releaseMap["$label:$release"];
 }
 
-function get_releases($label) {
-  global $_releaseMap;
+function search_releases($label = '') {
+  $res = get("select path, label, release from tracks", [ 
+    "_extra" => "group by label, release",
+    'label' => $label
+  ]);
+  for($ix = 0; $ix < count($res); $ix++) {
+    $res[$ix]['id'] = 0;
+  }
+  return $res;
+}
+
+function get_releases($label = '') {
+  global $_releaseMap, $_chrono;
   if(!isset($_releaseMap[$label])) {
     $releaseList = get("select distinct release from tracks", ['label' => $label], PDO::FETCH_COLUMN);
-    mt_srand(floor(time() / (60 * 60 * 6)));
-    shuffle($releaseList);
+    if(!$_chrono) {
+      mt_srand(floor(time() / (60 * 60 * 6)));
+      shuffle($releaseList);
+    }
     $_releaseMap[$label] = $releaseList;
   }
   return $_releaseMap[$label];
@@ -50,17 +73,22 @@ function get_releases($label) {
 
 $_labelList = false;
 function get_labels() {
-  global $_labelList;
+  global $_labelList, $_chrono;
   if(!$_labelList) {
     $labelList = get("select distinct label from tracks", [], PDO::FETCH_COLUMN);
-    mt_srand(floor(time() / (60 * 60 * 6)));
-    shuffle($labelList);
+    if(!$_chrono) {
+      mt_srand(floor(time() / (60 * 60 * 6)));
+      shuffle($labelList);
+    }
     $_labelList = $labelList;
   }
   return $_labelList;
 }
 
+// This is always run - and it's run recursively
 function navigate($label, $release, $action, $final = false) {
+  global $_dir;
+  //error_log(implode(" ---- ", [$label, $release, $action, $final]));
   $label_ix = 0;
   $track_ix = 0;
   $release_ix = 0;
@@ -72,15 +100,25 @@ function navigate($label, $release, $action, $final = false) {
     return $labelList;
   }
 
-  $dir = ($action[0] != '-') * 2 - 1;
-  $what = substr($action, 1);
+  // This is for the tab and the search.
+  // This doesn't ever get a $_dir
+  if(!$_dir && $action === "release") {
+    $res = search_releases($label);
+    if(empty($res)) {
+      $res = search_releases('');
+    }
+    return $res;
+  }
 
-  if(!$label) {
+  $dir = ($action[0] != '-') * 2 - 1;
+  $action_ = substr($action, 1);//"-+");
+
+  if(!$label && empty($_GET['q']) ) {
     $label = $labelList[0];
   }
 
-  if($what === 'label') {
-    $isBack = $_GET['orig'] !== '-label' && $dir === -1;
+  if($action_ === 'label') {
+    $isBack = $_dir !== '-label' && $dir === -1;
     $ttl = count($labelList);
     if(!$ttl) {
       return compact('labelList');
@@ -103,11 +141,24 @@ function navigate($label, $release, $action, $final = false) {
       $track_ix = count($trackList) - 1;
     } 
 
-  } else if ($what === 'release') {
+  } else if ($action_ === 'release') {
     $releaseList = get_releases($label);
     $ttl = count($releaseList);
-    if(!$ttl) {
+    // If there's no results then we have selected a label 
+    // and have a search string with no results. Instead 
+    // under this use-case we should probably just give
+    // all the releases
+
+    if($ttl === 0) {
       return compact('labelList', 'releaseList');
+      // we need to redo everything! Auckkk
+      // this will take our search string
+      $releaseList = get_releases();
+      $ttl = count($releaseList);
+      if(!$ttl) {
+        return compact('labelList', 'releaseList');
+      }
+      return $releaseList;
     }
     if($release) {
       $release_ix = array_search($release, $releaseList);
@@ -117,7 +168,7 @@ function navigate($label, $release, $action, $final = false) {
     $release = $releaseList[$release_ix];
     $trackList = get_tracks($label, $release);
 
-    if($_GET['orig'] === '-track') {
+    if($_dir === '-track') {
       $track_ix = count($trackList) - 1;
     }
   } else {
@@ -156,7 +207,9 @@ function navigate($label, $release, $action, $final = false) {
     'trackList' => $trackList
   ];
   if($final) {
-    $payload = array_merge($payload, $trackList[$track_ix]);
+    if(isset($trackList[$track_ix])) {
+      $payload = array_merge($payload, $trackList[$track_ix]);
+    }
     return $payload;
   }
 

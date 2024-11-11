@@ -213,16 +213,8 @@ window.onload = () => {
     _lock.search = window.setTimeout(() =>  {
       let newstr = encodeURIComponent(_DOM.search.value);
       if(newstr !== _qstr) {
-        if (_DOM.search.value[0] == ':'){
-          if (_DOM.search.value.length > 1) {
-            if(_DOM.search.value[1] >= '0' && _DOM.search.value[1] <= '9') {
-              setLevel( +_DOM.search.value[1] );
-            }
-          }
-        } else {
-          _qstr = newstr;
-          _DOM.navcontrols.onclick();
-        }
+        _qstr = newstr;
+        _DOM.navcontrols.onclick();
       }
     }, 250);
   }
@@ -245,10 +237,11 @@ window.onload = () => {
       .then(data => {
 				try {
 					_DOM.list.removeChild(_DOM.list.firstElementChild);
-				}catch(e) { } 
+				} catch(e) { } 
         _DOM.list.innerHTML = '';
         _DOM.list.append(...data.sort().map((obj,ix) => {
-            let l = Object.assign(document.createElement('li'), {innerHTML: obj.track || obj, obj, ix});
+            console.log(obj);
+            let l = Object.assign(document.createElement('li'), {innerHTML: obj.track || obj.release || obj, obj, ix});
 
             if(l.innerHTML === _my[_tab]){
               l.className = 'selected';
@@ -270,7 +263,7 @@ window.onload = () => {
         setLevel( +e.target.value );
       }
     } else if(e.target.tagName == 'LI'){
-      if(_tab === 'track') {
+      if(_tab === 'track' || _tab === 'release') {
         ix = e.target.ix;
         _my = e.target.obj;
       } else {
