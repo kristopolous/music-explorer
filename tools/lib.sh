@@ -622,7 +622,7 @@ toopus() {
 
   out="${in/.mp3/.opus}"
   if [[ ! -s "$out" ]] ; then
-    ffmpeg -nostdin -loglevel quiet -i "$in" -write_xing 0 -id3v2_version 0 -vn -c:a libopus -b:a 15000 "$out" 
+    ffmpeg -y -nostdin -loglevel quiet -i "$in" -write_xing 0 -id3v2_version 0 -vn -c:a libopus -b:a 15000 "$out" 
   fi
 }
 
