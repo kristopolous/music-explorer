@@ -154,7 +154,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
 
       timeit "display"
 
-      if [[ -z "$url" ]]; then
+      if [[ -z "$url" && -e "$i"/domain ]]; then
         url=$(< "$i"/domain)
         timeit "domain-read"
       fi
@@ -290,7 +290,8 @@ while [[ ${#all[@]} -gt $ix ]]; do
         # In order to minimize the number of these calls we make
         # to decrease network iops, we check the arity of the function
         # to see if these files exist
-        ls $start_dir/"$i"/*.{$FMT,ogg,m4a,m5a,flac,aiff,wav} > $tmp/play.m3u
+        # FMT will make it go double-time so we uniq things (sort -u)
+        ls $start_dir/"$i"/*.{$FMT,mp3,ogg,m4a,m5a,flac,aiff,wav} | sort -u > $tmp/play.m3u
         playit $tmp/play.m3u
 
         if [[ $? != -10 ]]; then
