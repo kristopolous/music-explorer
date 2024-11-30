@@ -43,4 +43,5 @@ if(!$mp3) {
 $mp3 = str_replace('?', '%3f', $mp3);
 $mp3 = str_replace('&', '%26', $mp3);
 echo "/pl/fw.php?u=".$mp3;
+#echo .$mp3;
 

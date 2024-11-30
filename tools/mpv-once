@@ -258,7 +258,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
             esac
 
             (( listen_time += $(date +%s) - before ))
-            [[ -z "$NOSCORE" ]] && headline 3 "Time: $listen_time\n"
+            [[ -z "$NOSCORE" ]] && headline 3 "Time: $(TZ=UTC date -d@$listen_time +%T)\n"
           else
             # If our m3u is over a day old we just
             # assume failure

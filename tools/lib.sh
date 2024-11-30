@@ -1,9 +1,23 @@
 #!/bin/bash
-
+#
+# You can override these with the command mpv-lib prefs
+#
 tmp=/tmp/mpvonce
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # What format to look for 
 FMT=${FMT:=mp3}
+
+# If set, won't try to use the internet
+NONET=${NONET:=}
+
+# If set, won't do "expensive" network file system operations 
+NOSCAN=${NOSCAN:=}
+
+# If set, don't copy the tracks for an undro of a purge (removal)
+NOUNDO=${NOUNDO:=}
+
+# If left unset, will use the localhost
+HOST=
 
 player=mpv
 player_opts_orig='--no-cache --no-audio-display --msg-level=cplayer=no --term-playing-msg=\n${media-title} --script='"$DIR"'/mpv-interface.lua --input-ipc-server='"$tmp"'/mpvsocket'
@@ -19,17 +33,8 @@ REMOTEBASE=${REMOTEBASE:=$PWD}
 
 DEBUG=${DEBUG:=}
 
-# If set, won't try to use the internet
-NONET=${NONET:=}
-
-# If set, won't do "expensive" network file system operations 
-NOSCAN=${NOSCAN:=}
-
 # Performance monitor
 TIMEIT=${TIMEIT:=}
-
-# If set, don't copy the tracks for an undro of a purge (removal)
-NOUNDO=${NOUNDO:=}
 
 # If set, don't try to find or construct ordinal playlists, just play things in the glob-order
 NOPL=${NOPL:=}
@@ -91,6 +96,8 @@ purge() { album_purge "CLI" "$1"; }
 _doc['quit']="[ internal ]"
 quit() { echo "$1"; exit; }
 
+[[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh || debug "Can't find $DIR/prefs.sh"
+
 _doc['check_for_stop']="[ internal ] () Sees if the stop flag has been triggered"
 check_for_stop() { 
   if [[ -e $STOPFILE && -z "$IGNORESTOP" ]]; then
@@ -121,8 +128,6 @@ stop() { echo $(date +%s) > $STOPFILE; echo "Unstop by running $(basename $0) un
 _doc['unstop']="() Unblocks things from running"
 unstop() { rm $STOPFILE; echo "Unstopped"; }
 
-[[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh || debug "Can't find $DIR/prefs.sh"
-
 _mkdir "$tmp"
 if [[ ! -p "$tmp"/cmd_sock ]]; then
   rm -f "$tmp"/cmd_sock 
@@ -131,6 +136,7 @@ fi
 
 _doc['prefs']="() Opens the prefs file in $EDITOR"
 prefs() {
+  [[ -e "$DIR/prefs.sh" ]] || cp "$DIR/prefs.sample.sh" "$DIR/prefs.sh"
   $EDITOR "$DIR/prefs.sh"
   exit 0
 }
@@ -256,6 +262,7 @@ album_art() {
   done
 }
 
+_doc['check_url']="[ internal ] Gets the effective url and stores it as the referrential domain"
 check_url() {
   real_url=$(curl -Ls -o /dev/null -w %{url_effective} "$1")
   if [[ "$real_url" != "$1" ]]; then
@@ -305,6 +312,7 @@ END
   du -sh
 }
 
+_doc['_get_urls']="[ internal ] Creates an m3u playlist"
 _get_urls() {
   echo $DIR/ytdl2m3u.awk;
   $YTDL $SLEEP_OPTS \
@@ -352,6 +360,7 @@ unpurge() {
   sed -i "/${1/\//.} /d" $start_dir/.listen_done
 }
 
+_doc['resolve']="( path ) Figures out the url resolution for given path"
 resolve() {
   if [[ -e "$1/domain" ]]; then
     echo $(cat "$1/domain" )
@@ -614,7 +623,7 @@ toopus() {
 
   out="${in/.mp3/.opus}"
   if [[ ! -s "$out" ]] ; then
-    ffmpeg -nostdin -loglevel quiet -i "$in" -write_xing 0 -id3v2_version 0 -vn -c:a libopus -b:a 15000 "$out" 
+    ffmpeg -y -nostdin -loglevel quiet -i "$in" -write_xing 0 -id3v2_version 0 -vn -c:a libopus -b:a 15000 "$out" 
   fi
 }
 
@@ -669,7 +678,7 @@ _repl() {
     history -s "$n"
     _parse $n
 
-    if [[ $n == '?' ]]; then
+    if [[ $n == '?' || $n == 'help' ]]; then
       headline 1 "Keyboard commands" 
       { cat <<- ENDL
       ?       - This help page
@@ -697,25 +706,26 @@ _repl() {
       fmt     - Set the format    [$FMT]
       ao      - Set audio out     [$ao]
       b       - Set start time    [$start_time]
+
       filter  - Set filter        [$filter]
-
-      anno    - Toggle announce     [${STR[${NOANNOU:-0}]}]
-      debug   - Toggle debug        [${STR[${DEBUG:-1}]}]
-      net     - Toggle network      [${STR[${NONET:-0}]}]
-      pl      - Toggle playlist     [${STR[${NOPL:-0}]}]
-      prompt  - Toggle prompt       [${STR[${NOPROMPT:-0}]}]
-      scan    - Toggle rescan       [${STR[${NOSCAN:-1}]}]
-      score   - Toggle scoring      [${STR[${NOSCORE:-0}]}]
-      timer   - Toggle timing       [${STR[${TIMEIT:-1}]}]
-      undo    - Toggle purge backup [${STR[${NOUNDO:-0}]}]
-
       list    - List things in filter
 
       !       - Do a \$SHELL at the file directory
       source  - Reload lib
 
+      Toggles:
+        anno    - announce     [${STR[${NOANNOU:-0}]}]
+        debug   - debug        [${STR[${DEBUG:-1}]}]
+        net     - network      [${STR[${NONET:-0}]}]
+        pl      - playlist     [${STR[${NOPL:-0}]}]
+        prompt  - prompt       [${STR[${NOPROMPT:-0}]}]
+        scan    - rescan       [${STR[${NOSCAN:-1}]}]
+        score   - scoring      [${STR[${NOSCORE:-0}]}]
+        timer   - timing       [${STR[${TIMEIT:-1}]}]
+        undo    - purge backup [${STR[${NOUNDO:-0}]}]
+
 ENDL
-    } | sed 's/^\s*/\t\t/g';
+    } | sed 's/^      /\t\t/g';
 
 
     elif [[ "$_fn" == 'e' ]]; then

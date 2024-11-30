@@ -1,5 +1,13 @@
 #!/bin/bash
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PATH=$DIR/../tools:$PATH
+
 music_dir=/raid-real/mp3/label/
+db_dir=/home/chris/www/pl
+playdb=$db_dir/playlist.db
+playtxt=/tmp/playlist.txt
+playcsv=/tmp/playlist.csv
+
 start=$(date +%s)
 dbg() {
   [[ -n "$INFO" ]] && echo $(( $(date +%s) - start )) "$1"
@@ -7,11 +15,11 @@ dbg() {
  
 gen_playlist() {
   dbg "truncating"
-  truncate --size 0 playlist.txt
+  truncate --size 0 $playtxt
   dbg "recreating"
   grep rating_5 "$music_dir".listen_done | sort | cut -f 1 -d ' ' | while read i
   do
-    ls "$music_dir"$i/*.mp3 >> playlist.txt
+    ls "$music_dir"$i/*.mp3 >> $playtxt
   done
   dbg "playlist done"
 }
@@ -29,14 +37,14 @@ copy_songs() {
   done
 
   dbg "copying done"
-  sed -i 's/raid-real/raid/g' playlist.txt
+  sed -i 's/raid-real/raid/g' $playtxt
 }
 
 convert_songs() {
   dbg "converting songs"
   truncate --size 0 conv_update.sql
   local n=0
-  sqlite3 playlist.db "select path from tracks where converted is not true" > conv_list.txt
+  sqlite3 $playdb "select path from tracks where converted is not true" > conv_list.txt
   cat conv_list.txt | while read p; do
     if [[ ! -s "$p" ]]; then
       echo "path $p doesn't exist"
@@ -63,32 +71,32 @@ convert_songs() {
       fi
       if (( n > 80 )); then
         echo ""
-        sqlite3 playlist.db < conv_update.sql
+        sqlite3 $playdb < conv_update.sql
         truncate --size 0 conv_update.sql
         n=0
       fi
     fi
   done
-  sqlite3 playlist.db < conv_update.sql
+  sqlite3 $playdb < conv_update.sql
   truncate --size 0 conv_update.sql
   dbg "converting done"
 }
 
 import_todb() {
-  awk -F '/' ' { fuckoff=$0;sub(/-[0-9]*.mp3/, "", $7);print FNR",\""$5"\",\""$6"\",\""$7"\",\""fuckoff"\"" } ' playlist.txt > /tmp/playlist.csv
+  awk -F '/' ' { fuckoff=$0;sub(/-[0-9]*.mp3/, "", $7);print FNR",\""$5"\",\""$6"\",\""$7"\",\""fuckoff"\"" } ' $playtxt > $playcsv
   {
-  sqlite3 playlist.db << ENDL
+  sqlite3 $playdb << ENDL
 PRAGMA encoding=UTF8;
 .mode csv
-.import /tmp/playlist.csv tracks
+.import $playcsv tracks
 update tracks set created_at = current_timestamp where created_at is null;
 ENDL
 } >& /dev/null
 }
 
 create_db() {
-  truncate --size 0 playlist.db
-  sqlite3 playlist.db << ENDL
+  truncate --size 0 $playdb
+  sqlite3 $playdb << ENDL
   create table tracks(
     id INTEGER PRIMARY KEY,
     label text,
