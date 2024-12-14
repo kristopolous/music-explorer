@@ -2,8 +2,12 @@
 #
 # check lib.sh for lots of options
 #
+# This can help autofs stuff
+cd $PWD
+
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . $DIR/lib.sh
+
 
 display=0
 pipe=$tmp/mpv-pipe
@@ -245,6 +249,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
                 ;;
 
               [0-4])
+                [[ $player_exit == "3" ]] && cd $PWD
                 # if it exited naturally we send an audio indicator
                 breaker
                 ;;
