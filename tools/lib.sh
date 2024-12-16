@@ -849,12 +849,16 @@ manual_pull() {
 
   echo " ▾▾ Manual Pull "
 
-  for track in $(curl -Ls "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sed -E s'/[?#].*//' | sort | uniq); do
-    _ytdl "https://$base/${track##/}" "$path"
-  done
+  if [[ ! "$1" =~ "/track/" ]] ; then
+    for track in $(curl -Ls "$1" | grep -Po '((?!a href=\")/track\/[^\&"]*)' | sed -E s'/[?#].*//' | sort | uniq); do
+      _ytdl "https://$base/${track##/}" "$path"
+    done
+    pl_fallback "$path"
+    pl_check "$path"
+  else 
+    info "Not an album"
+  fi
 
-  pl_fallback "$path"
-  pl_check "$path"
 }
 
 _doc['single_album']="( url, path ) Downloads a single album. "

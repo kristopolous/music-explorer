@@ -18,8 +18,9 @@ if ! declare -f $1 > /dev/null; then
 	    sed 's/^/\t\t/'
 
     headline 1 functions
+    tabs 6,+14,+18,+5,+5
     for i in $(declare -F | sed s/'declare -f//g' | sort); do
-      [[ "${_doc[$i]}" =~ (internal|deprecated) ]] || printf "\t\t%-20s %s\n" $i "${_doc[$i]}"
+      [[ "${_doc[$i]}" =~ (internal|deprecated) ]] || printf "\t%s\t %s\n" $i "${_doc[$i]}"
     done
   fi
   exit 1
