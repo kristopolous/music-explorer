@@ -3,9 +3,10 @@ $_sql = new PDO('sqlite:playlist.db', false, false, [PDO::ATTR_DEFAULT_FETCH_MOD
 $_chrono = $_GET['chrono'] ?? false;
 $_releaseMap = [];
 $_dir = $_GET['orig'] ?? false;
+$_search = $_GET['q'] ?? false;
 
 function get($qstr, $params = [], $type = false) {
-  global $_sql;
+  global $_sql, $_search;
 
   $order = "order by created_at desc";
   $group = '';
@@ -27,9 +28,9 @@ function get($qstr, $params = [], $type = false) {
   }
 
   $where_list = array_map(fn($v) => "$v = :$v", array_keys($params));
-  if(!empty($_GET['q'])) {
+  if($_search) {
     $where_list[] = "path like :q";
-    $params['q'] = "%${_GET['q']}%";
+    $params['q'] = "%${_search}%";
   }
   if(!empty($where_list)) { 
     $qstr .= " where " . implode (' and ', $where_list);
@@ -56,7 +57,7 @@ function get_tracks($label = '', $release = '') {
 
 function search_releases($label = '') {
   $res = get("select path, label, release from tracks", [ 
-    "_group" => "group by label, release",
+    "_group" => "group by release",
     "_order" => "order by release, track asc",
     'label' => $label
   ]);
@@ -95,7 +96,8 @@ function get_labels() {
 
 // This is always run - and it's run recursively
 function navigate($label, $release, $action, $final = false) {
-  global $_dir;
+  global $_dir, $_search;
+
   //error_log(implode(" ---- ", [$label, $release, $action, $final]));
   $label_ix = 0;
   $track_ix = 0;
@@ -179,7 +181,7 @@ function navigate($label, $release, $action, $final = false) {
     if($_dir === '-track') {
       $track_ix = count($trackList) - 1;
     }
-  } else {
+  } else /* tab is tracks */ {
     $releaseList = get_releases($label);
     if($action == "release") {
       return $releaseList;
@@ -192,11 +194,16 @@ function navigate($label, $release, $action, $final = false) {
     }
     $trackList = get_tracks($label, $release);
     if($action == "track") {
-      if(empty($trackList) && $release) {
-        $trackList = get_tracks($label);
-      }
-      if(empty($trackList) && $label) {
+      // if there's a search query, we always return all the tracks.
+      if($_search) {
         $trackList = get_tracks();
+      } else {
+        if(empty($trackList) && $release) {
+          $trackList = get_tracks($label);
+        }
+        if(empty($trackList) && $label) {
+          $trackList = get_tracks();
+        }
       }
       return $trackList;
     }

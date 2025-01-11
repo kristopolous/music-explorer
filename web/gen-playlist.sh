@@ -1,9 +1,8 @@
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PATH=$DIR/../tools:$PATH
-
+PATH=$HOME/code/music-explorer/tools/:$PATH
 music_dir=/raid-real/mp3/label/
-db_dir=/home/chris/www/pl
+db_dir=$HOME/www/pl
 playdb=$db_dir/playlist.db
 playtxt=/tmp/playlist.txt
 playcsv=/tmp/playlist.csv
@@ -32,7 +31,6 @@ copy_songs() {
     if [[ ! -d "$localpath" ]];then 
       mkdir -p "$localpath"
       cp --preserve=timestamps -ur "$remotepath"/* "$localpath"
-      echo "$remotepath -> $localpath"
     fi
   done
 
@@ -62,12 +60,12 @@ convert_songs() {
       path_opus="${p/.mp3/.opus}"
 
       if [[ -s "$path_m5a" && -s "$path_opus" ]]; then
-        echo -n "."
         (( n++ ))
         echo "update tracks set converted=true where path = \"$p\";" >> conv_update.sql
       else
         echo "Error for $p:"
         echo " - ($path_m5a)"
+        echo " - ($path_opus)"
       fi
       if (( n > 80 )); then
         echo ""

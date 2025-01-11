@@ -29,7 +29,7 @@ echo "<?xml version='1.0' encoding='UTF-8'?>";
     </image>
 <?php
 
-$shareRaw = file_get_contents("/raid/mp3/label/.share_list");
+$shareRaw = file_get_contents("/raid-real/mp3/label/.share_list");
 // pass 1 is simply looking at the record seperator
 $recordList = array_reverse(preg_split("/\n\n/", trim($shareRaw)));
 
@@ -42,7 +42,7 @@ foreach($recordList as $record) {
   $duration = sprintf("%d:%02d:%02d", floor($dur/3600), ($dur/60)%60, ($dur)%60);
 
   $date = gmdate("D, d M Y H:i:s O", intval($time));
-  $audio = "https://9ol.es" . dirname($path) . '/' . (basename($path));
+  $audio = "https://9ol.es" . str_replace('/home/chris/hosts/', '/', dirname($path)) . '/' . (basename($path));
 
   $parts = explode('/', $path);
   $label = ucwords(preg_replace('/\-/', ' ', $parts[count($parts)-2]));
