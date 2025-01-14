@@ -1,6 +1,6 @@
 local os = require 'os'
 local io = require 'io'
-local pfx = '/tmp/mpvonce/eb383810f22a-'
+local pfx = '/tmp/mutiny/eb383810f22a-'
 local posix = require 'posix'
 
 mp.enable_messages('error')
@@ -48,12 +48,12 @@ function print_on_start(e,f)
   pos = mp.get_property_native("playlist-pos-1", 1)
   ttl = mp.get_property_native("playlist-count")
   toprint = string.gsub(pl[pos]['filename'], "(.*/)(.*)-%d*.mp3", "%2")
-  os.execute('mpv-lib announce "' .. toprint .. '"')
-  os.execute('mpv-lib ardy_stat T ' .. pos .. ' ' .. ttl)
+  os.execute('mutlib announce "' .. toprint .. '"')
+  os.execute('mutlib ardy_stat T ' .. pos .. ' ' .. ttl)
 end
 
 function openpage_handler()
-  os.execute('mpv-lib open_page "' .. mp.get_property('path') .. '"')
+  os.execute('mutlib open_page "' .. mp.get_property('path') .. '"')
 end
 
 function getinfo_handler()
@@ -61,7 +61,7 @@ function getinfo_handler()
   fullpath = fullpath:gsub('/%./', "/")
   parts = string_split(fullpath, '/')
   partial = parts[#parts - 2] .. '/' .. parts[#parts - 1] 
-  cmd = 'mpv-lib _info "' .. table.concat({
+  cmd = 'mutlib _info "' .. table.concat({
     partial, 
     mp.get_property('working-directory'),
     mp.get_property('path')
@@ -84,7 +84,7 @@ function share_handler()
   print("Sharing ... ")
   fullpath = mp.get_property('path')
   fullpath = fullpath:gsub('/%./', "/")
-  cmd = 'mpv-lib _trinfo "' .. table.concat({
+  cmd = 'mutlib _trinfo "' .. table.concat({
     mp.get_property('working-directory') .. '/' .. fullpath,
     mp.get_property('duration')
   }, '" "') .. '"'
@@ -101,7 +101,7 @@ end
 --  8         - purge
 --  13 .. 15  - score
 --
--- known as player_exit in mpv-once
+-- known as player_exit in mutiny
 --
 
 function quit_handler(level)

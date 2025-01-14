@@ -10,11 +10,11 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 
 display=0
-pipe=$tmp/mpv-pipe
+pipe=$tmp/mutpipe
 auto=
 start_time=0:45
 ao=${ao:-pulse}
-myname="mpv-once-$RANDOM-$PPID"
+myname="mutiny-once-$RANDOM-$PPID"
 
 STR=(on off)
 unset echo
@@ -217,7 +217,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
             # Here's where the conversion magic happens if needed.
             if [[ $FMT != "mp3" && -z "$NONET" ]]; then
               timeit "convert"
-              ssh $REMOTE "source .{zshrc,profile};mpv-lib to$FMT $REMOTEBASE/$i"
+              ssh $REMOTE "source .{zshrc,profile};mutlib to$FMT $REMOTEBASE/$i"
               sed "s/mp3/$FMT/" "$i"/$PLAYLIST > "$i"/playlist-$FMT.m3u
               m3u="$i"/playlist-$FMT.m3u
             fi

@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# You can override these with the command mpv-lib prefs
+# You can override these with the command mutlib prefs
 #
-tmp=/tmp/mpvonce
+tmp=/tmp/mutiny
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 # What format to look for 
 FMT=${FMT:=mp3}
@@ -24,7 +24,7 @@ player_opts_orig='--no-cache --no-audio-display --msg-level=cplayer=no --term-pl
 player_opts_dbg="--msg-level=all=debug"
 player_opts=$player_opts_orig
 
-BACKUPDIR=$HOME/.mpvonce
+BACKUPDIR=$HOME/.mutiny
 UNDODIR=$tmp/undo
 
 # For controlling of remote players 

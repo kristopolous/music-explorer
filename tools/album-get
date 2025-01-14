@@ -99,7 +99,7 @@ while [[ $# -gt 0 ]]; do
   # We are looking for a path with a domain file already there
   # This doesn't really work but here's a workaround
   #
-  # mpv-lib single_album some_url
+  # mutlib single_album some_url
   #
   # And it dumps it in the current directory
   #

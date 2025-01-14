@@ -3,15 +3,15 @@
 # This is a mapping of 
 #   /usr/include/X11/keysymdef.h and
 #
-TMP=/tmp/mpvonce
+TMP=/tmp/mutiny
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-MPVCONTROL=/home/chris/code/music-explorer/tools/mpv-control
+MPVCONTROL=/home/chris/code/music-explorer/tools/mutctl
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 [[ -e "$TMP" ]] || mkdir "$TMP"
 key=$1
 
 if [[ $key == 'prefs' ]]; then 
-  mpv-lib prefs
+  mutlib prefs
   exit 0
 fi
 
@@ -34,7 +34,7 @@ docmd() {
 }
 
 if [[ $1 == 'd' ]]; then
-  ( docmd "mpv-lib details" ) | xmessage -timeout 14 -file -
+  ( docmd "mutlib details" ) | xmessage -timeout 14 -file -
   exit
 fi
 
