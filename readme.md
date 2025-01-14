@@ -1,4 +1,4 @@
-# Music-Explorer
+# Mutiny: music-explorer
 
 ## Background
 
