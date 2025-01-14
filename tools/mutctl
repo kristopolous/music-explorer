@@ -5,9 +5,8 @@
 #
 TMP=/tmp/mutiny
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-# We are actually in the tools directory right now
 MPVCONTROL=$DIR/mutctl
-[[ -e $DIR/../prefs.sh ]] && . $DIR/../prefs.sh
+[[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
 
 [[ -e "$TMP" ]] || mkdir "$TMP"
 key=$1
