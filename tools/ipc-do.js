@@ -1,9 +1,9 @@
 #!/usr/bin/env nodejs
 
 const fs = require('fs');
-const tmp = '/tmp/mpvonce'
+const tmp = process.env.MUT_TMP || '/tmp/mutiny';
 const net = require('net');
-const client = net.createConnection('/tmp/mpvonce/mpvsocket')
+const client = net.createConnection(tmp + '/mpvsocket')
 const quitList = ['quit', 'pause', 'playback-restart', 'unpause'];
 const command_orig = process.argv[2];
 const arg = process.argv[3];

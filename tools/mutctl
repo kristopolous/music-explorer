@@ -30,7 +30,7 @@ volume() {
 
 docmd() {
   echo -e $(date +%s) $(whoami) "$key->($control)\n\t$1" >> "$TMP"/keycode
-  $1
+  MUT_TMP=$TMP $1
 }
 
 if [[ $1 == 'd' ]]; then
