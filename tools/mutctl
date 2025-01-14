@@ -5,8 +5,9 @@
 #
 TMP=/tmp/mutiny
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-MPVCONTROL=/home/chris/code/music-explorer/tools/mutctl
+MPVCONTROL=$DIR/tools/mutctl
 [[ -e $DIR/prefs.sh ]] && . $DIR/prefs.sh
+
 [[ -e "$TMP" ]] || mkdir "$TMP"
 key=$1
 
