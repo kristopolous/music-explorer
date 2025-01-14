@@ -175,8 +175,8 @@ function setLevel(what) {
 window.onload = () => {
   parsehash();
 
-  'prefs player if0 if1 label release top list nav navcontrols search track controls'.split(' ').forEach(
-    what => _DOM[what] = document.querySelector(`#${what}`)
+  'prefs start player if0 if1 label release top list nav navcontrols search track controls'.split(' ').forEach(
+    what => _DOM[what] = document.getElementById(what)
   );
 
   if (self.MediaMetadata) {
@@ -290,6 +290,10 @@ window.onload = () => {
     }
     _DOM.nav.style.display = 'none';
   };
+
+  _DOM.player.addEventListener('durationchange', (e) => {
+    e.target.currentTime = (_DOM.start.value / 100) * e.target.duration;
+  });
 
   _DOM.player.onended = () => {
     d("+track");
