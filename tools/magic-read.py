@@ -15,7 +15,9 @@ for key, events in selector.select():
     if key.fileobj == sys.stdin:
         print(sys.stdin.readline())
     elif key.fileobj == fifo_fd:
-        print(os.read(fifo_fd, 4096).decode())
+        keystrokes = os.read(fifo_fd, 4096).decode()
+        sys.stderr.write(keystrokes)
+        print(keystrokes)
 
 sys.stdout.flush()
-
+sys.stderr.flush()
