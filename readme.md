@@ -1,6 +1,4 @@
-# Mutiny: music-explorer
-
-## Background
+# Mutiny: A music explorer
 
 I enjoy listening to new, underground music on what could be called "the edge". Many artists I like never become popular and spend their whole careers playing in tiny bars.
 
