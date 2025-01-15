@@ -288,7 +288,7 @@ unlistened() {
   fi
 }
 
-_doc['recent']="( ) List recently downloaded content"
+_doc['recent']="() List recently downloaded content"
 recent() {
   scan
   # The great 2049 problem.
@@ -321,6 +321,7 @@ _get_urls() {
     | awk -f $DIR/ytdl2m3u.awk > "$2"
 }
 
+_doc['get_urls']="[ internal ] "
 get_urls() {
   _get_urls $1 "$2/$PLAYLIST"
   local ec=$?
@@ -396,6 +397,7 @@ pl_fallback() {
 #   * if not exist, then resolve it
 #   * create file
 #
+_doc['get_page']="[ internal ] "
 get_page() {
   if [[ -s "$1/$PAGE" ]]; then
     curl -Ls $(resolve "$1") > "$tmp/$PAGE"
@@ -421,6 +423,7 @@ open_page() {
   fi
 }
 
+_doc['get_playlist']="[ internal ] "
 get_playlist() {
   PLAYLIST_DBG=$tmp/playlist-interim:$(_stub "$2"):$(date +%s)
   local failed=
@@ -861,7 +864,7 @@ manual_pull() {
 
 }
 
-_doc['single_album']="( url, path ) Downloads a single album. "
+_doc['get_mp3s']="( url, path ) Downloads a single album. "
 get_mp3s() {
   local url="$1"
   local path="$2"
