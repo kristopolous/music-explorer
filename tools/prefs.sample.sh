@@ -8,7 +8,7 @@
 #
 # Also they can be passed on the command line. For instance
 #
-#  $ DEBUG=1 NONET=1 mpv-once
+#  $ DEBUG=1 NONET=1 mutiny 
 #
 
 # If set, won't try to use the internet

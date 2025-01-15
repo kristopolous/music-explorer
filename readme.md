@@ -159,7 +159,7 @@ Instead what we are going to do is play each release ONCE, then decide what to d
 
 Here's how we do it
 
-    $ mpv-once
+    $ mutiny
 
     https://chrismckenzie.bandcamp.com/album/astrophilosophy
 
@@ -230,7 +230,7 @@ And see all the stuff you gave a high rating to.
 
 So even in a readonly mount of directories this system can work. Here's an example:
 
-    $ NOSCORE=1 NOPL=1 mpv-once
+    $ NOSCORE=1 NOPL=1 mutiny
 
 This says you aren't trying to label (score) the system and you don't care about playlists. This is nice if you're like me and have this player integrated
 into your window manager but you're traveling and just want music to play. Then I have all the infrastructure with multi-sinks, dynamic sourcing, input control
@@ -244,11 +244,11 @@ The repl supports on-demand converting to HE AAC+ and Opus for instances where y
 
      $ sshfs -o cache=yes -o kernel_cache -o Ciphers=aes192-ctr -v -p 4021 example.com:/raid raid
      $ cd raid/label
-     $ mpv-once
+     $ mutiny
 
 Normally you'll get the mp3 sent over the wire for you to consume. But what if you're metered? Try this
 
-     $ REMOTE=example.com REMOTEBASE=/raid/label FMT=opus mpv-once
+     $ REMOTE=example.com REMOTEBASE=/raid/label FMT=opus mutiny
 
 Now before playing the script will ssh to the remote machine and transcode everything to a lower bitrate so the files that go over the wire are smaller.
 The format is as follows:
@@ -264,21 +264,21 @@ This system is also nice because it keeps the transcoder and storage point indep
 
 The web interface, which is really not documented at all also has this if you search ":0" ":1" and ":2" for opus/heaac/mp3 accordingly. iOS Safari doesn't support
 opus or heaac but linux and android have no problems with it (they were picked because HTML5 audio has support). It *should* fallback to a less effecient format if
-the better one doesn't exist. Unlike with mpv-once you'll have to convert these on your own.
+the better one doesn't exist. Unlike with mutiny you'll have to convert these on your own.
 
 Something like 
 
 ```bash
 $ sqlite3 playlist.db "select path from tracks" | while read p; do 
     echo $p
-    mpv-lib toopus $p
-    mpv-lib tom5a $p
+    mutlib toopus $p
+    mutlib tom5a $p
   done
 ```
 
 Note the "m**5**a" fake extension here to not collide with any potentially existing m4a files.
 
-What's that mpv-lib thing? Well that's documented as well:
+What's that mutlib thing? Well that's documented as well:
 
 ![help](https://github.com/kristopolous/music-explorer/assets/231761/1f7616f4-66ef-4ae6-8265-644c45631104)
 
