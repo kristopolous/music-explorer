@@ -1,10 +1,12 @@
 # Mutiny: A music explorer
 
-I enjoy listening to new, underground music on what could be called "the edge". Many artists I like never become popular and spend their whole careers playing in tiny bars.
+Services like spotify don't cut it. They end up tending towards some definition of collective approval, some kind of popular.
 
-Services like spotify don't cut it for me because they end up tending towards some definition of collective approval, some kind of popular.
+Other systems try to classify music and look for similar orchestration and structure. Wrong again. that's not what new music is about.
 
-For instance, on a far older approach to this technique which relied on youtube's recommendation album, there was an explicit filtering out of anything with over a [nominal 300k views](https://github.com/kristopolous/ytmix/blob/master/api/ytlib.php#L27) because the random walk of youtube music recommendation would eventually tend towards mainstream indy or pop artists and then form a tightly clustered and repetitive network around them. (Mainstream indy is essentially a second layer of more refined and eclectic pop that was invented to cater to those who reject mainstream consensus).
+The random walk of discovery systems such as youtube music recommendation would eventually tend towards mainstream indy or pop artists and then form a tightly clustered and repetitive network around them. 
+
+All these systems suck and it's one of the primary reasons pop music has stagnated since their rise,
 
 So I wanted a tool for exploring a mix of variability, consistency and novelty that expanded my horizons without these vanishing gradient properties.
 
