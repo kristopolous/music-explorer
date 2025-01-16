@@ -1,11 +1,16 @@
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PATH=$HOME/code/music-explorer/tools/:$PATH
+
+# These are things you might need to modify
+CODE=$HOME/code/music-explorer
+TMP=/tmp/
 music_dir=/raid-real/mp3/label/
-db_dir=$HOME/www/pl
-playdb=$db_dir/playlist.db
-playtxt=/tmp/playlist.txt
-playcsv=/tmp/playlist.csv
+DB_DIR=$HOME/www/pl
+
+playdb=$DB_DIR/playlist.db
+playtxt=$TMP/playlist.txt
+playcsv=$TMP/playlist.csv
+version=$(cd $CODE;git describe)
 
 start=$(date +%s)
 dbg() {
@@ -47,10 +52,10 @@ convert_songs() {
     if [[ ! -s "$p" ]]; then
       echo "path $p doesn't exist"
     else 
-      mpv-lib toopus "$p" &
+      $CODE/tools/mpv-lib toopus "$p" &
       pid_opus=$!
 
-      mpv-lib tom5a "$p" &
+      $CODE/tools/mpv-lib tom5a "$p" &
       pid_m5a=$!
 
       wait $pid_opus
@@ -81,7 +86,7 @@ convert_songs() {
 }
 
 import_todb() {
-  awk -F '/' ' { fuckoff=$0;sub(/-[0-9]*.mp3/, "", $7);print FNR",\""$5"\",\""$6"\",\""$7"\",\""fuckoff"\"" } ' $playtxt > $playcsv
+  awk -F '/' ' { fuckoff=$0;sub(/-[0-9]*.mp3/, "", $7);print FNR",\""$5"\",\""$6"\",\""$7"\",\""fuckoff"\",\"'$version'\"" } ' $playtxt > $playcsv
   {
   sqlite3 $playdb << ENDL
 PRAGMA encoding=UTF8;
@@ -109,6 +114,7 @@ create_db() {
     duration integer default 0,
     converted boolean default false,
     created_at timestamp default current_timestamp,
+    version text,
     unique(path));
 .mode csv
 create index label_name on tracks(label);

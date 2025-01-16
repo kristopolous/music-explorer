@@ -105,7 +105,7 @@ function play_url(play) {
 
       let [artist, title] = play.track.split(' - ');
       title = title ?? artist;
-      _DOM.player.play();
+      //_DOM.player.play();
 
       // There's a weird chrome bug here with doing another new operator.
       // I think these remediations are just voodoo ... I don't know what
@@ -235,9 +235,9 @@ window.onload = () => {
 
     remote([ `action=${_tab}` ])
       .then(data => {
-				try {
-					_DOM.list.removeChild(_DOM.list.firstElementChild);
-				} catch(e) { } 
+        try {
+          _DOM.list.removeChild(_DOM.list.firstElementChild);
+        } catch(e) { } 
         _DOM.list.innerHTML = '';
         _DOM.list.append(...data.sort().map((obj,ix) => {
             console.log(obj);
@@ -259,7 +259,7 @@ window.onload = () => {
   _DOM.list.onclick = e => {
     let ix = 0;
     if(e.target.tagName == 'INPUT'){
-			if(e.target.name == "format") {
+      if(e.target.name == "format") {
         setLevel( +e.target.value );
       }
     } else if(e.target.tagName == 'LI'){
@@ -293,6 +293,7 @@ window.onload = () => {
 
   _DOM.player.addEventListener('durationchange', (e) => {
     e.target.currentTime = (_DOM.start.value / 100) * e.target.duration;
+    _DOM.player.play();
   });
 
   _DOM.player.onended = () => {
