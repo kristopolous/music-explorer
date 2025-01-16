@@ -486,11 +486,15 @@ record_listen() {
   local me="${4:-_me}"
 
   local lock="$tmp/backup-lock"
-  cp $start_dir/.listen_done $tmp/.listen_done-$(date +%Y%m%d%H%M%S)
+  # this can be done async
+  cp $start_dir/.listen_done $tmp/.listen_done-$(date +%Y%m%d%H%M%S) &
 
   # Remove any previous record of this
   st=$( echo "$i" | tr '//' '.' )
-  sed -Ei "/^$st\ /d" $start_dir/.listen_done
+
+  # this is really slow and potentially
+  # destructive.
+  #sed -Ei "/^$st\ /d" $start_dir/.listen_done
 
   # Also record how many audio files we saw at the time
   echo "$i $n ($stats) $me $(date +%Y%m%d)" >> $start_dir/.listen_done
