@@ -34,7 +34,7 @@ There's also a way to navigate and control the music that uses lua and optionall
 
 Additionally there's music-discovery navigation tools that involve discogs, search engine apis, soundcloud, archive.org, youtube, and bandcamp. That one is done in python and has a web-interface (the code isn't here yet). Hopefully I'll get it cleaned up and presentable.
 
-There is also a web player currently, whose code is included, here's one against my collection [https://9ol.es/pl](https://9ol.es/pl). 
+There is also a web player currently, whose code is included, here's one against my collection [https://mutiny.website](https://mutiny.website). 
 
 It works by ... essentially cloning entire labels. I know what you're saying "that sounds shady." --- I've actually spent 300% more buying music on bandcamp month over month than I did before because this tool exposes artists to me for me to buy.
 
