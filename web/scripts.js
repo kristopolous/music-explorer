@@ -9,14 +9,22 @@ var
   // 0: opus
   // 1: heaac
   // 2: mp3
-  _level = 2,
+  _format = 2,
+  // 0: recent
+  // 1: all
+  _filter = 1,
   _DOM = {},
   _lock = {},
   path_to_url = str => 'https://bandcamp.com/EmbeddedPlayer/size=large/bgcol=333333/linkcol=ffffff/transparent=true/track=' + str.match(/(\d*).mp3$/)[1],
-  remote = (append = []) => fetch("get_playlist.php?" + [ _level == 5 ? "chrono=true" : `level=${_level}`, `q=${_qstr}`, `release=${_my.release}`, `label=${_my.label}`, ...append ].join('&')).then(response => response.json()),
+  remote = (append = []) => fetch("get_playlist.php?" + [ `filter=${_filter}`, 
+      `level=${_format}`, 
+      `q=${_qstr}`, 
+      `release=${_my.release}`, 
+      `label=${_my.label}`, 
+      ...append ].join('&')).then(response => response.json()),
   lookup = play => _db[play.path] ?
     new Promise(r => r(_db[play.path])) :
-    fetch(`url2mp3.php?q=${_level}&path=${encodeURIComponent(play.path)}&u=${path_to_url(play.path)}`)
+    fetch(`url2mp3.php?q=${_format}&path=${encodeURIComponent(play.path)}&u=${path_to_url(play.path)}`)
       .then(response => response.text())
       .then(data => {
         _db[play.path] = data;
@@ -30,9 +38,11 @@ function parsehash() {
     release: hash[1] || ''
   });
   _qstr = hash[3] || '';
-  _level = hash[4] || 2;
-  document.body.className = "q" + _level;
-  document.querySelectorAll('input[name="format"]')[_level].checked = true
+  _format = hash[4] || 2;
+  _filter = hash[5] || 1;
+  document.body.className = "q" + _format;
+  document.querySelectorAll('input[name="format"]')[_format].checked = true
+  document.querySelectorAll('input[name="filter"]')[_filter].checked = true
   return hash[2];
 }
 
@@ -42,7 +52,7 @@ function play_url(play) {
     rel = _my.trackList, ttl = rel.length;
   
   if(!fake) {
-    if(_level > 1) {
+    if(_format > 1) {
       ifr = _if ^= 1;
       _DOM[`if${ifr}`].className = 'in';
 
@@ -65,7 +75,7 @@ function play_url(play) {
       }, 1000);
       _lock.hash = 1;
     }
-    window.location.hash = [play.label, play.release, play.id, _qstr, _level].join('/');
+    window.location.hash = [play.label, play.release, play.id, _qstr, _format, _filter].join('/');
   }
   ['release','label'].forEach(a => _DOM[a].innerHTML = _my[a].replace(/-/g, ' '))
   _DOM.track.innerHTML = [
@@ -115,7 +125,7 @@ function play_url(play) {
             title, artist,
             album: play.release
           },
-          _level < 2 ? {} : {
+          _format < 2 ? {} : {
             artwork: [96,128,192,256,384,512].map(r => { 
               return {
                 src: play.path.replace(/\/[^\/]*$/,'') + `/album-art.jpg`, 
@@ -152,7 +162,7 @@ function d(skip, orig) {
       }
     } 
 
-    if(_level > 1) {
+    if(_format > 1) {
       _DOM.controls.className = 'disabled';
     }
     return remote([ `action=${skip}`, `orig=${orig || skip}` ])
@@ -166,10 +176,10 @@ function d(skip, orig) {
 }
 
 function setLevel(what) {
-  _level = what;
+  _format = what;
   _DOM.search.value = '';
   _db = {};
-  document.body.className = "q" + _level;
+  document.body.className = "q" + _format;
 }
 
 window.onload = () => {
@@ -262,6 +272,9 @@ window.onload = () => {
       if(e.target.name == "format") {
         setLevel( +e.target.value );
       }
+      if(e.target.name == "filter") {
+        _filter = +e.target.value;
+      }
     } else if(e.target.tagName == 'LI'){
       if(_tab === 'track' || _tab === 'release') {
         ix = e.target.ix;
@@ -298,7 +311,7 @@ window.onload = () => {
 
   _DOM.player.onended = () => {
     d("+track");
-    if(_level > 1) {
+    if(_format > 1) {
       Notification.requestPermission().then(p => {
         if (p === "granted") {
           let s = decodeURIComponent(_DOM.player.src).split('/').reverse();
