@@ -2,7 +2,7 @@
 <meta name=viewport content="width=device-width, initial-scale=1.0"/>
 <link rel=preconnect href=https://fonts.gstatic.com>
 <link rel=stylesheet href=https://fonts.googleapis.com/css2?family=BenchNine:wght@300;400;700&display=swap>
-<link rel=stylesheet href=styles.css?c>
+<link rel=stylesheet href=styles.css?h>
 
 <main>
   <div id=top>
@@ -33,13 +33,28 @@
     <div id=lhs>
       <button onclick=d('-track')>&#9665;</button><br/>
       <a onclick=d('-label')>&lt; label</a>
-      <a onclick=d('-release')>&lt; &#x2609;</a>
+      <a class=bigger onclick=d('-release')>&#171;</a>
     </div>
     <div id=rhs>
       <button onclick=d('+track')>&#9655;</button><br/>
-      <a onclick=d('+release')>&#x2609; &gt;</a>
+      <a class=bigger onclick=d('+release')>&#187;</a>
       <a onclick=d('+label')>label &gt;</a>
     </div>
+  </div>
+  <div id=rate>
+    <div id=lhs>
+      <button onclick=d('-track')>&#9665;</button><br/>
+      <a onclick=d('-label')>P</a>
+      <a onclick=d('-release')>4</a>
+    </div>
+    <div id=rhs>
+      <button onclick=d('+track')>&#9655;</button><br/>
+      <a onclick=d('+release')>5</a>
+      <a onclick=d('+label')>S</a>
+    </div>
+  </div>
+  <div id=range>
+    <input type="range" id="start" name="start" min="0" max="100" value="0" step="1" />
   </div>
 </main>
 
@@ -49,29 +64,29 @@
 			<legend>Format</legend>
 			<div>
 				<input type="radio" id="opus" name="format" value="0" />
-				<label for="opus">Opus 15k</label>
+				<label for="opus">15k</label>
 			</div>
 
 			<div>
 				<input type="radio" id="heaac" name="format" value="1" />
-				<label for="heaac">HE-AAC+ 32k</label>
+        <label for="heaac">32k</label>
 			</div>
 
 			<div>
 				<input type="radio" id="mp3" name="format" value="2" />
-				<label for="mp3">MP3 128k</label>
+				<label for="mp3">128k</label>
 			</div>
 		</fieldset>
 		<fieldset>
-			<legend>Order</legend>
+			<legend>Filter</legend>
 			<div>
-				<input type="radio" id="chrono" name="order" value="chrono" />
-				<label for="chrono">Chronological</label>
+				<input type="radio" id="recent" name="filter" value="0" />
+				<label for="recent">Recent</label>
 			</div>
 
 			<div>
-				<input type="radio" id="rand" name="order" value="rand" />
-				<label for="rand">Random</label>
+				<input type="radio" id="all" name="filter" value="1" />
+				<label for="all">All</label>
 			</div>
 		</fieldset>
 	</div>
