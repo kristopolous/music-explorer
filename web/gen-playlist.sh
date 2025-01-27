@@ -1,11 +1,16 @@
 #!/bin/bash
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-PATH=$HOME/code/music-explorer/tools/:$PATH
+
+# These are things you might need to modify
+CODE=$HOME/code/music-explorer
+TMP=/tmp/
 music_dir=/raid-real/mp3/label/
-db_dir=$HOME/www/pl
-playdb=$db_dir/playlist.db
-playtxt=/tmp/playlist.txt
-playcsv=/tmp/playlist.csv
+DB_DIR=$HOME/www/pl
+
+playdb=$DB_DIR/playlist.db
+playtxt=$TMP/playlist.txt
+playcsv=$TMP/playlist.csv
+version=$(cd $CODE;git describe)
 
 start=$(date +%s)
 dbg() {
@@ -16,9 +21,9 @@ gen_playlist() {
   dbg "truncating"
   truncate --size 0 $playtxt
   dbg "recreating"
-  grep rating_5 "$music_dir".listen_done | sort | cut -f 1 -d ' ' | while read i
+  cat "$music_dir".listen_done | grep rating_5 | sort | awk -F ' ' ' { print $1" "$NF } ' | while read i dt
   do
-    ls "$music_dir"$i/*.mp3 >> $playtxt
+    ls "$music_dir"$i/*.mp3  | awk ' { print '$dt'$0 } ' >> $playtxt
   done
   dbg "playlist done"
 }
@@ -47,10 +52,10 @@ convert_songs() {
     if [[ ! -s "$p" ]]; then
       echo "path $p doesn't exist"
     else 
-      mpv-lib toopus "$p" &
+      $CODE/tools/mpv-lib toopus "$p" &
       pid_opus=$!
 
-      mpv-lib tom5a "$p" &
+      $CODE/tools/mpv-lib tom5a "$p" &
       pid_m5a=$!
 
       wait $pid_opus
@@ -81,43 +86,44 @@ convert_songs() {
 }
 
 import_todb() {
-  awk -F '/' ' { fuckoff=$0;sub(/-[0-9]*.mp3/, "", $7);print FNR",\""$5"\",\""$6"\",\""$7"\",\""fuckoff"\"" } ' $playtxt > $playcsv
+  fields="label,release,track,path,created_at"
+  cat $playtxt | awk -F '/' -f parser.awk > $playcsv
   {
   sqlite3 $playdb << ENDL
 PRAGMA encoding=UTF8;
 .mode csv
-.import $playcsv tracks
-update tracks set created_at = current_timestamp where created_at is null;
+delete from tracks_temp;
+.import $playcsv tracks_temp
+insert or ignore into tracks(label,release,track,path,created_at) select * from tracks_temp;
+update tracks set version = "$version" where version is null;
 ENDL
-} >& /dev/null
+} #>& /dev/null
 }
 
 create_db() {
   truncate --size 0 $playdb
+  rm $playdb
   sqlite3 $playdb << ENDL
+  create table tracks_temp(label text, release text, track text, path text, created_at date); 
   create table tracks(
     id INTEGER PRIMARY KEY,
     label text,
     release text,
     track text,
     path text,
-    artist text,
+    created_at date,
+    version text default "",
     listen integer default 0,
     plays integer default 0,
-    up integer default 0,
-    down integer default 0,
     duration integer default 0,
     converted boolean default false,
-    created_at timestamp default current_timestamp,
     unique(path));
-.mode csv
 create index label_name on tracks(label);
 create index release_name on tracks(release);
 ENDL
 }
-
 #create_db
 gen_playlist
 copy_songs
 import_todb
-convert_songs
+#convert_songs

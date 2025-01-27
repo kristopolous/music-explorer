@@ -13,7 +13,6 @@ body {
   text-align: center; 
   color: #ebebeb;
   width: 100vw;
-  height: 100vh;
 }
   
 .q0 {
@@ -25,7 +24,7 @@ body {
   
 *:focus {outline: none}
 
-#templates { 
+#rate, #templates { 
   display: none
 }
 
@@ -127,13 +126,15 @@ iframe {
 #controls a {
   display: inline-block;
   margin: .5rem 0;
-  width: calc(50% - .25rem)
+  width: calc(50% - .25rem);
 }
 
 #controls * {
   user-select: none;
 }
 
+#controls .bigger {
+}
 li.selected { 
   background: #303030;
 }
@@ -172,6 +173,12 @@ li.selected {
   margin-bottom:.5rem;
   height:0;
   overflow:visible;
+}
+#range {
+  filter: grayscale(1) invert(1);
+}
+#range > * {
+  padding: 0;
 }
 
 #track {
