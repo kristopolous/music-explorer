@@ -688,37 +688,46 @@ _repl() {
     if [[ $n == '?' || $n == 'help' ]]; then
       headline 1 "Keyboard commands" 
       { cat <<- ENDL
-      ?       - This help page
-      3,4,5   - Rate
-      e       - Eval
-      p       - Purge (delete)
-      un      - Unpurge
-      dl      - Download the files
-      dlm     - Download manually
-      dlp     - Download just the playlist
-      g       - Go to a path
-      i       - Info on the release
-      l       - List the files
-      o       - Xdg-open the URL
-      r       - Repeat
-      r no    - Repeat (ignore playlist)
-      s       - Skip 
-      x       - Exit
+      Labeling:
+        3,4,5   - Rate
+        p       - Purge (delete)
+        un      - Unpurge
 
-      save    - Save the current playlist
-      load    - Load a playlist
+      Management:
+        dl      - Download the files
+        dlm     - Download manually
+        dlp     - Download just the playlist
+        i       - Info on the release
+        l       - List the files
+        b       - Set start time    [$start_time]
+        ao      - Set audio out     [$ao]
+        o       - Xdg-open the URL
 
-      remote  - Set remote server [$REMOTE]
-      base    - Set remote base   [$REMOTEBASE]
-      fmt     - Set the format    [$FMT]
-      ao      - Set audio out     [$ao]
-      b       - Set start time    [$start_time]
+      Navigation:
+        g       - Go to a path
+        r       - Repeat
+        r no    - Repeat (ignore playlist)
+        s       - Skip 
+        x       - Exit
 
-      filter  - Set filter        [$filter]
-      list    - List things in filter
+      Playlist:
+        save    - Save the current playlist
+        load    - Load a playlist
 
-      !       - Do a \$SHELL at the file directory
-      source  - Reload lib
+      Converting:
+        remote  - Set remote server [$REMOTE]
+        base    - Set remote base   [$REMOTEBASE]
+        fmt     - Set the format    [$FMT]
+
+      Filtering:
+        filter  - Set filter        [$filter]
+        list    - List things in filter
+
+      Misc:
+        !       - Do a \$SHELL at the file directory
+        source  - Reload lib
+        e       - Eval
+        ?       - This help page
 
       Toggles:
         anno    - announce     [${STR[${NOANNOU:-0}]}]
