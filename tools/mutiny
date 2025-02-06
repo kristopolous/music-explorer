@@ -275,7 +275,7 @@ while [[ ${#all[@]} -gt $ix ]]; do
             player_exit=1
           fi
 
-          if [[ $player_exit == "1" ]]; then
+          if [[ $player_exit == "1" && -n "$REMOTEPL" ]]; then
             status "Woops, need to get a new set of urls"
             if [[ $attempts -gt 2 ]]; then
               status "This isn't going that well"

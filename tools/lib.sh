@@ -314,11 +314,20 @@ END
 
 _doc['_get_urls']="[ internal ] Creates an m3u playlist"
 _get_urls() {
-  echo $DIR/ytdl2m3u.awk;
+  [[ -e "$2" ]] && cp "$2" "$tmp/URL-backup"
+
   $YTDL $SLEEP_OPTS \
     --get-duration --get-filename -g $FORMAT -- "$1" \
-    | tee $tmp/${2//\//:} \
+    | tee "$tmp/${2//\//:}" \
     | awk -f $DIR/ytdl2m3u.awk > "$2"
+
+  if [[ ! -s "$2" ]]; then
+    _warn "New playlist is not valid. Restoring old one if possible"
+    if [[ -e "$tmp/URL-backup" ]]; then 
+      cp "$tmp/URL-backup" "$2"
+      rm "$tmp/URL-backup"
+    fi
+  fi
 }
 
 _doc['get_urls']="[ internal ] "
