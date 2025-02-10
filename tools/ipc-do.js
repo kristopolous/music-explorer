@@ -23,6 +23,16 @@ const commandMap = {
   getpause: ['get_property', 'pause']
 }
 
+function cleanExit() {
+  // Close the socket client first
+  client.end(() => {
+    // Then close the write stream
+    sclient.end(() => {
+      process.exit(0);
+    });
+  });
+}
+
 function send(list) {
   var towrite = JSON.stringify({command: list});
   client.write(Buffer.from(towrite + '\n', 'utf-8'));
@@ -65,7 +75,7 @@ if (command == 'pauseplay') {
   cb = function(pos) {
     let newpos = pos + direction;
     if(newpos < 0) {
-    process.exit();
+      cleanExit();   
     }
     send(['set_property', 'playlist-pos', newpos]);
   }
@@ -87,7 +97,7 @@ if (!command) {
     'volume', 'volup', 'voldn',
     'pauseplay', 
     'prev', 'next']).sort());
-  process.exit();
+  cleanExit();   
 }
 
 client.on('connect', () => {
@@ -104,7 +114,7 @@ client.on('data', (data) => {
     console.log(row);
 
     if (quitList.includes(row.event) || !cb) {
-      process.exit();
+      cleanExit();   
     } 
 
     if ('data' in row && cb) {
