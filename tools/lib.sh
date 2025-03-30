@@ -724,9 +724,9 @@ _repl() {
         load    - Load a playlist
 
       Converting:
-        remote  - Set remote server [$REMOTE]
-        base    - Set remote base   [$REMOTEBASE]
-        fmt     - Set the format    [$FMT]
+        remote  - Remote server         [$REMOTE]
+        base    - Remote base           [$REMOTEBASE]
+        fmt     - Format (opus|m5a|mp3) [$FMT]
 
       Filtering:
         filter  - Set filter        [$filter]
