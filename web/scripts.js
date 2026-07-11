@@ -58,6 +58,10 @@ function parsehash() {
   return hash[2];
 }
 
+function dbg(str){
+  document.querySelector("#debug").innerHTML += str + "<br/>";
+}
+
 function play_url(play) {
   if (!play) {
     window.location.hash = "";
@@ -491,14 +495,14 @@ window.onload = () => {
   let wakeLock = null;
 
   async function requestWakeLock() {
-      try {
-          if ('wakeLock' in navigator) {
-              wakeLock = await navigator.wakeLock.request('screen');
-              console.log('CPU/Screen Lock Active');
-          }
-      } catch (err) {
-          console.error(`${err.name}, ${err.message}`);
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLock = await navigator.wakeLock.request('screen');
+        console.log('CPU/Screen Lock Active');
       }
+    } catch (err) {
+      console.error(`${err.name}, ${err.message}`);
+    }
   }
 
   // Re-request lock if user leaves and returns to app
