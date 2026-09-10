@@ -301,6 +301,7 @@ window.onload = () => {
         return;
       }
       await _DOM.player.play();
+      await requestWakeLock();
 
       Object.assign(navigator.mediaSession.metadata, {
         title: "Play",
@@ -463,6 +464,7 @@ window.onload = () => {
       e.target.currentTime = (_DOM.start.value / 100) * e.target.duration;
     }
     _DOM.player.play();
+    requestWakeLock();
   });
 
   _DOM.start.onchange = (e) => {
@@ -493,12 +495,16 @@ window.onload = () => {
     bail();
   }
   let wakeLock = null;
+  dbg("screen");
 
   async function requestWakeLock() {
     try {
       if ('wakeLock' in navigator) {
         wakeLock = await navigator.wakeLock.request('screen');
-        console.log('CPU/Screen Lock Active');
+        dbg('CPU/Screen Lock Active');
+      }
+      else {
+        dbg('No wakelock');
       }
     } catch (err) {
       console.error(`${err.name}, ${err.message}`);
